@@ -12,7 +12,7 @@ const resources = {
   id: { translation: id },
 };
 
-if (!i18n.isInitialized) {
+if (typeof window !== "undefined" && !i18n.isInitialized) {
   i18n
     .use(LanguageDetector)
     .use(initReactI18next)

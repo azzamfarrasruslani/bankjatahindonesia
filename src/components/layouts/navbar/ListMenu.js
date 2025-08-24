@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
+import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { usePathname } from "next/navigation";
 import DropdownLink from "./DropdownLink";
@@ -15,14 +15,17 @@ export default function ListMenu() {
       pathname === path ? "text-yellow-600 font-bold" : ""
     }`;
 
-  const menuItems = [
-    { label: t("navbar.beranda"), path: "/" },
+  const beranda = { label: t("navbar.beranda"), path: "/" };
+
+  // Dropdown: Program Jelantah
+  const [selectedProgramJelantah] = useState(t("navbar.program-jelantah"));
+  const programJelantahMenu = [
     { label: t("navbar.tabungan-jelantah"), path: "/tabungan-jelantah" },
     { label: t("navbar.jual-beli-jelantah"), path: "/jual-beli-jelantah" },
     { label: t("navbar.sedekah-jelantah"), path: "/sedekah-jelantah" },
   ];
 
-  // Dropdown menus
+  // Dropdown: Info & Artikel
   const [selectedInfo] = useState(t("navbar.info-artikel"));
   const infoMenu = [
     { label: t("navbar.artikel"), path: "/artikel" },
@@ -30,6 +33,7 @@ export default function ListMenu() {
     { label: t("navbar.faq"), path: "/faq" },
   ];
 
+  // Dropdown: Lainnya
   const [selectedLainnya] = useState(t("navbar.lainnya"));
   const lainnyaMenu = [
     { label: t("navbar.kontak"), path: "/kontak" },
@@ -38,23 +42,30 @@ export default function ListMenu() {
   ];
 
   return (
-    <ul className="hidden md:flex space-x-10 text-lg font-semibold capitalize">
-      {menuItems.map((item) => (
-        <li key={item.label}>
-          <Link href={item.path} className={menuClass(item.path)}>
-            {item.label}
-            <span
-              className={`absolute left-0 -bottom-1 h-0.5 w-full bg-yellow-600 transition-transform duration-300 ${
-                pathname === item.path ? "scale-x-100" : "scale-x-0"
-              }`}
-            ></span>
-          </Link>
-        </li>
-      ))}
+    <ul className="hidden md:flex space-x-7 text-lg font-semibold capitalize">
+      {/* Beranda */}
+      <li>
+        <Link href={beranda.path} className={menuClass(beranda.path)}>
+          {beranda.label}
+          <span
+            className={`absolute left-0 -bottom-1 h-0.5 w-full bg-yellow-600 transition-transform duration-300 ${
+              pathname === beranda.path ? "scale-x-100" : "scale-x-0"
+            }`}
+          ></span>
+        </Link>
+      </li>
 
+      {/* Dropdown: Program Jelantah */}
+      <li>
+        <DropdownLink items={programJelantahMenu} selected={selectedProgramJelantah} />
+      </li>
+
+      {/* Dropdown: Info & Artikel */}
       <li>
         <DropdownLink items={infoMenu} selected={selectedInfo} />
       </li>
+
+      {/* Dropdown: Lainnya */}
       <li>
         <DropdownLink items={lainnyaMenu} selected={selectedLainnya} />
       </li>

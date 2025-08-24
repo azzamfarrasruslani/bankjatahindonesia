@@ -1,30 +1,21 @@
-import { useEffect, useState } from "react";
+"use client";
 
-export default function LanguageSelector({ changeLanguage, currentLang, languages }) {
-  const [selectedLang, setSelectedLang] = useState(currentLang || "en");
+import { useTranslation } from "react-i18next";
 
-  // Hanya sekali saat pertama mount
-  useEffect(() => {
-    const savedLang = localStorage.getItem("language");
-    if (savedLang) {
-      setSelectedLang(savedLang);
-      changeLanguage(savedLang);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+export default function LanguageSelector({ languages }) {
+  const { i18n } = useTranslation();
+  const currentLang = i18n.language;
 
   const handleChange = (e) => {
     const newLang = e.target.value;
-    setSelectedLang(newLang);
+    i18n.changeLanguage(newLang);
     localStorage.setItem("language", newLang);
-    changeLanguage(newLang);
-    window.location.reload(); // Refresh untuk update teks yang sudah terload
   };
 
   return (
     <select
       className="rounded-lg bg-gray-200 px-3 py-1 text-sm font-bold text-gray-800"
-      value={selectedLang}
+      value={currentLang}
       onChange={handleChange}
     >
       {languages.map((lng) => (
