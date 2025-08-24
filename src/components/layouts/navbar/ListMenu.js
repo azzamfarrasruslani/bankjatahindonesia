@@ -11,8 +11,8 @@ export default function ListMenu() {
   const pathname = usePathname();
 
   const menuClass = (path) =>
-    `relative text-gray-700 hover:text-yellow-600 transition-all duration-300 ${
-      pathname === path ? "text-yellow-600 font-bold" : ""
+    `relative transition duration-300 px-2 py-1 text-gray-700 hover:text-[#FB6B00] ${
+      pathname === path ? "text-[#FB6B00] font-bold" : ""
     }`;
 
   const beranda = { label: t("navbar.beranda"), path: "/" };
@@ -42,30 +42,26 @@ export default function ListMenu() {
   ];
 
   return (
-    <ul className="hidden md:flex space-x-7 text-lg font-semibold capitalize">
-      {/* Beranda */}
+    <ul className="flex space-x-8 text-base font-medium">
       <li>
         <Link href={beranda.path} className={menuClass(beranda.path)}>
           {beranda.label}
           <span
-            className={`absolute left-0 -bottom-1 h-0.5 w-full bg-yellow-600 transition-transform duration-300 ${
+            className={`absolute left-0 -bottom-1 h-0.5 w-full bg-[#FB6B00] transform transition-transform duration-300 ${
               pathname === beranda.path ? "scale-x-100" : "scale-x-0"
             }`}
           ></span>
         </Link>
       </li>
 
-      {/* Dropdown: Program Jelantah */}
       <li>
         <DropdownLink items={programJelantahMenu} selected={selectedProgramJelantah} />
       </li>
 
-      {/* Dropdown: Info & Artikel */}
       <li>
         <DropdownLink items={infoMenu} selected={selectedInfo} />
       </li>
 
-      {/* Dropdown: Lainnya */}
       <li>
         <DropdownLink items={lainnyaMenu} selected={selectedLainnya} />
       </li>

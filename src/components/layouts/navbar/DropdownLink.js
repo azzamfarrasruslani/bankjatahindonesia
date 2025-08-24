@@ -41,7 +41,7 @@ export default function DropdownLink({ items = [], selected, onSelect = () => {}
   return (
     <div ref={dropdownRef} className="relative sm:w-auto">
       <motion.button
-        className="flex items-center justify-between text-lg font-medium text-gray-800 capitalize transition duration-300 ease-in-out hover:text-yellow-600"
+        className="flex items-center justify-between text-lg font-medium text-gray-800 capitalize transition duration-300 ease-in-out hover:text-[#FB6B00]"
         onClick={() => setIsOpen(!isOpen)}
         whileTap={{ scale: 0.97 }}
       >
@@ -76,8 +76,8 @@ export default function DropdownLink({ items = [], selected, onSelect = () => {}
               <li key={i} onClick={() => handleSelect(item)}>
                 <Link
                   href={item.path}
-                  className={`block px-8 py-2 text-base transition duration-300 ease-in-out hover:bg-gray-100 hover:text-yellow-600 ${
-                    pathname === item.path ? "text-yellow-600" : "text-gray-800"
+                  className={`block px-8 py-2 text-base transition duration-300 ease-in-out hover:bg-gray-100 hover:text-[#FB6B00] ${
+                    pathname === item.path ? "text-[#FB6B00]" : "text-gray-800"
                   }`}
                 >
                   {item.label}
