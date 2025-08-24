@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 import { useState } from "react";
 
 export default function CaraKerja() {
@@ -145,7 +145,7 @@ export default function CaraKerja() {
               key={item.number}
               className="flex flex-col items-center rounded-lg bg-gray-50 p-4 shadow-md hover:shadow-xl transition duration-300"
             >
-              <img
+              <image
                 src={item.image}
                 alt={item.title}
                 className="mb-4 w-full rounded object-contain"
