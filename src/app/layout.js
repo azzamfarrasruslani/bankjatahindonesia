@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import "../lib/i18n"; // <-- Tambahkan ini paling atas
+import "../lib/i18n"; 
 import "./globals.css";
+import FloatingWAButton from "@/components/common/FloatingWAButton";  
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,6 +29,7 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+         <FloatingWAButton /> 
       </body>
     </html>
   );

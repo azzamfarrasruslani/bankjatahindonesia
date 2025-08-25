@@ -10,12 +10,17 @@ export default function ListMenu() {
   const { t } = useTranslation();
   const pathname = usePathname();
 
-  const menuClass = (path) =>
-    `relative transition duration-300 px-2 py-1 text-gray-700 hover:text-[#FB6B00] ${
-      pathname === path ? "text-[#FB6B00] font-bold" : ""
-    }`;
+  const baseMenuClass =
+    "relative px-2 py-1 text-sm font-medium text-gray-700 hover:text-[#FB6B00] transition duration-300";
+
+const menuClass = (path) =>
+  `${baseMenuClass} ${
+    pathname === path ? "text-[#FB6B00] font-semibold" : ""
+  }`;
+
 
   const beranda = { label: t("navbar.beranda"), path: "/" };
+  const tentangKami = { label: t("navbar.tentang-kami"), path: "/tentang" };
 
   // Dropdown: Program Jelantah
   const [selectedProgramJelantah] = useState(t("navbar.program-jelantah"));
@@ -42,7 +47,8 @@ export default function ListMenu() {
   ];
 
   return (
-    <ul className="flex space-x-8 text-base font-medium">
+    <ul className="flex space-x-6 text-sm font-medium">
+      {/* Beranda */}
       <li>
         <Link href={beranda.path} className={menuClass(beranda.path)}>
           {beranda.label}
@@ -50,20 +56,43 @@ export default function ListMenu() {
             className={`absolute left-0 -bottom-1 h-0.5 w-full bg-[#FB6B00] transform transition-transform duration-300 ${
               pathname === beranda.path ? "scale-x-100" : "scale-x-0"
             }`}
-          ></span>
+          />
         </Link>
       </li>
 
+      {/* Tentang Kami */}
       <li>
-        <DropdownLink items={programJelantahMenu} selected={selectedProgramJelantah} />
+        <Link href={tentangKami.path} className={`${menuClass(tentangKami.path)} text-[15px]`}>
+          {tentangKami.label}
+          <span
+            className={`absolute left-0 -bottom-1 h-0.5 w-full bg-[#FB6B00] transform transition-transform duration-300 ${
+              pathname === tentangKami.path ? "scale-x-100" : "scale-x-0"
+            }`}
+          />
+        </Link>
       </li>
 
+      {/* Dropdowns */}
       <li>
-        <DropdownLink items={infoMenu} selected={selectedInfo} />
+        <DropdownLink
+          items={programJelantahMenu}
+          selected={selectedProgramJelantah}
+          className="text-sm font-normal text-gray-600 hover:text-[#FB6B00]"
+        />
       </li>
-
       <li>
-        <DropdownLink items={lainnyaMenu} selected={selectedLainnya} />
+        <DropdownLink
+          items={infoMenu}
+          selected={selectedInfo}
+          className="text-sm font-normal text-gray-600 hover:text-[#FB6B00]"
+        />
+      </li>
+      <li>
+        <DropdownLink
+          items={lainnyaMenu}
+          selected={selectedLainnya}
+          className="text-sm font-normal text-gray-600 hover:text-[#FB6B00]"
+        />
       </li>
     </ul>
   );

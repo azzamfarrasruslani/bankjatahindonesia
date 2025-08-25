@@ -1,7 +1,14 @@
 import Image from "next/image";
 import Navbar from "./layout/navbar";
 import Footer from "@/app/layout/footer";
-import CaraKerja from "@/components/CaraKerja";
+import ProgramBankJatah from "@/components/home/ProgramBankJatah";
+import Hero from "@/components/home/Hero";
+import Mitra from "@/components/home/Mitra";
+import ManfaatJelantah from "@/components/home/ManfaatJelantah";
+import TestimoniMasyarakat from "@/components/home/TestimoniMasyarakat";
+import FAQ from "@/components/home/FAQ";
+import TentangKami from "@/components/home/TentangKami";
+import { Tent } from "lucide-react";
 
 export default function Home() {
   return (
@@ -10,54 +17,43 @@ export default function Home() {
       <Navbar />
 
       {/* Hero */}
-      <main className="relative flex-grow text-center">
-        {/* Background Image */}
-        <div
-          className="absolute inset-0 bg-cover bg-center z-0"
-          style={{
-            backgroundImage: "url('/images/hero.jpeg')", // ganti dengan path gambar kamu
-          }}
-        >
-          {/* Backdrop hitam */}
-          <div className="absolute inset-0 bg-black/60"></div>
-        </div>
+      <Hero />
 
-        {/* Konten */}
-        <div className="relative z-10 flex items-center justify-center min-h-[500px] px-6 py-20">
-          <div className="max-w-3xl mx-auto  p-8 rounded-xl shadow-lg">
-            <h2 className="text-4xl sm:text-5xl font-bold text-[#FB6B00] mb-4 leading-tight">
-              Ubah Minyak Jelantah Jadi Tabungan Masa Depan
-            </h2>
-            <p className="text-lg text-white">
-              Bank Jatah Indonesia mengajak Anda menyelamatkan lingkungan dengan
-              cara sederhana namun berdampak besar.
-            </p>
-            <div className="mt-6">
-              <a
-                href="#about"
-                className="bg-[#FB6B00] hover:bg-[#e96000] text-white font-semibold py-3 px-6 rounded-full transition duration-200"
-              >
-                Jelajahi Sekarang
-              </a>
-            </div>
-          </div>
-        </div>
-      </main>
+      {/* Tentang Kami */}
+      <section id="tentangkami" className="py-20 px-6 bg-white">
+        <TentangKami />
+      </section>
 
-      {/* About */}
-      <section id="about" className="py-20 px-6 bg-white">
-        {/* <div className="max-w-4xl mx-auto text-center">
-          <h3 className="text-3xl font-bold text-[#FB6B00] mb-4">Kenapa Harus Peduli Jelantah?</h3>
-          <p className="text-gray-700 leading-relaxed">
-            Minyak jelantah bekas pakai jika dibuang sembarangan bisa mencemari tanah dan air. Kami hadir memberikan solusi: menabung jelantah untuk masa depan yang sehat dan berkelanjutan.
-          </p>
-        </div> */}
 
-        <CaraKerja />
+      {/* Program */}
+      <section id="program" className="py-20 px-6 bg-white">
+        <ProgramBankJatah />
+      </section>
+
+
+      {/* Manfaat */}
+      <section id="Manfaat" className="py-20 px-6 bg-white">
+        <ManfaatJelantah />
+      </section>
+
+      {/* Testimoni */}
+      <section id="Testimoni" className="py-20 px-6 bg-white">
+        <TestimoniMasyarakat />
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="py-20 px-6 bg-white">
+        <FAQ />
+      </section>
+
+
+      {/* Mitra */}
+      <section id="Mitra" className="py-20 px-6 bg-white">
+        <Mitra />
       </section>
 
       {/* Services */}
-      <section id="services" className="py-20 px-6 bg-[#1a1a1a] text-white">
+      {/* <section id="services" className="py-20 px-6 bg-[#1a1a1a] text-white">
         <div className="max-w-6xl mx-auto text-center">
           <h3 className="text-3xl font-bold text-[#FB6B00] mb-12">
             Layanan Unggulan Kami
@@ -89,7 +85,7 @@ export default function Home() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Footer */}
       <Footer />
