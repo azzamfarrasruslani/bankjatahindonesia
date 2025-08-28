@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -16,7 +16,12 @@ import "@/lib/i18n";
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
-  const { t, i18n } = useTranslation();
+  const { t, i18n, ready } = useTranslation();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true); // pastikan render di client
+  }, []);
 
   const changeLanguage = (lng) => i18n.changeLanguage(lng);
   const currentLang = i18n.language;
@@ -26,11 +31,19 @@ export default function Navbar() {
     setOpenDropdown((prev) => (prev === key ? null : key));
   };
 
+  if (!ready || !mounted) return null; // render client-only
+
   return (
     <nav className="sticky top-0 z-50 w-full bg-white shadow-md backdrop-blur-md">
       <div className="container mx-auto flex items-center justify-between px-6 py-4">
         <Link href="/">
-          <Image src="/images/Logo.png" alt="Logo" width={130} height={130} priority />
+          <Image
+            src="/images/Logo.png"
+            alt="Logo"
+            width={130}
+            height={130}
+            priority
+          />
         </Link>
 
         <div className="hidden md:flex flex-1 justify-center">

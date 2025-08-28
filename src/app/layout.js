@@ -1,7 +1,13 @@
+// src/app/layout.js
+
 import { Geist, Geist_Mono } from "next/font/google";
-import "../lib/i18n"; 
+import "../lib/i18n";
 import "./globals.css";
-import FloatingWAButton from "@/components/common/FloatingWAButton";  
+
+// Komponen UI global
+import FloatingWAButton from "@/components/common/FloatingWAButton";
+import Navbar from "@/app/layout/navbar";
+import Footer from "@/app/layout/footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,17 +25,13 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  const lang = typeof window !== "undefined"
-    ? localStorage.getItem("language") || "id"
-    : "id"; // fallback server-side
-
   return (
-    <html lang={lang}>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html lang="id">
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <Navbar /> {/* Navbar muncul di semua halaman */}
         {children}
-         <FloatingWAButton /> 
+        <Footer /> {/* Footer muncul di semua halaman */}
+        <FloatingWAButton /> {/* Tombol WA */}
       </body>
     </html>
   );

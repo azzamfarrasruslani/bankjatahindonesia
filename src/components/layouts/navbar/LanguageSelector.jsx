@@ -5,9 +5,9 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
-export default function LanguageSelector({ languages }) {
+export default function LanguageSelector({ languages = [] }) {
   const { i18n } = useTranslation();
-  const currentLang = i18n.language;
+  const currentLang = i18n.language || "id"; // fallback default
 
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -39,7 +39,7 @@ export default function LanguageSelector({ languages }) {
         whileTap={{ scale: 0.95 }}
         className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-gray-300 text-sm font-semibold text-gray-800 shadow-sm hover:border-[#FB6B00] hover:text-[#FB6B00] transition"
       >
-        {currentLang.toUpperCase()}
+        {currentLang?.toUpperCase?.() ?? "ID"}
         <motion.span
           animate={{ rotate: open ? 180 : 0 }}
           transition={{ duration: 0.3 }}
@@ -58,18 +58,24 @@ export default function LanguageSelector({ languages }) {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
           >
-            {languages.map((lng) => (
-              <li key={lng}>
-                <button
-                  onClick={() => handleSelect(lng)}
-                  className={`block w-full text-left px-4 py-2 text-sm transition hover:bg-gray-100 ${
-                    currentLang === lng ? "text-[#FB6B00] font-semibold" : "text-gray-800"
-                  }`}
-                >
-                  {lng.toUpperCase()}
-                </button>
-              </li>
-            ))}
+            {Array.isArray(languages) && languages.length > 0 ? (
+              languages.map((lng) => (
+                <li key={lng}>
+                  <button
+                    onClick={() => handleSelect(lng)}
+                    className={`block w-full text-left px-4 py-2 text-sm transition hover:bg-gray-100 ${
+                      currentLang === lng
+                        ? "text-[#FB6B00] font-semibold"
+                        : "text-gray-800"
+                    }`}
+                  >
+                    {lng?.toUpperCase?.() ?? lng}
+                  </button>
+                </li>
+              ))
+            ) : (
+              <li className="px-4 py-2 text-sm text-gray-500">No language</li>
+            )}
           </motion.ul>
         )}
       </AnimatePresence>

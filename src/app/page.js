@@ -14,7 +14,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white text-black font-sans flex flex-col">
       {/* Header */}
-      <Navbar />
+      {/* <Navbar /> */}
 
       {/* Hero */}
       <Hero />
@@ -88,7 +88,7 @@ export default function Home() {
       </section> */}
 
       {/* Footer */}
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 }

@@ -35,16 +35,20 @@ export default function DropdownLink({ items = [], selected, onSelect = () => {}
     setIsOpen(false);
   };
 
+  const isActive = items.some((item) => pathname === item.path);
+
   return (
     <div ref={dropdownRef} className="relative">
       <motion.button
-        className="flex items-center gap-1 px-2 py-1 text-sm font-medium text-gray-700 transition duration-300 hover:text-[#FB6B00]"
+        className={`relative inline-flex items-center gap-1 px-2 py-1 text-sm font-medium leading-none align-middle transition duration-300 ${
+          isActive ? "text-[#FB6B00] font-semibold" : "text-gray-700 hover:text-[#FB6B00]"
+        }`}
         onClick={() => setIsOpen(!isOpen)}
         whileTap={{ scale: 0.97 }}
       >
         {selected}
         <motion.svg
-          className="h-4 w-4"
+          className="h-4 w-4 mt-[1px]" // Biar panah tidak ganggu posisi teks
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -53,6 +57,12 @@ export default function DropdownLink({ items = [], selected, onSelect = () => {}
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </motion.svg>
+
+        <span
+          className={`absolute left-0 -bottom-1 h-0.5 w-full bg-[#FB6B00] transform transition-transform duration-300 ${
+            isActive ? "scale-x-100" : "scale-x-0"
+          }`}
+        />
       </motion.button>
 
       <AnimatePresence>
