@@ -20,7 +20,7 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true); // pastikan render di client
+    setMounted(true); // render hanya di client
   }, []);
 
   const changeLanguage = (lng) => i18n.changeLanguage(lng);
@@ -31,11 +31,12 @@ export default function Navbar() {
     setOpenDropdown((prev) => (prev === key ? null : key));
   };
 
-  if (!ready || !mounted) return null; // render client-only
+  if (!ready || !mounted) return null;
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-white shadow-md backdrop-blur-md">
       <div className="container mx-auto flex items-center justify-between px-6 py-4">
+        {/* Logo */}
         <Link href="/">
           <Image
             src="/images/Logo.png"
@@ -46,10 +47,12 @@ export default function Navbar() {
           />
         </Link>
 
-        <div className="hidden md:flex flex-1 justify-center">
+        {/* Desktop Menu */}
+    <div className="hidden md:flex flex-1 justify-center text-sm font-medium leading-none">
           <ListMenu />
         </div>
 
+        {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-4">
           <LanguageSelector
             changeLanguage={changeLanguage}
@@ -66,6 +69,7 @@ export default function Navbar() {
           </Link>
         </div>
 
+        {/* Mobile Menu Icon */}
         <div className="md:hidden">
           <button onClick={() => setIsOpen(true)}>
             <Menu size={28} />
@@ -73,9 +77,11 @@ export default function Navbar() {
         </div>
       </div>
 
+      {/* Mobile Menu */}
       <AnimatePresence>
         {isOpen && (
           <>
+            {/* Overlay */}
             <motion.div
               className="fixed inset-0 z-40 bg-black/50"
               onClick={() => setIsOpen(false)}
@@ -83,6 +89,8 @@ export default function Navbar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             />
+
+            {/* Menu Slide */}
             <MobileNavbar
               setIsOpen={setIsOpen}
               openDropdown={openDropdown}

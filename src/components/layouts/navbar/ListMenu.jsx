@@ -15,10 +15,10 @@ export default function ListMenu() {
     setMounted(true);
   }, []);
 
-  if (!ready || !mounted) return null; // pastikan hanya render di client
+  if (!ready || !mounted) return null;
 
   const menuClass = (path) =>
-    `relative inline-flex items-center px-2 py-1 text-sm font-medium leading-none transition duration-300 hover:text-[#FB6B00] ${
+    `relative inline-flex items-center px-2 py-1 text-sm font-medium leading-none whitespace-nowrap transition duration-300 hover:text-[#FB6B00] ${
       pathname === path ? "text-[#FB6B00] font-semibold" : "text-gray-700"
     }`;
 
@@ -34,6 +34,7 @@ export default function ListMenu() {
           />
         </Link>
       </li>
+
       <li>
         <Link href="/tentang" className={menuClass("/tentang")}>
           {t("navbar.tentang-kami")}
@@ -44,16 +45,19 @@ export default function ListMenu() {
           />
         </Link>
       </li>
+
+      {/* GANTI dropdown jadi link tunggal */}
       <li>
-        <DropdownLink
-          items={[
-            { label: t("navbar.tabungan-jelantah"), path: "/tabungan-jelantah" },
-            { label: t("navbar.jual-beli-jelantah"), path: "/jual-beli-jelantah" },
-            { label: t("navbar.sedekah-jelantah"), path: "/sedekah-jelantah" },
-          ]}
-          selected={t("navbar.program-jelantah")}
-        />
+        <Link href="/program-kami" className={menuClass("/program-kami")}>
+          {t("navbar.program-kami")}
+          <span
+            className={`absolute left-0 -bottom-1 h-0.5 w-full bg-[#FB6B00] transform transition-transform duration-300 ${
+              pathname === "/program-kami" ? "scale-x-100" : "scale-x-0"
+            }`}
+          />
+        </Link>
       </li>
+
       <li>
         <DropdownLink
           items={[
@@ -64,6 +68,7 @@ export default function ListMenu() {
           selected={t("navbar.info-artikel")}
         />
       </li>
+
       <li>
         <DropdownLink
           items={[
