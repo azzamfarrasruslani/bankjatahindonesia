@@ -48,7 +48,7 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop Menu */}
-    <div className="hidden md:flex flex-1 justify-center text-sm font-medium leading-none">
+        <div className="hidden md:flex flex-1 justify-center text-sm font-medium leading-none">
           <ListMenu />
         </div>
 

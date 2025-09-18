@@ -9,7 +9,7 @@ import LanguageSelector from "./LanguageSelector";
 
 export default function MobileNavbar({ setIsOpen, openDropdown, toggleDropdown }) {
   const { t, i18n } = useTranslation();
-  const router = useRouter(); // ✅ Next.js router
+  const router = useRouter();
   const currentLang = i18n.language;
   const languages = ["id", "en"];
 
@@ -17,7 +17,7 @@ export default function MobileNavbar({ setIsOpen, openDropdown, toggleDropdown }
 
   const handleNavigation = (path) => {
     setIsOpen(false);
-    router.push(path); // ✅ ganti navigate(path)
+    router.push(path);
   };
 
   return (
@@ -26,7 +26,7 @@ export default function MobileNavbar({ setIsOpen, openDropdown, toggleDropdown }
       animate={{ x: 0 }}
       exit={{ x: "-100%" }}
       transition={{ duration: 0.3 }}
-      className="fixed left-0 top-0 z-50 h-full w-72 bg-white p-6 md:hidden overflow-y-auto shadow-lg"
+      className="fixed left-0 top-0 z-[9999] h-full w-72 bg-white p-6 md:hidden overflow-y-auto shadow-lg"
     >
       {/* Tombol Tutup */}
       <button className="absolute top-4 right-4" onClick={() => setIsOpen(false)}>
