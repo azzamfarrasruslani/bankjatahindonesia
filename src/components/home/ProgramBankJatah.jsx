@@ -2,125 +2,128 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
 const programs = [
   {
     id: 1,
     title: "Tabungan Jelantah",
-    desc: "Menabung mulai 1 kg minyak jelantah untuk mendapatkan saldo e-wallet, poin reward, hingga penghasilan besar.",
+    desc: "Menabung mulai 1 kg minyak jelantah untuk ditukar saldo e-wallet & reward.",
     image: "/images/program/1.jpeg",
   },
   {
     id: 2,
     title: "Jual Beli Jelantah",
-    desc: "Transaksi langsung di cabang Bank Jatah seluruh Indonesia dengan harga transparan dan proses cepat.",
+    desc: "Jual minyak jelantah dengan harga bersaing dan proses penjemputan mudah.",
     image: "/images/program/2.jpeg",
   },
   {
     id: 3,
     title: "Sedekah Jelantah",
-    desc: "Salurkan minyak jelantah untuk membantu lembaga sosial dan rumah ibadah dengan nilai ekonomi dan sosial.",
+    desc: "Salurkan minyak jelantah Anda untuk mendukung program sosial & lingkungan.",
     image: "/images/program/3.jpeg",
   },
 ];
 
 export default function ProgramBankJatah() {
-  const [activeId, setActiveId] = useState(1);
-  const activeProgram = programs.find((p) => p.id === activeId);
+  const [index, setIndex] = useState(0);
+
+  const nextSlide = () => setIndex((prev) => (prev + 1) % programs.length);
+  const prevSlide = () =>
+    setIndex((prev) => (prev - 1 + programs.length) % programs.length);
 
   return (
     <section className="w-full bg-gradient-to-b from-white to-orange-50 py-20 px-6 sm:px-10 lg:px-24">
       {/* Header */}
       <div className="text-center mb-14">
-        <h2 className="text-4xl md:text-5xl font-extrabold text-[#FB6B00] drop-shadow-sm">
-          Program Bank Jatah <span className="text-black">Indonesia</span>
+        <h2 className="text-4xl md:text-5xl font-extrabold text-[#FB6B00] mb-2">
+          Program Kami
         </h2>
-        <p className="mt-3 max-w-3xl mx-auto text-gray-600 text-base md:text-lg">
-          Solusi inovatif untuk pengelolaan minyak jelantah melalui program
-          menabung, berdagang, dan berbagi.
+        <p className="text-gray-600 max-w-xl mx-auto text-sm md:text-base">
+          Tiga program utama Bank Jatah Indonesia untuk mengelola minyak
+          jelantah secara produktif dan ramah lingkungan.
         </p>
       </div>
 
-      {/* Tabs */}
-      <div className="flex justify-center flex-wrap gap-4 mb-12">
+      {/* Grid View */}
+      <div className="hidden md:grid md:grid-cols-3 gap-6">
         {programs.map((prog) => (
-          <button
+          <div
             key={prog.id}
-            onClick={() => setActiveId(prog.id)}
-            className={`rounded-full px-6 py-2 text-sm font-medium transition-all duration-300 
-              ${
-                activeId === prog.id
-                  ? "bg-[#FB6B00] text-white ring-2 ring-[#FB6B00]"
-                  : "bg-white text-gray-700 border border-gray-300 hover:border-[#FB6B00] hover:text-[#FB6B00]"
-              }`}
+            className="bg-white hover:shadow-2xl transition-all duration-300 shadow-md rounded-2xl overflow-hidden p-5 flex flex-col"
           >
-            {prog.title}
-          </button>
+            <div className="relative w-full h-56 rounded-xl overflow-hidden mb-4">
+              <Image
+                src={prog.image}
+                alt={prog.title}
+                fill
+                className="object-cover object-center transition-transform duration-500 hover:scale-105"
+              />
+            </div>
+            <h3 className="text-xl font-bold text-[#FB6B00] mb-2">
+              {prog.title}
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">{prog.desc}</p>
+          </div>
         ))}
       </div>
 
-      {/* Content */}
-      <AnimatePresence mode="wait">
-        {activeProgram && (
+      {/* Mobile Slider */}
+      <div className="md:hidden relative">
+        <AnimatePresence mode="wait">
           <motion.div
-            key={activeProgram.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
+            key={programs[index].id}
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -100 }}
             transition={{ duration: 0.4 }}
-            className="grid md:grid-cols-2 gap-10 items-center bg-white shadow-xl rounded-3xl p-8"
+            className="bg-white shadow-xl rounded-2xl overflow-hidden p-5"
           >
-            {/* Image */}
-            <div className="relative w-full h-64 sm:h-80 md:h-96 rounded-xl overflow-hidden">
+            <div className="relative w-full h-52 rounded-xl overflow-hidden mb-4">
               <Image
-                src={activeProgram.image}
-                alt={activeProgram.title}
+                src={programs[index].image}
+                alt={programs[index].title}
                 fill
                 className="object-cover object-center rounded-xl transition-transform duration-500 hover:scale-105"
-                sizes="(max-width: 768px) 100vw, 50vw"
               />
             </div>
-
-            {/* Text Section - Improved UI */}
-            <div className="space-y-5 text-gray-800">
-              <h3 className="text-3xl font-extrabold text-[#FB6B00] tracking-tight">
-                {activeProgram.title}
-              </h3>
-
-              <p className="text-base md:text-lg leading-relaxed text-gray-600">
-                {activeProgram.desc}
-              </p>
-
-              <div className="mt-4">
-                <h4 className="text-md font-semibold mb-2 text-[#FB6B00]">
-                  Keunggulan Program:
-                </h4>
-                <ul className="space-y-3">
-                  <li className="flex items-start gap-3">
-                    <span className="mt-1 w-2 h-2 rounded-full bg-[#FB6B00]"></span>
-                    <span className="text-sm text-gray-700">
-                      Manfaat ekonomi langsung dan tidak langsung
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="mt-1 w-2 h-2 rounded-full bg-[#FB6B00]"></span>
-                    <span className="text-sm text-gray-700">
-                      Mendukung kelestarian lingkungan
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="mt-1 w-2 h-2 rounded-full bg-[#FB6B00]"></span>
-                    <span className="text-sm text-gray-700">
-                      Terbuka untuk individu, komunitas, hingga lembaga
-                    </span>
-                  </li>
-                </ul>
-              </div>
-            </div>
+            <h3 className="text-xl font-bold text-[#FB6B00] mb-2">
+              {programs[index].title}
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">{programs[index].desc}</p>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>
+
+        {/* Slider Navigation */}
+        <div className="flex justify-between items-center mt-4">
+          <button
+            onClick={prevSlide}
+            className="bg-white border border-gray-300 hover:bg-[#FB6B00] hover:text-white transition-all p-2 rounded-full text-xl"
+          >
+            ‹
+          </button>
+          <div className="text-sm text-gray-600">
+            {index + 1} / {programs.length}
+          </div>
+          <button
+            onClick={nextSlide}
+            className="bg-white border border-gray-300 hover:bg-[#FB6B00] hover:text-white transition-all p-2 rounded-full text-xl"
+          >
+            ›
+          </button>
+        </div>
+      </div>
+
+      {/* Tombol Lebih Lanjut */}
+      <div className="mt-12 text-center">
+        <Link
+          href="/program-kami"
+          className="inline-block bg-[#FB6B00] text-white px-6 py-3 rounded-full font-semibold hover:bg-orange-600 transition"
+        >
+          Lihat Semua Program
+        </Link>
+      </div>
     </section>
   );
 }

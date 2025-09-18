@@ -7,7 +7,7 @@ export default function HeroSection() {
     <div className="relative mb-16 h-[350px] md:h-[400px] w-full overflow-hidden rounded-b-4xl bg-gray-200 shadow-lg">
       {/* Background Image */}
       <img
-        src="/images/tentang-kami.png"
+        src="/images/program.jpeg"
         alt="Program Bank Jatah Indonesia"
         className="absolute inset-0 h-full w-full object-cover object-center brightness-60 scale-105 transition-transform duration-700 hover:scale-110"
       />

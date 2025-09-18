@@ -2,8 +2,8 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle } from "lucide-react";
 import { useState } from "react";
+import { FaWhatsapp } from "react-icons/fa";
 
 export default function FloatingWAButton() {
   const [isHover, setIsHover] = useState(false);
@@ -37,7 +37,7 @@ export default function FloatingWAButton() {
         className="bg-[#25D366] text-white p-4 rounded-full shadow-lg flex items-center justify-center"
         title="Hubungi via WhatsApp"
       >
-        <MessageCircle size={24} />
+        <FaWhatsapp size={24} />
       </motion.a>
     </motion.div>
   );

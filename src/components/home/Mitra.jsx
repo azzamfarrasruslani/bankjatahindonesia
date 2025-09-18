@@ -4,12 +4,12 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 
 const partners = [
-  { name: "Partner A", logo: "/logos/partner-a.png" },
-  { name: "Partner B", logo: "/logos/partner-b.png" },
-  { name: "Partner C", logo: "/logos/partner-c.png" },
-  { name: "Partner D", logo: "/logos/partner-d.png" },
-  { name: "Partner E", logo: "/logos/partner-e.png" },
-  { name: "Partner F", logo: "/logos/partner-f.png" },
+  { name: "Partner A", logo: "/images/logo.png" },
+  { name: "Partner B", logo: "/images/logo.png" },
+  { name: "Partner C", logo: "/images/logo.png" },
+  { name: "Partner D", logo: "/images/logo.png" },
+  { name: "Partner E", logo: "/images/logo.png" },
+  { name: "Partner F", logo: "/images/logo.png" },
 ];
 
 export default function PartnerSection() {
