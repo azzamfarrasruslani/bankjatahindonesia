@@ -1,6 +1,6 @@
 // src/app/layout.js
 
-import { Geist, Geist_Mono } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "../lib/i18n";
 import "./globals.css";
 
@@ -9,14 +9,12 @@ import FloatingWAButton from "@/components/common/FloatingWAButton";
 import Navbar from "@/app/layout/navbar";
 import Footer from "@/app/layout/footer";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Import font Poppins dari Google Fonts via next/font
+const poppins = Poppins({
+  variable: "--font-poppins",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata = {
@@ -27,11 +25,11 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="id">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <Navbar /> {/* Navbar muncul di semua halaman */}
+      <body className={`${poppins.variable} antialiased`}>
+        <Navbar />
         {children}
-        <Footer /> {/* Footer muncul di semua halaman */}
-        <FloatingWAButton /> {/* Tombol WA */}
+        <Footer />
+        <FloatingWAButton />
       </body>
     </html>
   );

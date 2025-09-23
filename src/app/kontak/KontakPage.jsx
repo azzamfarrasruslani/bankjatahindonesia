@@ -1,103 +1,93 @@
 "use client";
 
-import { FiMail, FiPhone, FiMapPin } from "react-icons/fi";
-import { FaWhatsapp, FaFacebookF, FaInstagram, FaTwitter } from "react-icons/fa";
+import { FiMail, FiPhone, FiMapPin, FiUser } from "react-icons/fi";
 
 export default function KontakPage() {
   return (
-    <section className="py-16 px-6 sm:px-12 lg:px-24 bg-gradient-to-b from-white to-orange-50 text-gray-800">
-      {/* Header */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-[#FB6B00] mb-2">
+    <section className="relative py-20 px-6 sm:px-12 lg:px-24 bg-gradient-to-br from-orange-50 via-white to-orange-100 text-gray-800">
+      {/* Heading */}
+      <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-16">
+        <span className="bg-gradient-to-r from-[#FB6B00] to-orange-600 bg-clip-text text-transparent">
           Hubungi Kami
-        </h1>
-        <p className="text-gray-600 max-w-2xl mx-auto">
-          Kami siap membantu Anda. Silakan isi formulir di bawah atau hubungi kontak langsung kami.
-        </p>
-      </div>
+        </span>
+        <div className="w-20 h-1 bg-[#FB6B00] mx-auto mt-4 rounded-full"></div>
+      </h1>
 
-      <div className="grid md:grid-cols-3 gap-12">
-        {/* Card Alamat */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col items-start space-y-4 hover:shadow-2xl transition">
-          <FiMapPin className="text-[#FB6B00] w-10 h-10" />
-          <h3 className="text-xl font-semibold text-gray-900">Alamat</h3>
-          <p className="text-gray-600">
-            Jl. Inovasi Hijau No. 7, Jakarta Selatan, Indonesia
-          </p>
+      <div className="grid md:grid-cols-2 gap-12 items-start">
+        {/* Informasi Kontak */}
+        <div className="space-y-6">
+          {[
+            {
+              icon: <FiMapPin className="text-[#FB6B00] w-8 h-8" />,
+              title: "Alamat",
+              detail: "Jl. Inovasi Hijau No. 7, Jakarta Selatan, Indonesia",
+            },
+            {
+              icon: <FiPhone className="text-[#FB6B00] w-8 h-8" />,
+              title: "Telepon",
+              detail: "+62 812 3456 7890",
+            },
+            {
+              icon: <FiMail className="text-[#FB6B00] w-8 h-8" />,
+              title: "Email",
+              detail: "info@bankjatahindonesia.com",
+            },
+          ].map((item, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-4 p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-md hover:shadow-lg transition"
+            >
+              {item.icon}
+              <div>
+                <h3 className="font-semibold text-lg">{item.title}</h3>
+                <p className="text-gray-600">{item.detail}</p>
+              </div>
+            </div>
+          ))}
         </div>
 
-        {/* Card Telepon */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col items-start space-y-4 hover:shadow-2xl transition">
-          <FiPhone className="text-[#FB6B00] w-10 h-10" />
-          <h3 className="text-xl font-semibold text-gray-900">Telepon</h3>
-          <p className="text-gray-600">+62 812 3456 7890</p>
-          <p className="text-gray-600">Senin - Jumat, 09.00 - 17.00 WIB</p>
-        </div>
+        {/* Form Kontak */}
+        <form className="bg-white/90 backdrop-blur-md p-10 rounded-2xl shadow-lg hover:shadow-xl transition space-y-6">
+          {[
+            { id: "nama", label: "Nama", type: "text", placeholder: "Masukkan nama Anda", icon: <FiUser className="text-gray-400" /> },
+            { id: "email", label: "Email", type: "email", placeholder: "Masukkan email Anda", icon: <FiMail className="text-gray-400" /> },
+          ].map((field, i) => (
+            <div key={i}>
+              <label htmlFor={field.id} className="block text-sm font-medium text-gray-700 mb-1">
+                {field.label}
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-3">{field.icon}</span>
+                <input
+                  type={field.type}
+                  id={field.id}
+                  placeholder={field.placeholder}
+                  className="pl-10 pr-3 py-2 block w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#FB6B00] focus:ring-[#FB6B00] sm:text-sm"
+                  required
+                />
+              </div>
+            </div>
+          ))}
 
-        {/* Card Email */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col items-start space-y-4 hover:shadow-2xl transition">
-          <FiMail className="text-[#FB6B00] w-10 h-10" />
-          <h3 className="text-xl font-semibold text-gray-900">Email</h3>
-          <p className="text-gray-600">info@bankjatahindonesia.com</p>
-          <div className="flex space-x-4 mt-2">
-            <FaWhatsapp className="w-6 h-6 text-[#25D366] cursor-pointer hover:scale-110 transition" />
-            <FaFacebookF className="w-6 h-6 text-[#3b5998] cursor-pointer hover:scale-110 transition" />
-            <FaInstagram className="w-6 h-6 text-[#C13584] cursor-pointer hover:scale-110 transition" />
-            <FaTwitter className="w-6 h-6 text-[#1DA1F2] cursor-pointer hover:scale-110 transition" />
-          </div>
-        </div>
-      </div>
-
-      {/* Form Kontak */}
-      <div className="mt-16 bg-white rounded-2xl shadow-lg p-8 md:p-12 max-w-4xl mx-auto">
-        <h2 className="text-2xl md:text-3xl font-bold text-[#FB6B00] mb-6">
-          Kirim Pesan
-        </h2>
-        <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="flex flex-col">
-            <label htmlFor="nama" className="font-medium text-gray-700 mb-2">
-              Nama
-            </label>
-            <input
-              type="text"
-              id="nama"
-              placeholder="Masukkan nama lengkap"
-              className="rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-[#FB6B00]"
-              required
-            />
-          </div>
-          <div className="flex flex-col">
-            <label htmlFor="email" className="font-medium text-gray-700 mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              placeholder="Masukkan email Anda"
-              className="rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-[#FB6B00]"
-              required
-            />
-          </div>
-          <div className="md:col-span-2 flex flex-col">
-            <label htmlFor="pesan" className="font-medium text-gray-700 mb-2">
+          <div>
+            <label htmlFor="pesan" className="block text-sm font-medium text-gray-700 mb-1">
               Pesan
             </label>
             <textarea
               id="pesan"
-              rows="6"
+              rows="4"
               placeholder="Tulis pesan Anda..."
-              className="rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-[#FB6B00]"
+              className="p-3 block w-full rounded-lg border border-gray-300 shadow-sm focus:border-[#FB6B00] focus:ring-[#FB6B00] sm:text-sm"
               required
             ></textarea>
           </div>
-          <div className="md:col-span-2">
-            <button
-              type="submit"
-              className="w-full bg-[#FB6B00] text-white font-semibold py-3 rounded-lg shadow hover:bg-orange-600 transition"
-            >
-              Kirim Pesan
-            </button>
-          </div>
+
+          <button
+            type="submit"
+            className="inline-flex justify-center items-center gap-2 bg-[#FB6B00] text-white px-6 py-3 rounded-lg font-semibold shadow-md hover:bg-orange-600 hover:scale-[1.02] active:scale-95 transition w-full"
+          >
+            ✉️ Kirim Pesan
+          </button>
         </form>
       </div>
     </section>

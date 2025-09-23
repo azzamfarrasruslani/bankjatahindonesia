@@ -1,128 +1,168 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 
 const programs = [
   {
     id: 1,
     title: "Tabungan Jelantah",
-    desc: "Menabung mulai 1 kg minyak jelantah untuk ditukar saldo e-wallet & reward.",
+    desc: "Menabung mulai 1 kg minyak jelantah untuk mendapatkan saldo e-wallet, poin reward, hingga penghasilan besar.",
     image: "/images/program/1.jpeg",
+    icon: "/icons/tabungan.png",
+    href: "/program/tabungan-jelantah",
   },
   {
     id: 2,
     title: "Jual Beli Jelantah",
-    desc: "Jual minyak jelantah dengan harga bersaing dan proses penjemputan mudah.",
+    desc: "Jual minyak jelantah dengan harga bersaing dan proses penjemputan mudah di kelurahan Anda.",
     image: "/images/program/2.jpeg",
+    icon: "/icons/jualbeli.png",
+    href: "/program/jual-beli-jelantah",
   },
   {
     id: 3,
     title: "Sedekah Jelantah",
-    desc: "Salurkan minyak jelantah Anda untuk mendukung program sosial & lingkungan.",
+    desc: "Salurkan minyak jelantah Anda untuk mendukung program sosial & pelestarian lingkungan.",
     image: "/images/program/3.jpeg",
+    icon: "/icons/sedekah.png",
+    href: "/program/sedekah-jelantah",
   },
 ];
 
 export default function ProgramBankJatah() {
   const [index, setIndex] = useState(0);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
 
   const nextSlide = () => setIndex((prev) => (prev + 1) % programs.length);
   const prevSlide = () =>
     setIndex((prev) => (prev - 1 + programs.length) % programs.length);
 
+  const current = programs[index];
+
   return (
-    <section className="w-full bg-gradient-to-b from-white to-orange-50 py-20 px-6 sm:px-10 lg:px-24">
-      {/* Header */}
-      <div className="text-center mb-14">
-        <h2 className="text-4xl md:text-5xl font-extrabold text-[#FB6B00] mb-2">
-          Program Kami
+    <section className="w-full bg-white py-20 px-4 sm:px-8 md:px-16">
+      {/* Judul Section */}
+      <div className="text-center mb-12">
+        {/* Judul */}
+        <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-3 leading-tight relative inline-block">
+          <span className="relative z-10">
+            <span className="text-[#FB6B00]">Program</span>{" "}
+            <span className="bg-gradient-to-r from-[#FB6B00] to-orange-200 bg-clip-text text-transparent">
+              Bank Jatah Indonesia
+            </span>
+          </span>
+
+          {/* Garis dekoratif atas */}
+          <div className="flex justify-center mt-3">
+            <div className="w-16 h-1 bg-[#FB6B00] rounded-full" />
+          </div>
+
+          {/* Efek bayangan latar (tanpa framer-motion) */}
+          <span className="absolute inset-0 transform translate-x-1 translate-y-1 bg-[#FB6B00]/10 blur-sm rounded-md -z-10" />
         </h2>
-        <p className="text-gray-600 max-w-xl mx-auto text-sm md:text-base">
-          Tiga program utama Bank Jatah Indonesia untuk mengelola minyak
-          jelantah secara produktif dan ramah lingkungan.
+
+        {/* Deskripsi */}
+        <p className="text-gray-600 text-sm sm:text-base max-w-xl mx-auto">
+          Solusi inovatif untuk pengelolaan minyak jelantah melalui program
+          menabung, berdagang, dan berbagi.
         </p>
       </div>
 
-      {/* Grid View */}
-      <div className="hidden md:grid md:grid-cols-3 gap-6">
-        {programs.map((prog) => (
-          <div
-            key={prog.id}
-            className="bg-white hover:shadow-2xl transition-all duration-300 shadow-md rounded-2xl overflow-hidden p-5 flex flex-col"
+      {/* Desktop Grid View */}
+      <motion.div
+        ref={ref}
+        initial={{ opacity: 0, y: 50 }}
+        animate={isInView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="hidden md:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
+      >
+        {programs.map((program, i) => (
+          <motion.div
+            key={program.id}
+            className="relative h-[400px] rounded-2xl overflow-hidden shadow-md"
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: i * 0.2, duration: 0.6 }}
           >
-            <div className="relative w-full h-56 rounded-xl overflow-hidden mb-4">
+            <Image
+              src={program.image}
+              alt={program.title}
+              fill
+              className="object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-black/60 z-10" />
+            <div className="relative z-20 h-full flex flex-col justify-end p-6 text-white">
               <Image
-                src={prog.image}
-                alt={prog.title}
-                fill
-                className="object-cover object-center transition-transform duration-500 hover:scale-105"
+                src={program.icon}
+                alt="icon"
+                width={100}
+                height={50}
+                className="mb-3"
               />
+              <h3 className="text-2xl font-bold text-[#FB6B00] mb-2">
+                {program.title}
+              </h3>
+              <p className="text-sm text-gray-100 mb-4">{program.desc}</p>
             </div>
-            <h3 className="text-xl font-bold text-[#FB6B00] mb-2">
-              {prog.title}
-            </h3>
-            <p className="text-sm text-gray-600 mb-4">{prog.desc}</p>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
-      {/* Mobile Slider */}
-      <div className="md:hidden relative">
+      {/* Mobile Slider View */}
+      <div className="md:hidden relative mt-4">
         <AnimatePresence mode="wait">
           <motion.div
-            key={programs[index].id}
+            key={current.id}
             initial={{ opacity: 0, x: 100 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -100 }}
             transition={{ duration: 0.4 }}
-            className="bg-white shadow-xl rounded-2xl overflow-hidden p-5"
+            className="relative h-[420px] rounded-2xl overflow-hidden shadow-md"
           >
-            <div className="relative w-full h-52 rounded-xl overflow-hidden mb-4">
+            <Image
+              src={current.image}
+              alt={current.title}
+              fill
+              className="object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-black/60 z-10" />
+            <div className="relative z-20 h-full flex flex-col justify-end p-6 text-white">
               <Image
-                src={programs[index].image}
-                alt={programs[index].title}
-                fill
-                className="object-cover object-center rounded-xl transition-transform duration-500 hover:scale-105"
+                src={current.icon}
+                alt="icon"
+                width={50}
+                height={50}
+                className="mb-3"
               />
+              <h3 className="text-2xl font-bold text-[#FB6B00] mb-2">
+                {current.title}
+              </h3>
+              <p className="text-sm text-gray-100 mb-4">{current.desc}</p>
             </div>
-            <h3 className="text-xl font-bold text-[#FB6B00] mb-2">
-              {programs[index].title}
-            </h3>
-            <p className="text-sm text-gray-600 mb-4">{programs[index].desc}</p>
           </motion.div>
         </AnimatePresence>
 
-        {/* Slider Navigation */}
-        <div className="flex justify-between items-center mt-4">
+        <div className="flex justify-center items-center gap-6 mt-6">
           <button
             onClick={prevSlide}
-            className="bg-white border border-gray-300 hover:bg-[#FB6B00] hover:text-white transition-all p-2 rounded-full text-xl"
+            className="w-10 h-10 rounded-full border border-gray-300 hover:bg-[#FB6B00] hover:text-white transition text-xl text-gray-800 bg-white"
           >
             ‹
           </button>
-          <div className="text-sm text-gray-600">
+          <span className="text-gray-600 text-sm">
             {index + 1} / {programs.length}
-          </div>
+          </span>
           <button
             onClick={nextSlide}
-            className="bg-white border border-gray-300 hover:bg-[#FB6B00] hover:text-white transition-all p-2 rounded-full text-xl"
+            className="w-10 h-10 rounded-full border border-gray-300 hover:bg-[#FB6B00] hover:text-white transition text-xl text-gray-800 bg-white"
           >
             ›
           </button>
         </div>
-      </div>
-
-      {/* Tombol Lebih Lanjut */}
-      <div className="mt-12 text-center">
-        <Link
-          href="/program-kami"
-          className="inline-block bg-[#FB6B00] text-white px-6 py-3 rounded-full font-semibold hover:bg-orange-600 transition"
-        >
-          Lihat Semua Program
-        </Link>
       </div>
     </section>
   );

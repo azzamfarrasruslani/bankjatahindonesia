@@ -10,31 +10,31 @@ const testimonies = [
     name: "Ayu Wulandari",
     quote: "Saya bisa bayar listrik dari jelantah! Program ini sangat membantu ekonomi keluarga saya.",
     location: "Surabaya, Jawa Timur",
-    photo: "/images/testimoni/ayu.jpg",
+    photo: "/images/tentang-kami.png",
   },
   {
     name: "Bapak Ridwan",
     quote: "Minyak bekas tidak lagi jadi limbah, tapi jadi tabungan buat anak sekolah.",
     location: "Padang, Sumatera Barat",
-    photo: "/images/testimoni/ridwan.jpg",
+    photo: "/images/tentang-kami.png",
   },
   {
     name: "Lina Putri",
     quote: "Sedekah jelantah bikin saya merasa lebih bermanfaat untuk masyarakat.",
     location: "Depok, Jawa Barat",
-    photo: "/images/testimoni/lina.jpg",
+    photo: "/images/tentang-kami.png",
   },
   {
     name: "Siti Rahma",
     quote: "Awalnya ragu, tapi ternyata hasil dari jelantah bisa bantu biaya dapur tiap bulan!",
     location: "Bandung, Jawa Barat",
-    photo: "/images/testimoni/siti.jpg",
+    photo: "/images/tentang-kami.png",
   },
   {
     name: "Pak Hendra",
     quote: "Kami ikut program ini di lingkungan RT, dan hasilnya luar biasa! Kompak dan bermanfaat.",
     location: "Tangerang, Banten",
-    photo: "/images/testimoni/hendra.jpg",
+    photo: "/images/tentang-kami.png",
   },
 ];
 

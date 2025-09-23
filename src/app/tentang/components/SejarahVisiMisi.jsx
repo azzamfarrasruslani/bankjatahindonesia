@@ -1,107 +1,85 @@
 "use client";
 
-import { motion } from "framer-motion";
+import Image from "next/image";
 import { Flame, Target, Lightbulb } from "lucide-react";
 
 export default function SejarahVisiMisi() {
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8 }}
-      viewport={{ once: true }}
-      className="px-6 md:px-12 py-16 bg-white"
-    >
+    <section className="px-6 md:px-12 py-20 bg-gray-50">
       {/* Section Header */}
-      <div className="text-center mb-12">
-        <h2 className="text-3xl md:text-4xl font-bold text-[#FB6B00] mb-4">
+      <div className="text-center mb-16 max-w-3xl mx-auto">
+        <h2 className="text-4xl md:text-5xl font-bold text-[#FB6B00] mb-4">
           Sejarah, Visi & Misi Bank Jatah
         </h2>
-        <p className="text-gray-600 max-w-2xl mx-auto">
-          Mengenal lebih dalam tentang latar belakang berdirinya Bank Jatah
-          Indonesia dan tujuan utamanya dalam membangun solusi berbasis
-          lingkungan dan sosial.
+        <p className="text-gray-600 text-lg md:text-xl">
+          Mengenal lebih dalam tentang latar belakang berdirinya Bank Jatah Indonesia dan tujuan utamanya dalam membangun solusi berbasis lingkungan dan sosial.
         </p>
       </div>
 
-      {/* SEJARAH */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-        viewport={{ once: true }}
-        className="bg-gray-50 p-6 md:p-8 rounded-xl shadow-md mb-12"
-      >
-        <div className="flex items-center gap-4 mb-4">
-          <Flame className="text-[#FB6B00]" size={28} />
-          <h3 className="text-2xl font-semibold text-gray-800">
-            Sejarah Singkat
+      {/* About Grid: teks kiri, gambar kanan */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center mb-16">
+        <div>
+          <h3 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
+            Mengelola Limbah, Membangun Harapan
           </h3>
+          <p className="text-gray-700 leading-relaxed mb-4">
+            Bank Jatah berawal dari dampak <strong className="text-[#FB6B00]">Pandemi Covid-19</strong> pada tahun 2021, yang menyebabkan banyak usaha mengalami kerugian. Melalui inisiatif pemuda Karang Taruna, lahirlah ide menciptakan peluang usaha sekaligus mengedukasi masyarakat mengenai pentingnya pengelolaan limbah jelantah.
+          </p>
+          <p className="text-gray-700 leading-relaxed">
+            Tepat pada <strong className="text-[#FB6B00]">28 Agustus 2021</strong>, Bank Jatah resmi diluncurkan sebagai gerakan sosial-lingkungan yang mengubah limbah jelantah menjadi nilai ekonomi dan sosial.
+          </p>
         </div>
-        <p className="text-gray-700 leading-relaxed">
-          Bank Jatah berawal dari dampak{" "}
-          <strong className="text-[#FB6B00]">Pandemi Covid-19</strong> pada
-          tahun 2021, yang menyebabkan banyak usaha mengalami kerugian. Melalui
-          inisiatif pemuda Karang Taruna, lahirlah ide menciptakan peluang usaha
-          sekaligus mengedukasi masyarakat mengenai pentingnya pengelolaan
-          limbah jelantah.
-          <br />
-          <br />
-          Tepat pada <strong className="text-[#FB6B00]">28 Agustus 2021</strong>
-          , Bank Jatah resmi diluncurkan sebagai gerakan sosial-lingkungan yang
-          mengubah limbah jelantah menjadi nilai ekonomi dan sosial. Kami
-          menghadirkan solusi seperti <em>Tabungan Jelantah</em> dan produk{" "}
-          <em>Jual Beli Jelantah</em> untuk masyarakat dan pelaku UMKM.
-        </p>
-      </motion.div>
 
-      {/* VISI */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-        viewport={{ once: true }}
-        className="bg-[#FB6B00]/10 p-6 md:p-8 rounded-xl shadow-md mb-12"
-      >
-        <div className="flex items-center gap-4 mb-4">
-          <Target className="text-[#FB6B00]" size={28} />
-          <h3 className="text-2xl font-semibold text-gray-800">Visi</h3>
+        <div className="relative w-full h-80 md:h-96 rounded-2xl overflow-hidden shadow-lg">
+          <Image
+            src="/images/parallax.jpeg"
+            alt="Bank Jatah"
+            fill
+            className="object-cover"
+          />
         </div>
-        <p className="text-gray-700 leading-relaxed">
-          Menjadi pusat pengelolaan limbah jelantah yang inovatif, ramah
-          lingkungan, dan bermanfaat secara sosial-ekonomi untuk masyarakat
-          Indonesia.
-        </p>
-      </motion.div>
+      </div>
 
-      {/* MISI */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.6 }}
-        viewport={{ once: true }}
-        className="bg-gray-50 p-6 md:p-8 rounded-xl shadow-md"
-      >
-        <div className="flex items-center gap-4 mb-4">
-          <Lightbulb className="text-[#FB6B00]" size={28} />
-          <h3 className="text-2xl font-semibold text-gray-800">Misi</h3>
+      {/* Features / Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-16">
+        <div className="bg-white p-8 rounded-2xl shadow hover:shadow-xl transition-shadow duration-300 text-center">
+          <Flame className="text-[#FB6B00] mx-auto mb-4" size={32} />
+          <h4 className="text-xl font-semibold mb-2">Qualified Consultant</h4>
+          <p className="text-gray-600">Tim ahli kami siap membantu pengelolaan limbah dengan solusi terbaik.</p>
         </div>
-        <ul className="list-disc list-inside text-gray-700 space-y-2 pl-1">
-          <li>
-            Mengedukasi masyarakat tentang pentingnya pengelolaan limbah
-            jelantah.
-          </li>
-          <li>
-            Menyediakan solusi pengumpulan, tabungan, dan jual-beli minyak
-            jelantah.
-          </li>
-          <li>
-            Mendukung UMKM dan rumah tangga untuk mendapatkan nilai ekonomi dari
-            limbah.
-          </li>
-          <li>Mendorong gerakan sosial-lingkungan yang berkelanjutan.</li>
-        </ul>
-      </motion.div>
-    </motion.section>
+        <div className="bg-white p-8 rounded-2xl shadow hover:shadow-xl transition-shadow duration-300 text-center">
+          <Target className="text-[#FB6B00] mx-auto mb-4" size={32} />
+          <h4 className="text-xl font-semibold mb-2">Best Business Analysis</h4>
+          <p className="text-gray-600">Menganalisis kebutuhan masyarakat dan UMKM untuk solusi ramah lingkungan dan bernilai ekonomi.</p>
+        </div>
+        <div className="bg-white p-8 rounded-2xl shadow hover:shadow-xl transition-shadow duration-300 text-center">
+          <Lightbulb className="text-[#FB6B00] mx-auto mb-4" size={32} />
+          <h4 className="text-xl font-semibold mb-2">Affordable Services</h4>
+          <p className="text-gray-600">Solusi pengumpulan, tabungan, dan jual-beli minyak jelantah yang mudah diakses masyarakat.</p>
+        </div>
+      </div>
+
+      {/* Statistics Section */}
+      <div className="bg-[#FB6B00]/10 py-12 rounded-2xl text-center">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 max-w-5xl mx-auto">
+          <div>
+            <h3 className="text-3xl font-bold text-[#FB6B00]">25k+</h3>
+            <p className="text-gray-700">Happy Clients</p>
+          </div>
+          <div>
+            <h3 className="text-3xl font-bold text-[#FB6B00]">4.5+</h3>
+            <p className="text-gray-700">Average Rating</p>
+          </div>
+          <div>
+            <h3 className="text-3xl font-bold text-[#FB6B00]">330+</h3>
+            <p className="text-gray-700">Completed Projects</p>
+          </div>
+          <div>
+            <h3 className="text-3xl font-bold text-[#FB6B00]">16+</h3>
+            <p className="text-gray-700">Awards Achieved</p>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

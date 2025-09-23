@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import LanguageSelector from "@/components/layouts/navbar/LanguageSelector";
@@ -18,15 +18,18 @@ export default function Navbar() {
   const [openDropdown, setOpenDropdown] = useState(null);
   const { t, i18n, ready } = useTranslation();
   const [mounted, setMounted] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
-    setMounted(true); // render hanya di client
+    setMounted(true);
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const changeLanguage = (lng) => i18n.changeLanguage(lng);
   const currentLang = i18n.language;
   const languages = ["id", "en"];
-
   const toggleDropdown = (key) => {
     setOpenDropdown((prev) => (prev === key ? null : key));
   };
@@ -34,25 +37,35 @@ export default function Navbar() {
   if (!ready || !mounted) return null;
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-white shadow-md backdrop-blur-md">
-      <div className="container mx-auto flex items-center justify-between px-6 py-4">
+    <motion.nav
+      className={`fixed top-10 left-1/2 z-50 w-[95%] md:w-[90%] lg:w-[80%] transform -translate-x-1/2 rounded-xl backdrop-blur-md border border-gray-200 bg-white/80 shadow-md transition-all duration-300 ${
+        scrollY > 20 ? "shadow-xl bg-white/90" : "shadow-md bg-white/80"
+      }`}
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ type: "spring", stiffness: 120 }}
+    >
+      <div className="flex items-center justify-between px-4 py-3">
         {/* Logo */}
         <Link href="/">
-          <Image
-            src="/images/Logo.png"
-            alt="Logo"
-            width={130}
-            height={130}
-            priority
-          />
+          <motion.div whileHover={{ scale: 1.05 }}>
+            <Image
+              src="/images/Logo.png"
+              alt="Logo"
+              width={120}
+              height={120}
+              className="object-contain"
+              priority
+            />
+          </motion.div>
         </Link>
 
-        {/* Desktop Menu */}
-        <div className="hidden md:flex flex-1 justify-center text-sm font-medium leading-none">
+        {/* Menu Desktop */}
+        <div className="hidden md:flex flex-1 justify-center">
           <ListMenu />
         </div>
 
-        {/* Desktop Actions */}
+        {/* Login & Language */}
         <div className="hidden md:flex items-center gap-4">
           <LanguageSelector
             changeLanguage={changeLanguage}
@@ -60,19 +73,22 @@ export default function Navbar() {
             languages={languages}
           />
           <Link href="/login">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-lg transition hover:text-[#FB6B00]">
-              <Icon name="user" className="text-gray-700" />
-              <p className="text-sm font-medium text-gray-800">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#FB6B00] text-white cursor-pointer transition"
+            >
+              <Icon name="user" className="text-white" />
+              <span className="text-sm font-medium">
                 {t("navbar.masuk")} / {t("navbar.daftar")}
-              </p>
-            </div>
+              </span>
+            </motion.div>
           </Link>
         </div>
 
-        {/* Mobile Menu Icon */}
+        {/* Mobile Menu Button */}
         <div className="md:hidden">
           <button onClick={() => setIsOpen(true)}>
-            <Menu size={28} />
+            <Menu size={28} className="text-gray-800" />
           </button>
         </div>
       </div>
@@ -81,7 +97,6 @@ export default function Navbar() {
       <AnimatePresence>
         {isOpen && (
           <>
-            {/* Overlay */}
             <motion.div
               className="fixed inset-0 z-40 bg-black/50"
               onClick={() => setIsOpen(false)}
@@ -89,8 +104,6 @@ export default function Navbar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             />
-
-            {/* Menu Slide */}
             <MobileNavbar
               setIsOpen={setIsOpen}
               openDropdown={openDropdown}
@@ -99,6 +112,6 @@ export default function Navbar() {
           </>
         )}
       </AnimatePresence>
-    </nav>
+    </motion.nav>
   );
 }
