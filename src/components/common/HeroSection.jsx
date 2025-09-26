@@ -1,9 +1,10 @@
-export default function HeroSection() {
+// components/common/HeroSection.jsx
+export default function HeroSection({ title, description, imageUrl }) {
   return (
     <div
       className="relative top-4 z-10 mx-auto mb-16 h-[400px] md:h-[450px] w-[95%] md:w-[90%] lg:w-[95%] overflow-hidden rounded-t-4xl rounded-b-4xl shadow-2xl bg-center bg-cover bg-fixed"
       style={{
-        backgroundImage: "url('/images/tentang-kami.png')",
+        backgroundImage: `url(${imageUrl})`,
       }}
     >
       {/* Overlay Gradient */}
@@ -16,12 +17,11 @@ export default function HeroSection() {
       {/* Konten Teks */}
       <div className="relative z-20 flex h-full w-full flex-col items-center justify-center px-6 text-center text-white">
         <h1 className="text-4xl md:text-5xl font-extrabold drop-shadow-xl bg-clip-text text-transparent bg-gradient-to-r from-[#e46505] to-white">
-          Tentang Bank Jatah Indonesia
+          {title}
         </h1>
 
         <p className="mt-4 text-white text-lg md:text-xl max-w-2xl drop-shadow-md">
-          Memahami pentingnya pengelolaan minyak jelantah untuk lingkungan dan
-          masyarakat. Mari bergabung dalam program kami!
+          {description}
         </p>
       </div>
     </div>

@@ -28,7 +28,7 @@ export default function ListMenu() {
         </Link>
       </li>
       <li>
-        <Link href="/tentang" className={menuClass("/tentang")}>
+        <Link href="/tentang-kami" className={menuClass("/tentang-kami")}>
           {t("navbar.tentang-kami")}
         </Link>
       </li>

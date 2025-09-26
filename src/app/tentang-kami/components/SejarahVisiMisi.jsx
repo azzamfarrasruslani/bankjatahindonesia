@@ -5,7 +5,7 @@ import { Flame, Target, Lightbulb } from "lucide-react";
 
 export default function SejarahVisiMisi() {
   return (
-    <section className="px-6 md:px-12 py-20 bg-gray-50">
+    <section className="px-6 md:px-12 py-20 ">
       {/* Section Header */}
       <div className="text-center mb-16 max-w-3xl mx-auto">
         <h2 className="text-4xl md:text-5xl font-bold text-[#FB6B00] mb-4">

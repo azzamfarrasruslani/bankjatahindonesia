@@ -8,7 +8,7 @@ export default function TimKami() {
     {
       name: "Zainal Abidin",
       role: "Direktur Kemitraan & Pemasaran",
-      img: "/images/team/zai.png",
+      img: "/images/team/zai.jpeg",
     },
     {
       name: "MHD. Adriyo Habibi",
@@ -18,7 +18,7 @@ export default function TimKami() {
     {
       name: "Sukiswanto",
       role: "Direktur Operasional",
-      img: "/images/team/sukis.png",
+      img: "/images/team/sukis.jpeg",
     },
   ];
 
@@ -28,7 +28,7 @@ export default function TimKami() {
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
       viewport={{ once: true }}
-      className="py-16 px-6 md:px-12 bg-gray-50"
+      className="py-16 px-6 md:px-1"
     >
       <div className="max-w-6xl mx-auto text-center mb-12">
         <p className="text-[#FB6B00] uppercase text-sm font-semibold tracking-wider">

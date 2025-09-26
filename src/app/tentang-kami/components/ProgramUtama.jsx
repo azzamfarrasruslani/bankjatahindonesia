@@ -23,7 +23,7 @@ const programList = [
 
 export default function ProgramUtama() {
   return (
-    <section className="py-16 px-6 md:px-12 bg-gray-50">
+    <section className="py-16 px-6 md:px-12">
       <div className="max-w-6xl mx-auto text-center mb-12">
         <p className="text-orange-400 uppercase tracking-wider text-sm font-semibold">Program Utama</p>
         <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">

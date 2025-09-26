@@ -50,7 +50,7 @@ export default function Navbar() {
         <Link href="/">
           <motion.div whileHover={{ scale: 1.05 }}>
             <Image
-              src="/images/Logo.png"
+              src="/images/logo2.png"
               alt="Logo"
               width={120}
               height={120}

@@ -10,7 +10,7 @@ export default function Footer() {
         {/* Brand */}
         <div>
           <Image
-            src="/images/Logo.png"
+            src="/images/logo3.png"
             alt="Logo Bank Jatah"
             width={160}
             height={50}

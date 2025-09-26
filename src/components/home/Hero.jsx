@@ -1,20 +1,51 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+
+const heroImages = [
+  "/images/hero.jpeg",
+  "/images/hero2.jpeg",
+  "/images/hero3.jpeg",
+];
+
 export default function Hero() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % heroImages.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="px-4 md:px-4 lg:px-6 pt-6">
       <section className="relative h-screen w-full overflow-hidden rounded-2xl shadow-lg">
-        {/* Background Image */}
-        <div
-          className="absolute inset-0 z-0 bg-cover bg-center rounded-2xl overflow-hidden"
-          style={{
-            backgroundImage: "url('/images/hero.jpeg')", // Pastikan path benar
-          }}
-        >
-          <div className="absolute inset-0 bg-black/60 rounded-2xl" />
+        {/* Background Slider with Fade Animation */}
+        <div className="absolute inset-0 z-0 rounded-2xl overflow-hidden">
+          {/* Fallback Background Gelap */}
+          <div className="absolute inset-0 bg-black/70" />
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentIndex}
+              className="absolute inset-0 bg-cover bg-center"
+              initial={{ opacity: 0.5 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0.5 }}
+              transition={{ duration: 1 }}
+              style={{
+                backgroundImage: `url('${heroImages[currentIndex]}')`,
+              }}
+            >
+              <div className="absolute inset-0 bg-black/60" />
+            </motion.div>
+          </AnimatePresence>
         </div>
 
-        {/* Konten Utama */}
+        {/* Konten Hero */}
         <div className="relative z-10 flex flex-col justify-center items-center h-full px-6 text-white text-center">
           <div className="max-w-4xl">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight mb-6 drop-shadow-lg">
@@ -31,7 +62,6 @@ export default function Hero() {
               Indonesia, siap menjemput minyak jelantah Anda!
             </p>
 
-            {/* Tombol CTA */}
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <a
                 href="#mitra"
@@ -46,6 +76,22 @@ export default function Hero() {
                 Lihat Program Kami
               </a>
             </div>
+          </div>
+
+          {/* Indikator Dot */}
+          {/* Indikator Dot Fancy di Bawah */}
+          <div className="absolute bottom-6 left-0 right-0 z-20 flex justify-center items-center gap-2">
+            {heroImages.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentIndex(index)}
+                className={`transition-all duration-300 rounded-full ${
+                  index === currentIndex
+                    ? "w-6 h-3 bg-[#FB6B00]"
+                    : "w-3 h-3 bg-white/40 hover:bg-white/60"
+                }`}
+              />
+            ))}
           </div>
         </div>
       </section>
