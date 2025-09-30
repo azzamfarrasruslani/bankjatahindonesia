@@ -1,5 +1,5 @@
 // Server component (boleh export metadata)
-import ArtikelPage from "./Artikel";
+import ArtikelPage from "./ArtikelPage";
 
 export const metadata = {
   title: "Artikel | Bank Jatah Indonesia",
