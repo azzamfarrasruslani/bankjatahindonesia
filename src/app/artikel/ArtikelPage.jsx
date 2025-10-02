@@ -7,10 +7,11 @@ export default function ArtikelPage() {
   return (
     <div className="bg-white text-gray-800">
       <HeroSection
-        title="Artikel & Informasi"
-        description="Dapatkan wawasan terbaru seputar pengelolaan minyak jelantah, inovasi berkelanjutan, dan kisah inspiratif dari masyarakat."
-        imageUrl="/images/artikel.jpeg"
+        title="Pusat Pertanyaan Umum"
+        description="Temukan jawaban atas pertanyaan seputar program Bank Jatah Indonesia, mulai dari Tabungan Jelantah, Jual Beli Jelantah, hingga Sedekah Jelantah."
+        imageUrl="/images/faq-banner.jpg"
       />
+
       <ArtikelGrid />
     </div>
   );

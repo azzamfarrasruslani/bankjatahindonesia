@@ -18,7 +18,7 @@ const poppins = Poppins({
 });
 
 export const metadata = {
-  title: "Bank Jatah",
+  title: "Bank Jatah Indonesia",
   description: "Website resmi Bank Jatah Indonesia",
 };
 

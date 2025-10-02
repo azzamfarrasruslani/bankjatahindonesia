@@ -1,40 +1,59 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, ChevronUp, X, User, Globe } from "lucide-react";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import LanguageSelector from "./LanguageSelector";
 
-export default function MobileNavbar({ setIsOpen, openDropdown, toggleDropdown }) {
+export default function MobileNavbar({
+  setIsOpen,
+  openDropdown,
+  toggleDropdown,
+}) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const ref = useRef();
+
   const currentLang = i18n.language;
   const languages = ["id", "en"];
-
   const changeLanguage = (lng) => i18n.changeLanguage(lng);
-
   const handleNavigation = (path) => {
     setIsOpen(false);
     router.push(path);
   };
 
+  // Tutup menu saat klik di luar
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (ref.current && !ref.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [setIsOpen]);
+
   return (
     <motion.div
-      initial={{ x: "-100%" }}
-      animate={{ x: 0 }}
-      exit={{ x: "-100%" }}
-      transition={{ duration: 0.3 }}
-      className="fixed left-0 top-0 z-[9999] h-full w-72 bg-white p-6 md:hidden overflow-y-auto shadow-lg"
+      ref={ref}
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.2 }}
+      className="absolute top-full right-4 left-4 mt-2 z-50 rounded-xl bg-white p-4 shadow-xl border border-gray-200 md:hidden"
     >
       {/* Tombol Tutup */}
-      <button className="absolute top-4 right-4" onClick={() => setIsOpen(false)}>
-        <X size={28} />
-      </button>
+      <div className="flex justify-end mb-2">
+        <button onClick={() => setIsOpen(false)}>
+          <X size={24} className="text-gray-700" />
+        </button>
+      </div>
 
       {/* Language & Login */}
-      <div className="flex flex-col items-start gap-4 mb-8 px-4">
+      <div className="flex flex-col items-start gap-4 mb-4">
         <div className="flex items-center gap-2">
           <Globe size={18} className="text-gray-700" />
           <LanguageSelector
@@ -52,73 +71,69 @@ export default function MobileNavbar({ setIsOpen, openDropdown, toggleDropdown }
         </button>
       </div>
 
-      {/* Menu */}
-      <ul className="space-y-2 text-base font-medium">
+      <ul className="space-y-2 text-base font-medium text-gray-700">
         <li>
           <button
-            onClick={() => handleNavigation("/buy-cars")}
-            className="w-full text-left px-4 py-2 hover:bg-gray-100"
+            onClick={() => handleNavigation("/")}
+            className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
           >
-            {t("navbar.beli-mobil")}
+            {t("navbar.beranda")}
           </button>
         </li>
         <li>
           <button
-            onClick={() => handleNavigation("/sell-cars")}
-            className="w-full text-left px-4 py-2 hover:bg-gray-100"
+            onClick={() => handleNavigation("/tentang-kami")}
+            className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
           >
-            {t("navbar.jual-mobil")}
+            {t("navbar.tentang-kami")}
           </button>
         </li>
         <li>
           <button
-            onClick={() => handleNavigation("/faq")}
-            className="w-full text-left px-4 py-2 hover:bg-gray-100"
+            onClick={() => handleNavigation("/program-kami")}
+            className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
           >
-            {t("FAQ")}
+            {t("navbar.program-kami")}
           </button>
         </li>
 
-        {/* Dropdown: Tentang */}
+        {/* Dropdown: Info & Artikel */}
         <li>
           <button
-            onClick={() => toggleDropdown("tentang")}
-            className="flex w-full items-center justify-between px-4 py-2 text-left hover:bg-gray-100"
+            onClick={() => toggleDropdown("info")}
+            className="flex w-full justify-between items-center px-4 py-2 hover:bg-gray-100 rounded-md"
           >
-            {t("navbar.tentang-mobilin")}
-            {openDropdown === "tentang" ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            {t("navbar.info-artikel")}
+            {openDropdown === "info" ? (
+              <ChevronUp size={18} />
+            ) : (
+              <ChevronDown size={18} />
+            )}
           </button>
-          {openDropdown === "tentang" && (
+          {openDropdown === "info" && (
             <motion.div
-              key="tentang"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="ml-4 overflow-hidden"
+              className="ml-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
             >
               <button
-                onClick={() => handleNavigation("/tentang-kami")}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-              >
-                {t("navbar.tentang-kami")}
-              </button>
-              <button
                 onClick={() => handleNavigation("/artikel")}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
               >
                 {t("navbar.artikel")}
               </button>
               <button
-                onClick={() => handleNavigation("/kontak-kami")}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                onClick={() => handleNavigation("/berita")}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
               >
-                {t("navbar.kontak-kami")}
+                {t("navbar.berita")}
               </button>
               <button
-                onClick={() => handleNavigation("/lokasi-kami")}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                onClick={() => handleNavigation("/faq")}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
               >
-                {t("navbar.lokasi-kami")}
+                {t("navbar.faq")}
               </button>
             </motion.div>
           )}
@@ -128,36 +143,39 @@ export default function MobileNavbar({ setIsOpen, openDropdown, toggleDropdown }
         <li>
           <button
             onClick={() => toggleDropdown("lainnya")}
-            className="flex w-full items-center justify-between px-4 py-2 text-left hover:bg-gray-100"
+            className="flex w-full justify-between items-center px-4 py-2 hover:bg-gray-100 rounded-md"
           >
             {t("navbar.lainnya")}
-            {openDropdown === "lainnya" ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            {openDropdown === "lainnya" ? (
+              <ChevronUp size={18} />
+            ) : (
+              <ChevronDown size={18} />
+            )}
           </button>
           {openDropdown === "lainnya" && (
             <motion.div
-              key="lainnya"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="ml-4 overflow-hidden"
+              className="ml-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
             >
               <button
-                onClick={() => handleNavigation("/karir")}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                onClick={() => handleNavigation("/kontak")}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
               >
-                {t("navbar.karir")}
+                {t("navbar.kontak")}
               </button>
               <button
-                onClick={() => handleNavigation("/simulasi-kredit")}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                onClick={() => handleNavigation("/lokasi")}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
               >
-                {t("navbar.simulasi-kredit")}
+                {t("navbar.lokasi")}
               </button>
               <button
-                onClick={() => handleNavigation("/katalog-media")}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                onClick={() => handleNavigation("/kebijakan")}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
               >
-                {t("navbar.katalog-media")}
+                {t("navbar.kebijakan")}
               </button>
             </motion.div>
           )}

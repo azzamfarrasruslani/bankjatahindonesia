@@ -38,7 +38,7 @@ export default function Navbar() {
 
   return (
     <motion.nav
-      className={`fixed top-10 left-1/2 z-50 w-[95%] md:w-[90%] lg:w-[80%] transform -translate-x-1/2 rounded-xl backdrop-blur-md border border-gray-200 bg-white/80 shadow-md transition-all duration-300 ${
+      className={`fixed top-10 left-1/2 z-50 w-[95%] md:w-[90%] lg:w-[80%] transform -translate-x-1/2 rounded-xl backdrop-blur-md border bg-white shadow-md transition-all duration-300 ${
         scrollY > 20 ? "shadow-xl bg-white/90" : "shadow-md bg-white/80"
       }`}
       initial={{ y: -100 }}
@@ -98,7 +98,7 @@ export default function Navbar() {
         {isOpen && (
           <>
             <motion.div
-              className="fixed inset-0 z-40 bg-black/50"
+              className="fixed inset-0 z-40 "
               onClick={() => setIsOpen(false)}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
