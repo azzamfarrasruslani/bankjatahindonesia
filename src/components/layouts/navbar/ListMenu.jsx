@@ -47,7 +47,7 @@ export default function ListMenu() {
           selected={t("navbar.info-artikel")}
         />
       </li>
-      <li>
+      {/* <li>
         <DropdownLink
           items={[
             { label: t("navbar.kontak"), path: "/kontak" },
@@ -56,7 +56,7 @@ export default function ListMenu() {
           ]}
           selected={t("navbar.lainnya")}
         />
-      </li>
+      </li> */}
     </ul>
   );
 }

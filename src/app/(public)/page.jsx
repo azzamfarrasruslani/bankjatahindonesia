@@ -1,6 +1,5 @@
-import Image from "next/image";
-import Navbar from "./layout/navbar";
-import Footer from "@/app/layout/footer";
+// src/app/(public)/page.jsx
+
 import Hero from "@/components/home/Hero";
 import TentangKami from "@/components/home/TentangKami";
 import ProgramBankJatah from "@/components/home/ProgramBankJatah";
@@ -54,7 +53,6 @@ export default function Home() {
       <section id="berita" className="py-20 px-6 bg-white">
         <BeritaSection />
       </section>
-
     </div>
   );
 }

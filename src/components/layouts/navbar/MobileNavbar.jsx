@@ -152,7 +152,7 @@ export default function MobileNavbar({
               <ChevronDown size={18} />
             )}
           </button>
-          {openDropdown === "lainnya" && (
+          {/* {openDropdown === "lainnya" && (
             <motion.div
               className="ml-4"
               initial={{ opacity: 0 }}
@@ -178,7 +178,7 @@ export default function MobileNavbar({
                 {t("navbar.kebijakan")}
               </button>
             </motion.div>
-          )}
+          )} */}
         </li>
       </ul>
     </motion.div>
