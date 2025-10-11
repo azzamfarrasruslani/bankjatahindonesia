@@ -3,7 +3,8 @@
 import { motion } from "framer-motion";
 import ArtikelCard from "./ArtikelCard";
 import ArtikelHighlight from "./ArtikelHighlight";
-import { artikelList } from "../../../data/artikelData";
+import { artikelList } from "@/data/artikelData";
+
 
 export default function ArtikelGrid() {
   const [highlight, ...others] = artikelList;

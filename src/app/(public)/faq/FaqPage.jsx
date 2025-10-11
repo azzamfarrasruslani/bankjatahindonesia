@@ -3,7 +3,7 @@ import { useRef } from "react";
 import HeroSection from "@/components/common/HeroSection";
 import FaqSidebar from "./components/FaqSidebar";
 import FaqCategory from "./components/FaqCategory";
-import { faqData } from "../../data/faqData"; // import langsung
+import { faqData } from "@/data/faqData";
 
 export default function FaqPage() {
   const refs = useRef([]);

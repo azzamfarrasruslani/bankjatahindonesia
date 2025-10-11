@@ -1,6 +1,6 @@
 "use client";
 
-import { beritaList } from "../../data/beritaData";
+import { beritaList } from "@/data/beritaData";
 import BeritaHeading from "./components/BeritaHeading";
 import BeritaTopCard from "./components/BeritaTopCard";
 import BeritaCard from "./components/BeritaCard";
