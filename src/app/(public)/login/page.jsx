@@ -25,7 +25,7 @@ export default function LoginPage() {
       setAlert({ message: "Login gagal: " + error.message, type: "error" });
     } else {
       setAlert({ message: "Login berhasil, mengalihkan ke dashboard...", type: "success" });
-      setTimeout(() => router.push("/dashboard"), 1500);
+      setTimeout(() => router.push("/dashboard"), 1000);
     }
   };
 
@@ -104,19 +104,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 text-sm text-center text-gray-600 space-y-1">
-            <p>
-              Belum punya akun?{" "}
-              <Link href="/register" className="text-[#FB6B00] hover:underline">
-                Daftar di sini
-              </Link>
-            </p>
-            <p>
-              <Link href="/forgot-password" className="text-[#FB6B00] hover:underline">
-                Lupa kata sandi?
-              </Link>
-            </p>
-          </div>
+         
         </div>
       </div>
     </div>

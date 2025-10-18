@@ -9,7 +9,7 @@ export default function Breadcrumb() {
   const segments = pathname.split("/").filter(Boolean);
 
   return (
-    <nav className="flex items-center text-sm mb-4 mx-5 p-3 bg-white shadow rounded">
+    <nav className="hidden md:flex items-center text-sm mb-4 mx-5 p-3 bg-white shadow rounded">
       {/* Home icon */}
       <Link
         href="/"
