@@ -5,13 +5,14 @@ import Link from "next/link";
 import { useState } from "react";
 import {
   FaHome,
-  FaCloudUploadAlt,
-  FaWallet,
-  FaUserFriends,
-  FaShieldAlt,
-  FaGift,
+  FaInfoCircle,
+  FaNewspaper,
   FaLayerGroup,
+  FaUsers,
+  FaImage,
+  FaEnvelope,
   FaQuestionCircle,
+  FaCog,
   FaSignOutAlt,
 } from "react-icons/fa";
 import { supabase } from "@/lib/supabaseClient";
@@ -32,14 +33,23 @@ export default function Sidebar({ isOpen, onClose }) {
   };
 
   const menuItems = [
-    { label: "Beranda", icon: FaHome, href: "/dashboard", exact: true },
-    { label: "Setor Minyak", icon: FaCloudUploadAlt, href: "/dashboard/setor" },
-    { label: "Wallet", icon: FaWallet, href: "/dashboard/wallet" },
-    { label: "Mitra", icon: FaUserFriends, href: "/dashboard/mitra" },
-    { label: "Validasi", icon: FaShieldAlt, href: "/dashboard/validasi" },
-    { label: "Tukar Poin", icon: FaGift, href: "/dashboard/tukar-poin" },
-    { label: "Program Jelantah", icon: FaLayerGroup, href: "/dashboard/program-jelantah" },
-    { label: "Bantuan", icon: FaQuestionCircle, href: "/dashboard/bantuan" },
+    { label: "Dashboard", icon: FaHome, href: "/dashboard", exact: true },
+    {
+      label: "Profil Perusahaan",
+      icon: FaInfoCircle,
+      href: "/dashboard/profil",
+    },
+    { label: "Berita & Artikel", icon: FaNewspaper, href: "/dashboard/berita" },
+    {
+      label: "Program Jelantah",
+      icon: FaLayerGroup,
+      href: "/dashboard/program",
+    },
+    { label: "Galeri", icon: FaImage, href: "/dashboard/galeri" },
+    { label: "Testimoni", icon: FaUsers, href: "/dashboard/testimoni" },
+    { label: "Kontak & Pesan", icon: FaEnvelope, href: "/dashboard/kontak" },
+    { label: "FAQ / Bantuan", icon: FaQuestionCircle, href: "/dashboard/faq" },
+    { label: "Pengaturan", icon: FaCog, href: "/dashboard/pengaturan" },
   ];
 
   const logoutItem = { label: "Keluar", icon: FaSignOutAlt };
@@ -72,7 +82,11 @@ export default function Sidebar({ isOpen, onClose }) {
     }
 
     return (
-      <Link key={item.href} href={item.href} className={`${baseClasses} ${activeClasses}`}>
+      <Link
+        key={item.href}
+        href={item.href}
+        className={`${baseClasses} ${activeClasses}`}
+      >
         <div
           className={`p-2 rounded-md ${
             isActive ? "bg-[#FB6B00]/20" : "group-hover:bg-gray-200"

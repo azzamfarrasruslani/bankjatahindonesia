@@ -13,14 +13,11 @@ export default function BeritaTopCard({ berita }) {
     >
       <div className="relative h-80 w-full">
         <Image
-          src={berita.image}
+          src={berita.image || "/placeholder.jpg"}
           alt={berita.title}
           fill
           className="object-cover"
         />
-        <span className="absolute top-3 left-3 bg-[#FB6B00] text-white text-xs font-semibold px-2 py-1 rounded-full">
-          {berita.category}
-        </span>
         <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/60 to-transparent p-6">
           <h2 className="text-white text-2xl md:text-3xl font-bold mb-2">
             {berita.title}

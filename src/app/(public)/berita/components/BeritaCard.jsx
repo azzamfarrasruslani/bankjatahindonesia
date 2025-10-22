@@ -13,14 +13,11 @@ export default function BeritaCard({ berita, index }) {
     >
       <div className="relative h-56 w-full">
         <Image
-          src={berita.image}
+          src={berita.image || "/placeholder.jpg"}
           alt={berita.title}
           fill
           className="object-cover"
         />
-        <span className="absolute top-3 left-3 bg-[#FB6B00] text-white text-xs font-semibold px-2 py-1 rounded-full">
-          {berita.category}
-        </span>
       </div>
       <div className="p-6 space-y-2">
         <div className="flex justify-between text-gray-500 text-xs">
