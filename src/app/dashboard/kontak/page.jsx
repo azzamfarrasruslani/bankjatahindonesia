@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
 import {
   FaWhatsapp,
   FaFacebook,
@@ -14,31 +15,61 @@ import {
 
 export default function ManajemenKontakPage() {
   const [isEditing, setIsEditing] = useState(false);
-  const [contacts, setContacts] = useState({
-    whatsapp: "+62 812 3456 7890",
-    email: "info@bankjatah.id",
-    telepon: "(021) 555 6789",
-    facebook: "https://facebook.com/bankjatah.id",
-    instagram: "https://instagram.com/bankjatah.id",
-  });
+  const [kontak, setKontak] = useState(null);
+  const [tempData, setTempData] = useState({});
 
-  const [tempData, setTempData] = useState(contacts);
+  // Fetch kontak dari Supabase
+  const fetchKontak = async () => {
+    const { data, error } = await supabase
+      .from("kontak")
+      .select("*")
+      .order("id", { ascending: true })
+      .limit(1)
+      .single(); // Ambil kontak pertama saja
+    if (error) console.error(error);
+    else {
+      setKontak(data);
+      setTempData(data);
+    }
+  };
+
+  useEffect(() => {
+    fetchKontak();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setTempData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
-    setContacts(tempData);
+  const handleSave = async () => {
+    if (!kontak) {
+      // Insert baru jika belum ada
+      const { data, error } = await supabase
+        .from("kontak")
+        .insert([tempData])
+        .select();
+      if (error) alert("Error: " + error.message);
+      else setKontak(data[0]);
+    } else {
+      // Update kontak
+      const { data, error } = await supabase
+        .from("kontak")
+        .update(tempData)
+        .eq("id", kontak.id)
+        .select(); // <- wajib agar data tersedia
+      if (error) alert("Error: " + error.message);
+      else setKontak(data[0]);
+    }
     setIsEditing(false);
-    alert("✅ Kontak berhasil diperbarui (dummy mode)");
   };
 
   const handleCancel = () => {
-    setTempData(contacts);
+    setTempData(kontak);
     setIsEditing(false);
   };
+
+  if (!kontak) return <p>Loading...</p>;
 
   return (
     <section className="min-h-screen bg-gradient-to-b from-orange-50 to-white px-6 py-10 md:p-12">
@@ -65,10 +96,10 @@ export default function ManajemenKontakPage() {
         </button>
       </div>
 
-      {/* Daftar Kontak */}
+      {/* Kontak */}
       <div className="max-w-4xl mx-auto bg-white p-6 rounded-2xl shadow-md border border-orange-100">
         <div className="grid sm:grid-cols-2 gap-6">
-          {/* WhatsApp */}
+          {/** WhatsApp **/}
           <div className="flex items-center gap-3 p-4 border border-gray-100 rounded-xl bg-orange-50/30 hover:shadow-sm transition">
             <FaWhatsapp className="text-green-500 text-2xl" />
             <div className="flex-1">
@@ -77,17 +108,17 @@ export default function ManajemenKontakPage() {
                 <input
                   type="text"
                   name="whatsapp"
-                  value={tempData.whatsapp}
+                  value={tempData.whatsapp || ""}
                   onChange={handleChange}
                   className="mt-1 w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FB6B00] focus:outline-none"
                 />
               ) : (
-                <p className="font-medium text-gray-700">{contacts.whatsapp}</p>
+                <p className="font-medium text-gray-700">{kontak.whatsapp}</p>
               )}
             </div>
           </div>
 
-          {/* Email */}
+          {/** Email **/}
           <div className="flex items-center gap-3 p-4 border border-gray-100 rounded-xl bg-orange-50/30 hover:shadow-sm transition">
             <FaEnvelope className="text-[#FB6B00] text-2xl" />
             <div className="flex-1">
@@ -96,17 +127,17 @@ export default function ManajemenKontakPage() {
                 <input
                   type="email"
                   name="email"
-                  value={tempData.email}
+                  value={tempData.email || ""}
                   onChange={handleChange}
                   className="mt-1 w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FB6B00] focus:outline-none"
                 />
               ) : (
-                <p className="font-medium text-gray-700">{contacts.email}</p>
+                <p className="font-medium text-gray-700">{kontak.email}</p>
               )}
             </div>
           </div>
 
-          {/* Telepon */}
+          {/** Telepon **/}
           <div className="flex items-center gap-3 p-4 border border-gray-100 rounded-xl bg-orange-50/30 hover:shadow-sm transition">
             <FaPhoneAlt className="text-blue-500 text-2xl" />
             <div className="flex-1">
@@ -115,17 +146,17 @@ export default function ManajemenKontakPage() {
                 <input
                   type="text"
                   name="telepon"
-                  value={tempData.telepon}
+                  value={tempData.telepon || ""}
                   onChange={handleChange}
                   className="mt-1 w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FB6B00] focus:outline-none"
                 />
               ) : (
-                <p className="font-medium text-gray-700">{contacts.telepon}</p>
+                <p className="font-medium text-gray-700">{kontak.telepon}</p>
               )}
             </div>
           </div>
 
-          {/* Facebook */}
+          {/** Facebook **/}
           <div className="flex items-center gap-3 p-4 border border-gray-100 rounded-xl bg-orange-50/30 hover:shadow-sm transition">
             <FaFacebook className="text-blue-600 text-2xl" />
             <div className="flex-1">
@@ -134,24 +165,24 @@ export default function ManajemenKontakPage() {
                 <input
                   type="url"
                   name="facebook"
-                  value={tempData.facebook}
+                  value={tempData.facebook || ""}
                   onChange={handleChange}
                   className="mt-1 w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FB6B00] focus:outline-none"
                 />
               ) : (
                 <a
-                  href={contacts.facebook}
+                  href={kontak.facebook}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-medium text-[#FB6B00] hover:underline"
                 >
-                  {contacts.facebook}
+                  {kontak.facebook}
                 </a>
               )}
             </div>
           </div>
 
-          {/* Instagram */}
+          {/** Instagram **/}
           <div className="flex items-center gap-3 p-4 border border-gray-100 rounded-xl bg-orange-50/30 hover:shadow-sm transition">
             <FaInstagram className="text-pink-500 text-2xl" />
             <div className="flex-1">
@@ -160,18 +191,18 @@ export default function ManajemenKontakPage() {
                 <input
                   type="url"
                   name="instagram"
-                  value={tempData.instagram}
+                  value={tempData.instagram || ""}
                   onChange={handleChange}
                   className="mt-1 w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FB6B00] focus:outline-none"
                 />
               ) : (
                 <a
-                  href={contacts.instagram}
+                  href={kontak.instagram}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-medium text-[#FB6B00] hover:underline"
                 >
-                  {contacts.instagram}
+                  {kontak.instagram}
                 </a>
               )}
             </div>

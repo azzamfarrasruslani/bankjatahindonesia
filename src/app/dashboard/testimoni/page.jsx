@@ -1,39 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { supabase } from "@/lib/supabaseClient";
 import { FaPlus, FaEdit, FaTrash, FaStar } from "react-icons/fa";
 
 export default function DashboardTestimoniPage() {
-  const [testimoniList, setTestimoniList] = useState([
-    {
-      id: 1,
-      nama: "Rina Aulia",
-      isi: "Program Bank Jatah Indonesia membantu saya mengelola minyak jelantah dengan mudah dan bermanfaat.",
-      rating: 5,
-      tanggal: "2025-10-15",
-    },
-    {
-      id: 2,
-      nama: "Budi Santoso",
-      isi: "Pelayanan cepat dan sistemnya transparan. Cocok untuk masyarakat peduli lingkungan.",
-      rating: 4,
-      tanggal: "2025-10-10",
-    },
-    {
-      id: 3,
-      nama: "Siti Marlina",
-      isi: "Inisiatif yang sangat inspiratif! Saya jadi lebih sadar pentingnya daur ulang jelantah.",
-      rating: 5,
-      tanggal: "2025-10-05",
-    },
-  ]);
+  const [testimoniList, setTestimoniList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleDelete = (id) => {
-    if (!confirm("Yakin ingin menghapus testimoni ini?")) return;
-    setTestimoniList((prev) => prev.filter((item) => item.id !== id));
-    alert("✅ Testimoni berhasil dihapus (dummy mode)");
+  // Fetch testimoni dari Supabase
+  const fetchTestimoni = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("testimoni")
+      .select("*")
+      .order("id", { ascending: false });
+    if (error) console.error("Fetch error:", error);
+    else setTestimoniList(data || []);
+    setLoading(false);
   };
+
+  useEffect(() => {
+    fetchTestimoni();
+  }, []);
+
+  // Delete testimoni
+  const handleDelete = async (id) => {
+    if (!confirm("Yakin ingin menghapus testimoni ini?")) return;
+    const { error } = await supabase.from("testimoni").delete().eq("id", id);
+    if (error) alert("Error: " + error.message);
+    else {
+      alert("✅ Testimoni berhasil dihapus");
+      fetchTestimoni();
+    }
+  };
+
+  if (loading) return <p>Loading...</p>;
 
   return (
     <section className="min-h-screen bg-gradient-to-b from-orange-50 to-white p-6 md:p-10">
