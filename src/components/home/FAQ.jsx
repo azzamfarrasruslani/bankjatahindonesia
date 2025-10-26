@@ -24,8 +24,6 @@ const faqs = [
   },
 ];
 
-
-
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState(null);
   const toggleFAQ = (index) => {
@@ -33,42 +31,50 @@ export default function FAQ() {
   };
 
   return (
-    <section className="bg-white py-20 px-4 sm:px-8">
+    <section className="bg-white py-24 px-4 sm:px-8">
       <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-        {/* Left Section - Image & Benefits */}
-        <div className="relative rounded-3xl overflow-hidden shadow-lg">
+        {/* Left Section - Image dengan efek */}
+        <div className="relative rounded-3xl overflow-hidden shadow-2xl duration-500">
           <Image
-            src="/images/faq.jpeg" // Ganti dengan ilustrasi kamu
+            src="/images/faq.jpeg"
             alt="Ilustrasi FAQ"
             width={600}
             height={500}
-            className="w-full h-[500px]  object-cover"
+            className="w-full h-[500px] object-cover"
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
         </div>
 
         {/* Right Section - FAQ Accordion */}
         <div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-[#FB6B00] mb-4">
-            FAQ (Pertanyaan yang Sering Diajukan)
+          <h2 className="text-4xl sm:text-5xl font-bold text-[#FB6B00] mb-3">
+            FAQ
           </h2>
-          <p className="text-gray-600 mb-8 max-w-lg">
-            Temukan jawaban atas semua pertanyaan umum seputar minyak jelantah dan program Bank Jatah Indonesia.
+          <p className="text-gray-500 mb-8 max-w-lg">
+            Temukan jawaban atas pertanyaan umum seputar minyak jelantah dan
+            program Bank Jatah Indonesia.
           </p>
 
           <div className="space-y-5">
             {faqs.map((faq, index) => (
               <div
                 key={index}
-                className="border border-gray-200 rounded-xl overflow-hidden"
+                className="border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition"
               >
                 <button
                   onClick={() => toggleFAQ(index)}
-                  className="w-full px-5 py-4 flex justify-between items-center text-left text-gray-800 font-semibold hover:bg-orange-50 transition"
+                  className="w-full px-6 py-4 flex justify-between items-center text-left font-semibold text-gray-800 hover:bg-orange-50 transition"
                 >
-                  <span>{faq.question}</span>
-                  <span className="text-[#FB6B00] text-xl">
-                    {openIndex === index ? "−" : "+"}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <Lightbulb className="text-[#FB6B00]" />
+                    <span>{faq.question}</span>
+                  </div>
+                  <motion.span
+                    animate={{ rotate: openIndex === index ? 45 : 0 }}
+                    className="text-[#FB6B00] text-xl"
+                  >
+                    +
+                  </motion.span>
                 </button>
 
                 <AnimatePresence>
@@ -78,7 +84,7 @@ export default function FAQ() {
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="px-5 pb-4 text-sm text-gray-600"
+                      className="px-6 pb-4 text-gray-600 text-sm"
                     >
                       {faq.answer}
                     </motion.div>
@@ -90,8 +96,8 @@ export default function FAQ() {
 
           <div className="mt-10">
             <Link href="/faq">
-              <button className="bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3 rounded-lg shadow-lg font-semibold transition">
-                Lihat FAQ Lengkap
+              <button className="flex items-center gap-2 bg-gradient-to-r from-[#FB6B00] to-orange-400 hover:from-orange-500 hover:to-orange-600 text-white px-6 py-3 rounded-xl shadow-lg font-semibold transition">
+                <Users className="w-5 h-5" /> Lihat FAQ Lengkap
               </button>
             </Link>
           </div>

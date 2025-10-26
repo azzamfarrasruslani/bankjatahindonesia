@@ -47,16 +47,16 @@ export default function ListMenu() {
           selected={t("navbar.info-artikel")}
         />
       </li>
-      {/* <li>
+      <li>
         <DropdownLink
           items={[
             { label: t("navbar.kontak"), path: "/kontak" },
             { label: t("navbar.lokasi"), path: "/lokasi" },
-            { label: t("navbar.kebijakan"), path: "/kebijakan" },
+            { label: t("navbar.galeri"), path: "/galeri" },
           ]}
           selected={t("navbar.lainnya")}
         />
-      </li> */}
+      </li>
     </ul>
   );
 }

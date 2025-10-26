@@ -41,9 +41,6 @@ export default function Navbar() {
       className={`fixed top-10 left-1/2 z-50 w-[95%] md:w-[90%] lg:w-[80%] transform -translate-x-1/2 rounded-xl backdrop-blur-md border bg-white shadow-md transition-all duration-300 ${
         scrollY > 20 ? "shadow-xl bg-white/90" : "shadow-md bg-white/80"
       }`}
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ type: "spring", stiffness: 120 }}
     >
       <div className="flex items-center justify-between px-4 py-3">
         {/* Logo */}
