@@ -9,7 +9,6 @@ import {
   FaEnvelope,
   FaPhoneAlt,
   FaEdit,
-  FaSave,
   FaTimes,
 } from "react-icons/fa";
 
@@ -110,7 +109,7 @@ export default function ManajemenKontakPage() {
                   name="whatsapp"
                   value={tempData.whatsapp || ""}
                   onChange={handleChange}
-                  className="mt-1 w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FB6B00] focus:outline-none"
+                  className="mt-1 w-full px-3 py-1 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-[#FB6B00] focus:outline-none"
                 />
               ) : (
                 <p className="font-medium text-gray-700">{kontak.whatsapp}</p>
@@ -129,7 +128,7 @@ export default function ManajemenKontakPage() {
                   name="email"
                   value={tempData.email || ""}
                   onChange={handleChange}
-                  className="mt-1 w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FB6B00] focus:outline-none"
+                  className="mt-1 w-full px-3 py-1 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-[#FB6B00] focus:outline-none"
                 />
               ) : (
                 <p className="font-medium text-gray-700">{kontak.email}</p>
@@ -138,7 +137,7 @@ export default function ManajemenKontakPage() {
           </div>
 
           {/** Telepon **/}
-          <div className="flex items-center gap-3 p-4 border border-gray-100 rounded-xl bg-orange-50/30 hover:shadow-sm transition">
+          <div className="flex items-center gap-3 p-4 border border-gray-100 text-gray-600 rounded-xl bg-orange-50/30 hover:shadow-sm transition">
             <FaPhoneAlt className="text-blue-500 text-2xl" />
             <div className="flex-1">
               <p className="text-sm text-gray-500">Nomor Telepon</p>
@@ -148,7 +147,7 @@ export default function ManajemenKontakPage() {
                   name="telepon"
                   value={tempData.telepon || ""}
                   onChange={handleChange}
-                  className="mt-1 w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FB6B00] focus:outline-none"
+                  className="mt-1 w-full px-3 py-1 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-[#FB6B00] focus:outline-none"
                 />
               ) : (
                 <p className="font-medium text-gray-700">{kontak.telepon}</p>
@@ -157,7 +156,7 @@ export default function ManajemenKontakPage() {
           </div>
 
           {/** Facebook **/}
-          <div className="flex items-center gap-3 p-4 border border-gray-100 rounded-xl bg-orange-50/30 hover:shadow-sm transition">
+          <div className="flex items-center gap-3 p-4 border border-gray-100 text-gray-600 rounded-xl bg-orange-50/30 hover:shadow-sm transition">
             <FaFacebook className="text-blue-600 text-2xl" />
             <div className="flex-1">
               <p className="text-sm text-gray-500">Facebook</p>
@@ -167,7 +166,7 @@ export default function ManajemenKontakPage() {
                   name="facebook"
                   value={tempData.facebook || ""}
                   onChange={handleChange}
-                  className="mt-1 w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FB6B00] focus:outline-none"
+                  className="mt-1 w-full px-3 py-1 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-[#FB6B00] focus:outline-none"
                 />
               ) : (
                 <a
@@ -183,7 +182,7 @@ export default function ManajemenKontakPage() {
           </div>
 
           {/** Instagram **/}
-          <div className="flex items-center gap-3 p-4 border border-gray-100 rounded-xl bg-orange-50/30 hover:shadow-sm transition">
+          <div className="flex items-center gap-3 p-4 border border-gray-100 text-gray-600 rounded-xl bg-orange-50/30 hover:shadow-sm transition">
             <FaInstagram className="text-pink-500 text-2xl" />
             <div className="flex-1">
               <p className="text-sm text-gray-500">Instagram</p>
@@ -193,7 +192,7 @@ export default function ManajemenKontakPage() {
                   name="instagram"
                   value={tempData.instagram || ""}
                   onChange={handleChange}
-                  className="mt-1 w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FB6B00] focus:outline-none"
+                  className="mt-1 w-full px-3 py-1 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-[#FB6B00] focus:outline-none"
                 />
               ) : (
                 <a
@@ -213,15 +212,15 @@ export default function ManajemenKontakPage() {
           <div className="flex justify-end mt-8 gap-3">
             <button
               onClick={handleCancel}
-              className="flex items-center gap-2 px-5 py-2 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition"
+              className="flex items-center gap-2 px-5 py-2 bg-gray-200  text-gray-700 rounded-xl hover:bg-gray-300 transition"
             >
-              <FaTimes /> Batal
+              Batal
             </button>
             <button
               onClick={handleSave}
               className="flex items-center gap-2 px-5 py-2 bg-[#FB6B00] text-white rounded-xl hover:bg-orange-700 transition"
             >
-              <FaSave /> Simpan Perubahan
+              Simpan
             </button>
           </div>
         )}
