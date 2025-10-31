@@ -59,13 +59,6 @@ export default function DashboardBeritaPage() {
     }
   };
 
-  if (loading)
-    return (
-      <div className="p-10 text-center text-orange-600 font-medium animate-pulse">
-        Memuat data...
-      </div>
-    );
-
   return (
     <section className="p-6 md:p-10 min-h-screen bg-gradient-to-b from-orange-50 to-white rounded-2xl shadow-md">
       {/* Header */}
@@ -99,7 +92,16 @@ export default function DashboardBeritaPage() {
             </tr>
           </thead>
           <tbody>
-            {berita.length === 0 ? (
+            {loading ? (
+              <tr>
+                <td
+                  colSpan="5"
+                  className="text-center py-10 text-orange-600 font-medium animate-pulse"
+                >
+                  Memuat data berita...
+                </td>
+              </tr>
+            ) : berita.length === 0 ? (
               <tr>
                 <td
                   colSpan="5"
@@ -119,7 +121,7 @@ export default function DashboardBeritaPage() {
                   }`}
                 >
                   <td className="px-6 py-4 font-medium text-gray-800">
-                    {item.title}
+                    {item.judul}
                   </td>
                   <td className="px-6 py-4 text-gray-600">
                     {new Date(item.created_at).toLocaleDateString("id-ID")}
@@ -141,7 +143,7 @@ export default function DashboardBeritaPage() {
                   <td className="px-6 py-4 text-center">
                     <div className="flex justify-center gap-5">
                       <Link
-                        href={`/dashboard/berita/edit/${item.id}`}
+                        href={`/dashboard/berita/${item.id}`}
                         className="p-2 rounded-full hover:bg-orange-100 text-[#FB6B00] hover:text-orange-700 transition-all"
                         title="Edit"
                       >
