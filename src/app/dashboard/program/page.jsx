@@ -1,68 +1,46 @@
 "use client";
 
-import { useState } from "react";
-import { FaPlus, FaEdit, FaTrash, FaRecycle, FaLeaf, FaHandsHelping } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
+import Link from "next/link";
+import { createClient } from "@supabase/supabase-js";
+import { useRouter } from "next/navigation";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
 export default function DashboardProgramPage() {
-  const [programs, setPrograms] = useState([
-    {
-      id: 1,
-      title: "Tabungan Jelantah",
-      status: "Program Aktif",
-      icon: <FaRecycle className="text-4xl text-[#FB6B00]" />,
-      description:
-        "Ubah minyak jelantah menjadi tabungan bernilai ekonomi. Program ini memungkinkan masyarakat menukar minyak jelantah dengan nilai tabungan digital.",
-      detail: [
-        "Warga membawa minyak jelantah dalam botol plastik bekas.",
-        "Petugas menimbang dan mencatat volume.",
-        "Sistem menambahkan poin/tabungan ke akun warga.",
-      ],
-      button: "Ikuti Program Ini",
-    },
-    {
-      id: 2,
-      title: "Jual Beli Jelantah",
-      status: "Program Aktif",
-      icon: <FaLeaf className="text-4xl text-[#FB6B00]" />,
-      description:
-        "Jual minyak bekas dengan harga bersaing dan ramah lingkungan. Program ini membuka akses jual beli minyak jelantah untuk rumah tangga dan UMKM.",
-      detail: [
-        "Daftar sebagai penjual di platform.",
-        "Jadwalkan penjemputan atau setor ke pos terdekat.",
-        "Terima pembayaran via transfer atau tunai.",
-      ],
-      button: "Ikuti Program Ini",
-    },
-    {
-      id: 3,
-      title: "Sedekah Jelantah",
-      status: "Program Aktif",
-      icon: <FaHandsHelping className="text-4xl text-[#FB6B00]" />,
-      description:
-        "Salurkan jelantah sebagai bentuk kepedulian untuk rumah ibadah & sosial. Hasil penjualannya akan didonasikan 100% untuk kegiatan sosial.",
-      detail: [
-        "Setor jelantah ke titik sedekah.",
-        "Petugas mencatat dan menimbang.",
-        "Hasil penjualan disalurkan ke lembaga sosial & dilaporkan ke penyumbang.",
-      ],
-      button: "Ikuti Program Ini",
-    },
-  ]);
+  const [programs, setPrograms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  const handleAdd = () => {
-    alert("Tambah program baru (belum terhubung ke backend).");
-  };
+  // Ambil data dari tabel `program`
+  useEffect(() => {
+    const fetchPrograms = async () => {
+      const { data, error } = await supabase
+        .from("program")
+        .select("*")
+        .order("id");
+      if (error) console.error("Gagal ambil data:", error);
+      else setPrograms(data);
+      setLoading(false);
+    };
+    fetchPrograms();
+  }, []);
 
-  const handleEdit = (id) => {
-    alert(`Edit program dengan ID: ${id}`);
-  };
-
-  const handleDelete = (id) => {
+  // Hapus data
+  const handleDelete = async (id) => {
     if (confirm("Yakin ingin menghapus program ini?")) {
-      setPrograms((prev) => prev.filter((p) => p.id !== id));
-      alert("Program berhasil dihapus.");
+      const { error } = await supabase.from("program").delete().eq("id", id);
+      if (error) alert("Gagal hapus data.");
+      else setPrograms((prev) => prev.filter((p) => p.id !== id));
     }
   };
+
+  if (loading)
+    return <p className="p-6 text-gray-500">Memuat data...</p>;
 
   return (
     <section className="p-6 md:p-10 min-h-screen bg-gradient-to-b from-orange-50 to-white rounded-2xl shadow-md">
@@ -75,12 +53,12 @@ export default function DashboardProgramPage() {
           </p>
         </div>
 
-        <button
-          onClick={handleAdd}
+        <Link
+          href="/dashboard/program/tambah"
           className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-700 text-white px-4 py-2 rounded-xl shadow-sm hover:shadow-lg transition-all duration-200"
         >
           <FaPlus /> Tambah Program
-        </button>
+        </Link>
       </div>
 
       {/* Cards */}
@@ -93,7 +71,7 @@ export default function DashboardProgramPage() {
             {/* Tombol Edit dan Hapus */}
             <div className="absolute top-3 right-3 flex gap-2">
               <button
-                onClick={() => handleEdit(program.id)}
+                onClick={() => router.push(`/dashboard/program/${program.id}`)}
                 className="p-2 bg-orange-50 hover:bg-orange-100 text-[#FB6B00] rounded-full shadow-sm transition-all"
                 title="Edit"
               >
@@ -109,7 +87,13 @@ export default function DashboardProgramPage() {
             </div>
 
             {/* Konten Program */}
-            <div className="mb-3 mt-4">{program.icon}</div>
+            <div className="mb-3 mt-4">
+              <img
+                src={program.icon_url}
+                alt={program.title}
+                className="w-16 h-16 object-contain mx-auto"
+              />
+            </div>
             <h2 className="text-xl font-semibold text-gray-800 mb-1">
               {program.title}
             </h2>
@@ -118,15 +102,13 @@ export default function DashboardProgramPage() {
             </span>
             <p className="text-gray-600 text-sm mb-4">{program.description}</p>
 
-            <ul className="text-gray-500 text-sm text-left mb-4 list-disc list-inside">
-              {program.detail.map((point, idx) => (
-                <li key={idx}>{point}</li>
-              ))}
-            </ul>
-
-            <button className="mt-auto bg-[#FB6B00] hover:bg-orange-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow transition-all duration-200">
-              {program.button}
-            </button>
+            {program.details && (
+              <ul className="text-gray-500 text-sm text-left mb-4 list-disc list-inside">
+                {program.details.map((point, idx) => (
+                  <li key={idx}>{point}</li>
+                ))}
+              </ul>
+            )}
           </div>
         ))}
       </div>

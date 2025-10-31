@@ -43,7 +43,9 @@ export default function DashboardTestimoniPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-10 border-b border-orange-200 pb-4">
         <div>
-          <h1 className="text-3xl font-bold text-[#FB6B00]">Manajemen Testimoni</h1>
+          <h1 className="text-3xl font-bold text-[#FB6B00]">
+            Manajemen Testimoni
+          </h1>
           <p className="text-sm text-gray-500 mt-1">
             Kelola testimoni pengguna tentang Bank Jatah Indonesia.
           </p>
@@ -70,7 +72,9 @@ export default function DashboardTestimoniPage() {
             >
               <div className="flex justify-between items-start mb-3">
                 <div>
-                  <h3 className="font-semibold text-gray-800 text-lg">{item.nama}</h3>
+                  <h3 className="font-semibold text-gray-800 text-lg">
+                    {item.nama}
+                  </h3>
                   <p className="text-xs text-gray-500 mt-1">
                     {new Date(item.tanggal).toLocaleDateString("id-ID", {
                       day: "numeric",
