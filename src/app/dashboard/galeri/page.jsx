@@ -10,7 +10,7 @@ export default function DashboardGaleriPage() {
       id: 1,
       judul: "Kegiatan Edukasi Lingkungan",
       deskripsi: "Sosialisasi pengelolaan minyak jelantah di sekolah dasar.",
-      gambar: "/images/galeri1.jpg",
+      gambar_url: "/images/galeri1.jpg",
       tanggal: "2025-10-01",
     },
     {
