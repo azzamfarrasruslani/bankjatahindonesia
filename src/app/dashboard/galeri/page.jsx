@@ -10,13 +10,19 @@ export default function DashboardGaleriPage() {
   const [loading, setLoading] = useState(true);
 
   const fetchGaleri = async () => {
-    const { data, error } = await supabase
-      .from("galeri")
-      .select("*")
-      .order("tanggal", { ascending: false });
-    if (error) console.error(error);
-    else setGaleriList(data);
-    setLoading(false);
+    try {
+      const { data, error } = await supabase
+        .from("galeri")
+        .select("*")
+        .order("tanggal", { ascending: false });
+
+      if (error) throw error;
+      setGaleriList(data || []);
+    } catch (err) {
+      console.error("Gagal mengambil data galeri:", err.message || err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = async (id) => {
@@ -36,7 +42,9 @@ export default function DashboardGaleriPage() {
     <section className="min-h-screen bg-gradient-to-b from-orange-50 to-white p-6 md:p-10">
       <div className="flex items-center justify-between mb-10 border-b border-orange-200 pb-4">
         <div>
-          <h1 className="text-3xl font-bold text-[#FB6B00]">Manajemen Galeri</h1>
+          <h1 className="text-3xl font-bold text-[#FB6B00]">
+            Manajemen Galeri
+          </h1>
           <p className="text-sm text-gray-500 mt-1">
             Kelola foto kegiatan dan dokumentasi Bank Jatah Indonesia.
           </p>
@@ -66,7 +74,9 @@ export default function DashboardGaleriPage() {
                 className="w-full h-48 object-cover"
               />
               <div className="p-5 space-y-2">
-                <h3 className="font-semibold text-gray-800 text-lg">{item.judul}</h3>
+                <h3 className="font-semibold text-gray-800 text-lg">
+                  {item.judul}
+                </h3>
                 <p className="text-gray-600 text-sm line-clamp-2">
                   {item.deskripsi}
                 </p>

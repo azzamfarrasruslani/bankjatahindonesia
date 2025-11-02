@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import GaleriForm from "../form";
 
@@ -11,51 +11,59 @@ export default function EditGaleriPage() {
   const [galeri, setGaleri] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchGaleri = async () => {
-    const { data, error } = await supabase
-      .from("galeri")
-      .select("*")
-      .eq("id", id)
-      .single();
+  useEffect(() => {
+    const fetchGaleri = async () => {
+      const { data, error } = await supabase
+        .from("galeri")
+        .select("*")
+        .eq("id", id)
+        .single();
 
-    if (error) {
-      alert("❌ Gagal memuat data galeri.");
-      router.push("/dashboard/galeri");
-    } else {
-      setGaleri(data);
-    }
-    setLoading(false);
-  };
+      if (error) {
+        console.error("Gagal mengambil data galeri:", error);
+      } else {
+        setGaleri(data);
+      }
+      setLoading(false);
+    };
+
+    fetchGaleri();
+  }, [id]);
 
   const handleSuccess = () => {
     alert("✅ Data galeri berhasil diperbarui!");
     router.push("/dashboard/galeri");
   };
 
-  useEffect(() => {
-    fetchGaleri();
-  }, [id]);
-
-  if (loading)
+  if (loading) {
     return (
-      <p className="text-center py-20 text-gray-500">Memuat data galeri...</p>
+      <div className="flex justify-center items-center h-64">
+        <p className="text-gray-500">Memuat data galeri...</p>
+      </div>
     );
+  }
 
-  if (!galeri)
+  if (!galeri) {
     return (
-      <p className="text-center py-20 text-red-500">Data tidak ditemukan.</p>
+      <div className="flex justify-center items-center h-64">
+        <p className="text-red-500">Galeri tidak ditemukan.</p>
+      </div>
     );
+  }
 
   return (
-    <section className="min-h-screen bg-gradient-to-b from-orange-50 to-white p-6 md:p-10">
-      <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-md p-8 border border-orange-100">
-        <h1 className="text-3xl font-bold text-[#FB6B00] mb-2">Edit Galeri</h1>
-        <p className="text-gray-500 mb-6">
-          Perbarui informasi dan foto dokumentasi kegiatan.
-        </p>
-
-        <GaleriForm galeri={galeri} onSuccess={handleSuccess} />
+    <section className="p-6 md:p-10 bg-gradient-to-b from-orange-50 to-white rounded-2xl shadow-md">
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-[#FB6B00] mb-1">
+            Edit Galeri
+          </h1>
+          <p className="text-gray-500 text-sm">
+            Perbarui foto kegiatan dan deskripsi galeri Bank Jatah Indonesia.
+          </p>
+        </div>
       </div>
+      <GaleriForm galeri={galeri} onSuccess={handleSuccess} />
     </section>
   );
 }
