@@ -15,6 +15,7 @@ import {
   FaCog,
   FaSignOutAlt,
   FaMapMarkerAlt,
+  FaUserCog,
 } from "react-icons/fa";
 import { supabase } from "@/lib/supabaseClient";
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,27 +36,17 @@ export default function Sidebar({ isOpen, onClose }) {
 
   const menuItems = [
     { label: "Dashboard", icon: FaHome, href: "/dashboard", exact: true },
-    {
-      label: "Profil Perusahaan",
-      icon: FaInfoCircle,
-      href: "/dashboard/profil",
-    },
+    { label: "Profil Perusahaan", icon: FaInfoCircle, href: "/dashboard/profil" },
     { label: "Berita & Artikel", icon: FaNewspaper, href: "/dashboard/berita" },
-    {
-      label: "Program Jelantah",
-      icon: FaLayerGroup,
-      href: "/dashboard/program",
-    },
+    { label: "Program Jelantah", icon: FaLayerGroup, href: "/dashboard/program" },
     { label: "Galeri", icon: FaImage, href: "/dashboard/galeri" },
-     {
-      label: "Manajemen Lokasi",
-      icon: FaMapMarkerAlt,
-      href: "/dashboard/lokasi",
-    },
+    { label: "Lokasi", icon: FaMapMarkerAlt, href: "/dashboard/lokasi" },
     { label: "Testimoni", icon: FaUsers, href: "/dashboard/testimoni" },
     { label: "Kontak & Pesan", icon: FaEnvelope, href: "/dashboard/kontak" },
     { label: "FAQ / Bantuan", icon: FaQuestionCircle, href: "/dashboard/faq" },
-    { label: "Pengaturan", icon: FaCog, href: "/dashboard/pengaturan" },
+    { label: "Pengguna", icon: FaUserCog, href: "/dashboard/users" },
+
+
   ];
 
   const logoutItem = { label: "Keluar", icon: FaSignOutAlt };
