@@ -2,7 +2,6 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { useState } from "react";
 import {
   FaHome,
   FaInfoCircle,
@@ -12,7 +11,6 @@ import {
   FaImage,
   FaEnvelope,
   FaQuestionCircle,
-  FaCog,
   FaSignOutAlt,
   FaMapMarkerAlt,
   FaUserCog,
@@ -45,8 +43,6 @@ export default function Sidebar({ isOpen, onClose }) {
     { label: "Kontak & Pesan", icon: FaEnvelope, href: "/dashboard/kontak" },
     { label: "FAQ / Bantuan", icon: FaQuestionCircle, href: "/dashboard/faq" },
     { label: "Pengguna", icon: FaUserCog, href: "/dashboard/users" },
-
-
   ];
 
   const logoutItem = { label: "Keluar", icon: FaSignOutAlt };
@@ -111,25 +107,26 @@ export default function Sidebar({ isOpen, onClose }) {
         </div>
       </aside>
 
-      {/* Sidebar Mobile dengan animasi Framer Motion */}
+      {/* Sidebar Mobile */}
       <AnimatePresence>
         {isOpen && (
           <>
-            {/* Overlay hitam */}
+            {/* Overlay */}
             <motion.div
-              className="fixed inset-0 bg-black/40 z-40 md:hidden"
+              className="fixed inset-0 bg-black/40 z-[998] md:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={onClose}
             />
-            {/* Sidebar animasi */}
+
+            {/* Sidebar */}
             <motion.aside
-              className="fixed top-0 left-0 z-50 w-64 h-full bg-white shadow-lg border-r border-gray-200 flex flex-col"
+              className="fixed top-0 left-0 z-[999] w-64 h-full bg-white shadow-lg border-r border-gray-200 flex flex-col md:hidden"
               initial={{ x: -260 }}
               animate={{ x: 0 }}
               exit={{ x: -260 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
             >
               <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-center">
                 <Logo size={100} />

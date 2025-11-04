@@ -45,12 +45,12 @@ export default function DashboardLayout({ children, breadcrumbItems }) {
   }
 
   return (
-    <div className="flex h-screen w-full bg-gray-50 overflow-hidden">
+    <div className="flex h-screen w-full bg-gray-50 overflow-hidden relative z-0">
       {/* Sidebar Desktop */}
       <div className="hidden md:flex flex-shrink-0 w-64">
         <Sidebar
           session={session}
-          sidebarOpen={sidebarOpen}
+          isOpen={true} // Desktop selalu terbuka
           onClose={() => setSidebarOpen(false)}
         />
       </div>
@@ -70,7 +70,7 @@ export default function DashboardLayout({ children, breadcrumbItems }) {
           <div className="fixed inset-0 z-40 md:hidden flex">
             <Sidebar
               session={session}
-              sidebarOpen={sidebarOpen}
+              isOpen={sidebarOpen}
               onClose={() => setSidebarOpen(false)}
             />
             <div
@@ -81,7 +81,7 @@ export default function DashboardLayout({ children, breadcrumbItems }) {
         )}
 
         {/* Konten Dashboard */}
-        <main className="flex-1 overflow-y-auto p-6 mt-20"> {/* ← Tambahkan mt-20 */}
+        <main className="flex-1 overflow-y-auto p-6 mt-20">
           <Breadcrumb items={breadcrumbItems} />
           {children}
         </main>
