@@ -7,26 +7,45 @@ import { BarChart3, Users, Globe, Settings } from "lucide-react";
 
 export default function DashboardPage() {
   const [user, setUser] = useState(null);
-  const [visitCount, setVisitCount] = useState(0);
+  const [totalVisits, setTotalVisits] = useState(0);
+  const [todayVisits, setTodayVisits] = useState(0);
   const router = useRouter();
 
   useEffect(() => {
-    const getUser = async () => {
+    const init = async () => {
+      // Ambil user
       const { data, error } = await supabase.auth.getUser();
       if (error || !data?.user) {
         router.push("/login");
-      } else {
-        setUser(data.user);
+        return;
       }
-    };
-    getUser();
+      setUser(data.user);
 
-    // Simulasi data kunjungan, nanti bisa diambil dari tabel Supabase
-    const fetchVisitData = async () => {
-      const totalVisits = Math.floor(Math.random() * 5000) + 1200; // dummy data
-      setVisitCount(totalVisits);
+      // Catat kunjungan
+      await supabase.from("visits").insert({
+        user_id: data.user.id,
+        path: window.location.pathname,
+      });
+
+      // Ambil total kunjungan
+      const { count: totalCount } = await supabase
+        .from("visits")
+        .select("*", { count: "exact" });
+
+      setTotalVisits(totalCount);
+
+      // Ambil kunjungan unik hari ini
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // awal hari
+      const { count: todayCount } = await supabase
+        .from("visits")
+        .select("*", { count: "exact" })
+        .gte("created_at", today.toISOString());
+
+      setTodayVisits(todayCount);
     };
-    fetchVisitData();
+
+    init();
   }, [router]);
 
   if (!user) {
@@ -40,7 +59,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center px-6 ">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center px-6">
       <div className="w-full max-w-7xl bg-white rounded-2xl shadow-lg p-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gray-200 pb-4 mb-6">
@@ -57,7 +76,6 @@ export default function DashboardPage() {
           <p className="text-gray-700 text-lg">
             Hai, <span className="font-semibold text-[#FB6B00]">{user.email}</span>
           </p>
-
           <div className="p-4 bg-[#FB6B00]/10 rounded-lg border border-[#FB6B00]/20">
             <p className="text-gray-700">
               Kamu sedang mengakses panel <b>Manajemen Profil & Kunjungan Web</b> untuk sistem{" "}
@@ -75,7 +93,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-sm opacity-90">Total Kunjungan</p>
-              <p className="text-2xl font-semibold">{visitCount.toLocaleString()}</p>
+              <p className="text-2xl font-semibold">{totalVisits.toLocaleString()}</p>
             </div>
           </div>
 
@@ -84,10 +102,8 @@ export default function DashboardPage() {
               <Users size={28} />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Pengunjung Aktif</p>
-              <p className="text-xl font-semibold text-gray-800">
-                {Math.floor(visitCount * 0.12)}
-              </p>
+              <p className="text-sm text-gray-500">Kunjungan Hari Ini</p>
+              <p className="text-xl font-semibold text-gray-800">{todayVisits.toLocaleString()}</p>
             </div>
           </div>
 
@@ -97,7 +113,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Halaman Dikelola</p>
-              <p className="text-xl font-semibold text-gray-800">8</p>
+              <p className="text-xl font-semibold text-gray-800">9</p>
             </div>
           </div>
 
@@ -109,39 +125,6 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-500">Status Sistem</p>
               <p className="text-xl font-semibold text-green-600">Aktif</p>
             </div>
-          </div>
-        </div>
-
-        {/* Bagian Aktivitas dan Status */}
-        <div className="grid sm:grid-cols-2 gap-6 mt-8">
-          <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md transition">
-            <h2 className="text-lg font-semibold text-gray-800 mb-2">
-              Aktivitas Terbaru
-            </h2>
-            <p className="text-sm text-gray-500 mb-4">
-              Belum ada aktivitas baru saat ini.
-            </p>
-            <button className="px-4 py-2 bg-[#FB6B00] text-white text-sm rounded-lg hover:bg-[#e25f00] transition">
-              Lihat Detail Aktivitas
-            </button>
-          </div>
-
-          <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md transition">
-            <h2 className="text-lg font-semibold text-gray-800 mb-2">
-              Status Akun
-            </h2>
-            <p className="text-sm text-gray-500">
-              Akun aktif dan terautentikasi dengan email:
-            </p>
-            <p className="text-sm text-[#FB6B00] font-medium mt-1">
-              {user.email}
-            </p>
-            <button
-              className="mt-4 px-4 py-2 bg-[#FB6B00]/10 border border-[#FB6B00]/40 text-[#FB6B00] text-sm rounded-lg hover:bg-[#FB6B00]/20 transition"
-              onClick={() => router.push("/profile")}
-            >
-              Kelola Profil Web
-            </button>
           </div>
         </div>
       </div>
