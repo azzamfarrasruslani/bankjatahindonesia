@@ -35,16 +35,12 @@ export default function DashboardBeritaPage() {
     try {
       if (imageUrl) {
         const url = new URL(imageUrl);
-        const path = url.pathname.replace(
-          "/storage/v1/object/public/berita-images/",
-          ""
-        );
+        const path = url.pathname.replace("/storage/v1/object/public/berita-images/", "");
         if (path) {
           const { error: storageError } = await supabase.storage
             .from("berita-images")
             .remove([path]);
-          if (storageError)
-            console.error("Gagal hapus gambar di storage:", storageError);
+          if (storageError) console.error("Gagal hapus gambar di storage:", storageError);
         }
       }
 
@@ -64,9 +60,7 @@ export default function DashboardBeritaPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8 border-b border-orange-200 pb-4">
         <div>
-          <h1 className="text-3xl font-bold text-[#FB6B00]">
-            Manajemen Berita
-          </h1>
+          <h1 className="text-3xl font-bold text-[#FB6B00]">Manajemen Berita</h1>
           <p className="text-sm text-gray-500 mt-1">
             Kelola daftar berita, ubah, atau hapus dengan mudah.
           </p>
@@ -79,34 +73,28 @@ export default function DashboardBeritaPage() {
         </Link>
       </div>
 
-      {/* Container Tabel */}
-      <div className="overflow-hidden rounded-xl shadow-md border border-orange-100 bg-white">
-        <table className="min-w-full text-sm">
+      {/* Tabel Berita */}
+      <div className="overflow-x-auto rounded-xl shadow-md border border-orange-100 bg-white">
+        <table className="min-w-full text-sm table-auto">
           <thead className="bg-[#FB6B00]/10 text-[#FB6B00] uppercase text-xs font-semibold tracking-wide">
             <tr>
-              <th className="px-6 py-3 text-left">Judul</th>
-              <th className="px-6 py-3 text-left">Tanggal</th>
-              <th className="px-6 py-3 text-left">Penulis</th>
-              <th className="px-6 py-3 text-center">Status</th>
-              <th className="px-6 py-3 text-center">Aksi</th>
+              <th className="px-6 py-3 text-left w-[300px]">Judul</th>
+              <th className="px-6 py-3 text-left w-[120px]">Tanggal</th>
+              <th className="px-6 py-3 text-left w-[120px]">Penulis</th>
+              <th className="px-6 py-3 text-center w-[100px]">Status</th>
+              <th className="px-6 py-3 text-center w-[120px]">Aksi</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td
-                  colSpan="5"
-                  className="text-center py-10 text-orange-600 font-medium animate-pulse"
-                >
+                <td colSpan="5" className="text-center py-10 text-orange-600 font-medium animate-pulse">
                   Memuat data berita...
                 </td>
               </tr>
             ) : berita.length === 0 ? (
               <tr>
-                <td
-                  colSpan="5"
-                  className="text-center py-10 text-gray-400 italic bg-orange-50/30"
-                >
+                <td colSpan="5" className="text-center py-10 text-gray-400 italic bg-orange-50/30">
                   Belum ada berita yang tercatat.
                 </td>
               </tr>
@@ -115,20 +103,36 @@ export default function DashboardBeritaPage() {
                 <tr
                   key={item.id}
                   className={`border-b border-orange-100 transition-all duration-200 ${
-                    index % 2 === 0
-                      ? "bg-white hover:bg-orange-50/60"
-                      : "bg-orange-50/40 hover:bg-orange-100/50"
+                    index % 2 === 0 ? "bg-white hover:bg-orange-50/60" : "bg-orange-50/40 hover:bg-orange-100/50"
                   }`}
                 >
-                  <td className="px-6 py-4 font-medium text-gray-800">
-                    {item.judul}
+                  {/* Judul + Thumbnail */}
+                  <td className="px-6 py-4 font-medium text-gray-800 flex items-center gap-3">
+                    {item.gambar_url ? (
+                      <img
+                        src={item.gambar_url}
+                        alt="Thumbnail"
+                        className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-xs flex-shrink-0">
+                        No Img
+                      </div>
+                    )}
+                    <span className="truncate max-w-[200px]" title={item.judul}>
+                      {item.judul}
+                    </span>
                   </td>
+
+                  {/* Tanggal */}
                   <td className="px-6 py-4 text-gray-600">
                     {new Date(item.created_at).toLocaleDateString("id-ID")}
                   </td>
-                  <td className="px-6 py-4 text-gray-600">
-                    {item.author || "Admin"}
-                  </td>
+
+                  {/* Penulis */}
+                  <td className="px-6 py-4 text-gray-600">{item.penulis || "Admin"}</td>
+
+                  {/* Status */}
                   <td className="px-6 py-4 text-center">
                     {item.is_top ? (
                       <span className="bg-[#FB6B00]/20 text-[#FB6B00] px-3 py-1 rounded-full text-xs font-semibold">
@@ -140,8 +144,10 @@ export default function DashboardBeritaPage() {
                       </span>
                     )}
                   </td>
+
+                  {/* Aksi */}
                   <td className="px-6 py-4 text-center">
-                    <div className="flex justify-center gap-5">
+                    <div className="flex justify-center gap-3">
                       <Link
                         href={`/dashboard/berita/${item.id}`}
                         className="p-2 rounded-full hover:bg-orange-100 text-[#FB6B00] hover:text-orange-700 transition-all"
@@ -150,7 +156,7 @@ export default function DashboardBeritaPage() {
                         <FaEdit />
                       </Link>
                       <button
-                        onClick={() => handleDelete(item.id, item.image_url)}
+                        onClick={() => handleDelete(item.id, item.gambar_url)}
                         className="p-2 rounded-full hover:bg-red-100 text-red-500 hover:text-red-700 transition-all"
                         title="Hapus"
                       >

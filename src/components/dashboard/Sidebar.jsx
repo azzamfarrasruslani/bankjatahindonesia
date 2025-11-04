@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useState } from "react";
 import {
   FaHome,
   FaInfoCircle,
@@ -22,6 +23,7 @@ import Logo from "@/components/Logo";
 export default function Sidebar({ isOpen, onClose }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [openDropdowns, setOpenDropdowns] = useState({});
 
   const handleLogout = async () => {
     try {
@@ -32,11 +34,30 @@ export default function Sidebar({ isOpen, onClose }) {
     }
   };
 
+  const toggleDropdown = (key) => {
+    setOpenDropdowns((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   const menuItems = [
     { label: "Dashboard", icon: FaHome, href: "/dashboard", exact: true },
-    { label: "Profil Perusahaan", icon: FaInfoCircle, href: "/dashboard/profil" },
-    { label: "Berita & Artikel", icon: FaNewspaper, href: "/dashboard/berita" },
-    { label: "Program Jelantah", icon: FaLayerGroup, href: "/dashboard/program" },
+    {
+      label: "Profil Perusahaan",
+      icon: FaInfoCircle,
+      href: "/dashboard/profil",
+    },
+    {
+      label: "Berita & Artikel",
+      icon: FaNewspaper,
+      subItems: [
+        { label: "Berita", href: "/dashboard/berita" },
+        { label: "Artikel", href: "/dashboard/artikel" },
+      ],
+    },
+    {
+      label: "Program Jelantah",
+      icon: FaLayerGroup,
+      href: "/dashboard/program",
+    },
     { label: "Galeri", icon: FaImage, href: "/dashboard/galeri" },
     { label: "Lokasi", icon: FaMapMarkerAlt, href: "/dashboard/lokasi" },
     { label: "Testimoni", icon: FaUsers, href: "/dashboard/testimoni" },
@@ -49,9 +70,17 @@ export default function Sidebar({ isOpen, onClose }) {
 
   const renderNavItem = (item, isLogout = false) => {
     const Icon = item.icon;
-    const isActive = item.exact
-      ? pathname === item.href
-      : pathname?.startsWith(item.href);
+
+    // Cek active: untuk menu biasa atau dropdown jika ada subItems aktif
+    let isActive = false;
+    if (item.exact) {
+      isActive = pathname === item.href;
+    } else if (item.href) {
+      // Semua sub-halaman dashboard tetap aktif
+      isActive = pathname?.startsWith(item.href);
+    } else if (item.subItems) {
+      isActive = item.subItems.some((sub) => pathname?.startsWith(sub.href));
+    }
 
     const baseClasses =
       "flex items-center gap-3 px-4 py-2 rounded-lg transition-all group text-sm";
@@ -71,6 +100,56 @@ export default function Sidebar({ isOpen, onClose }) {
           </div>
           {item.label}
         </button>
+      );
+    }
+
+    if (item.subItems) {
+      const isOpen = openDropdowns[item.label] || isActive;
+      return (
+        <div key={item.label} className="mb-1 ml-2">
+          <button
+            onClick={() => toggleDropdown(item.label)}
+            className={`${baseClasses} ${activeClasses} w-full flex items-center mb-2`}
+          >
+            <div className="flex items-center gap-3">
+              <Icon size={18} />
+              <span>{item.label}</span>
+            </div>
+            <span
+              className={`transition-transform ${isOpen ? "rotate-90" : ""}`}
+            >
+              &gt;
+            </span>
+          </button>
+
+          <AnimatePresence>
+            {isOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="ml-6 flex flex-col gap-1 overflow-hidden"
+              >
+                {item.subItems.map((sub) => {
+                  const subActive = pathname?.startsWith(sub.href);
+                  return (
+                    <Link
+                      key={sub.href}
+                      href={sub.href}
+                      className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm ${
+                        subActive
+                          ? "bg-[#FB6B00]/10 text-[#FB6B00] font-semibold"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }`}
+                    >
+                      {sub.label}
+                    </Link>
+                  );
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       );
     }
 
@@ -111,7 +190,6 @@ export default function Sidebar({ isOpen, onClose }) {
       <AnimatePresence>
         {isOpen && (
           <>
-            {/* Overlay */}
             <motion.div
               className="fixed inset-0 bg-black/40 z-[998] md:hidden"
               initial={{ opacity: 0 }}
@@ -119,14 +197,12 @@ export default function Sidebar({ isOpen, onClose }) {
               exit={{ opacity: 0 }}
               onClick={onClose}
             />
-
-            {/* Sidebar */}
             <motion.aside
               className="fixed top-0 left-0 z-[999] w-64 h-full bg-white shadow-lg border-r border-gray-200 flex flex-col md:hidden"
               initial={{ x: -260 }}
               animate={{ x: 0 }}
               exit={{ x: -260 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
             >
               <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-center">
                 <Logo size={100} />
