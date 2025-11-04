@@ -3,15 +3,11 @@
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, ChevronUp, X, User, Globe } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import LanguageSelector from "./LanguageSelector";
 
-export default function MobileNavbar({
-  setIsOpen,
-  openDropdown,
-  toggleDropdown,
-}) {
+export default function MobileNavbar({ setIsOpen, openDropdown, toggleDropdown }) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const ref = useRef();
@@ -31,7 +27,6 @@ export default function MobileNavbar({
         setIsOpen(false);
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [setIsOpen]);
@@ -71,6 +66,7 @@ export default function MobileNavbar({
         </button>
       </div>
 
+      {/* Menu Utama */}
       <ul className="space-y-2 text-base font-medium text-gray-700">
         <li>
           <button
@@ -104,39 +100,29 @@ export default function MobileNavbar({
             className="flex w-full justify-between items-center px-4 py-2 hover:bg-gray-100 rounded-md"
           >
             {t("navbar.info-artikel")}
-            {openDropdown === "info" ? (
-              <ChevronUp size={18} />
-            ) : (
-              <ChevronDown size={18} />
-            )}
+            {openDropdown === "info" ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
           </button>
-          {openDropdown === "info" && (
-            <motion.div
-              className="ml-4"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <button
-                onClick={() => handleNavigation("/artikel")}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+          <AnimatePresence>
+            {openDropdown === "info" && (
+              <motion.div
+                className="ml-4 flex flex-col gap-1"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
               >
-                {t("navbar.artikel")}
-              </button>
-              <button
-                onClick={() => handleNavigation("/berita")}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-              >
-                {t("navbar.berita")}
-              </button>
-              <button
-                onClick={() => handleNavigation("/faq")}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-              >
-                {t("navbar.faq")}
-              </button>
-            </motion.div>
-          )}
+                <button onClick={() => handleNavigation("/artikel")} className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md">
+                  {t("navbar.artikel")}
+                </button>
+                <button onClick={() => handleNavigation("/berita")} className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md">
+                  {t("navbar.berita")}
+                </button>
+                <button onClick={() => handleNavigation("/faq")} className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md">
+                  {t("navbar.faq")}
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </li>
 
         {/* Dropdown: Lainnya */}
@@ -146,39 +132,29 @@ export default function MobileNavbar({
             className="flex w-full justify-between items-center px-4 py-2 hover:bg-gray-100 rounded-md"
           >
             {t("navbar.lainnya")}
-            {openDropdown === "lainnya" ? (
-              <ChevronUp size={18} />
-            ) : (
-              <ChevronDown size={18} />
-            )}
+            {openDropdown === "lainnya" ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
           </button>
-          {/* {openDropdown === "lainnya" && (
-            <motion.div
-              className="ml-4"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <button
-                onClick={() => handleNavigation("/kontak")}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+          <AnimatePresence>
+            {openDropdown === "lainnya" && (
+              <motion.div
+                className="ml-4 flex flex-col gap-1"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
               >
-                {t("navbar.kontak")}
-              </button>
-              <button
-                onClick={() => handleNavigation("/lokasi")}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-              >
-                {t("navbar.lokasi")}
-              </button>
-              <button
-                onClick={() => handleNavigation("/kebijakan")}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-              >
-                {t("navbar.kebijakan")}
-              </button>
-            </motion.div>
-          )} */}
+                <button onClick={() => handleNavigation("/kontak")} className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md">
+                  {t("navbar.kontak")}
+                </button>
+                <button onClick={() => handleNavigation("/lokasi")} className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md">
+                  {t("navbar.lokasi")}
+                </button>
+                <button onClick={() => handleNavigation("/kebijakan")} className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md">
+                  {t("navbar.kebijakan")}
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </li>
       </ul>
     </motion.div>
