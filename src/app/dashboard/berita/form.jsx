@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import imageCompression from "browser-image-compression";
 import RichTextEditor from "@/components/dashboard/RichTextEditor";
 import { useRouter } from "next/navigation";
 
 export default function BeritaForm({ beritaId, onSuccess }) {
-const router = useRouter();
+  const router = useRouter();
   const [form, setForm] = useState({
     judul: "",
     penulis: "",
@@ -18,6 +19,7 @@ const router = useRouter();
   const [preview, setPreview] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Ambil data berita jika mode edit
   useEffect(() => {
     if (!beritaId) return;
 
@@ -28,7 +30,9 @@ const router = useRouter();
         .eq("id", beritaId)
         .single();
 
-      if (!error && data) {
+      if (error) {
+        console.error("Gagal mengambil data:", error);
+      } else if (data) {
         setForm({
           judul: data.judul || "",
           penulis: data.penulis || "",
@@ -43,6 +47,7 @@ const router = useRouter();
     fetchBerita();
   }, [beritaId]);
 
+  // Handle input form umum
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
@@ -51,6 +56,7 @@ const router = useRouter();
     }));
   };
 
+  // Pilih file dan tampilkan preview
   const handleFileChange = (e) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
@@ -58,23 +64,46 @@ const router = useRouter();
     setPreview(URL.createObjectURL(selectedFile));
   };
 
+  // Upload gambar dengan kompresi WebP sebelum ke Supabase
   const uploadImage = async () => {
-    if (!file) return form.gambar_url;
+    if (!file) return form.gambar_url || "";
 
-    const fileName = `berita/${Date.now()}_${file.name}`;
-    const { error } = await supabase.storage
-      .from("berita-images")
-      .upload(fileName, file, { upsert: true });
+    try {
+      const options = {
+        maxSizeMB: 0.25, // target sekitar 250KB
+        maxWidthOrHeight: 1000,
+        initialQuality: 0.85,
+        useWebWorker: true,
+        fileType: "image/webp",
+      };
 
-    if (error) throw error;
+      // Kompres file
+      const compressedFile = await imageCompression(file, options);
+      const fileName = `berita/${Date.now()}.webp`;
 
-    const { data: publicUrlData } = supabase.storage
-      .from("berita-images")
-      .getPublicUrl(fileName);
+      // Upload ke bucket "berita-images"
+      const { error: uploadError } = await supabase.storage
+        .from("berita-images")
+        .upload(fileName, compressedFile, {
+          cacheControl: "3600",
+          upsert: false,
+        });
 
-    return publicUrlData.publicUrl;
+      if (uploadError) throw uploadError;
+
+      // Ambil URL publik
+      const { data } = supabase.storage
+        .from("berita-images")
+        .getPublicUrl(fileName);
+
+      return data.publicUrl;
+    } catch (err) {
+      console.error("Kompresi atau upload gagal:", err);
+      throw new Error("Gagal mengunggah gambar, coba file lain atau periksa koneksi.");
+    }
   };
 
+  // Simpan data ke Supabase
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -123,7 +152,7 @@ const router = useRouter();
           type="file"
           accept="image/*"
           onChange={handleFileChange}
-          className="mb-3 w-full file:bg-[#FB6B00] file:text-white text-gray-600  file:py-2 file:px-4 file:rounded-full"
+          className="mb-3 w-full file:bg-[#FB6B00] file:text-white text-gray-600 file:py-2 file:px-4 file:rounded-full"
         />
         {preview && (
           <img
@@ -149,9 +178,7 @@ const router = useRouter();
 
       {/* Penulis */}
       <div>
-        <label className="block mb-2 font-semibold text-gray-700">
-          Penulis
-        </label>
+        <label className="block mb-2 font-semibold text-gray-700">Penulis</label>
         <input
           name="penulis"
           value={form.penulis}
@@ -167,6 +194,7 @@ const router = useRouter();
           Isi Berita
         </label>
         <RichTextEditor
+          key={beritaId || "new"} // penting agar value muncul saat edit
           value={form.isi}
           onChange={(val) => setForm((prev) => ({ ...prev, isi: val }))}
         />
