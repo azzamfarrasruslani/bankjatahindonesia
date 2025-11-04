@@ -11,6 +11,8 @@ export default function TimForm({ timId, onSuccess }) {
     nama: "",
     jabatan: "",
     foto_url: "",
+    kategori: "Tim Utama", // default
+    status: true,          // default aktif
   });
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
@@ -32,6 +34,8 @@ export default function TimForm({ timId, onSuccess }) {
           nama: data.nama || "",
           jabatan: data.jabatan || "",
           foto_url: data.foto_url || "",
+          kategori: data.kategori || "Tim Utama",
+          status: data.status ?? true,
         });
         setPreview(data.foto_url || "");
       } else if (error) {
@@ -42,13 +46,14 @@ export default function TimForm({ timId, onSuccess }) {
     fetchData();
   }, [timId]);
 
-  // Handle input teks
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
-  // Handle file
   const handleFileChange = (e) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
@@ -56,13 +61,12 @@ export default function TimForm({ timId, onSuccess }) {
     setPreview(URL.createObjectURL(selectedFile));
   };
 
-  // Upload gambar dengan kompresi sebelum ke Supabase
   const uploadImage = async () => {
     if (!file) return form.foto_url || "";
 
     try {
       const options = {
-        maxSizeMB: 0.25, // target 250KB
+        maxSizeMB: 0.25,
         maxWidthOrHeight: 1000,
         initialQuality: 0.85,
         useWebWorker: true,
@@ -74,44 +78,28 @@ export default function TimForm({ timId, onSuccess }) {
 
       const { error: uploadError } = await supabase.storage
         .from("team-images")
-        .upload(fileName, compressedFile, {
-          cacheControl: "3600",
-          upsert: false,
-        });
+        .upload(fileName, compressedFile, { cacheControl: "3600", upsert: false });
 
       if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage
-        .from("team-images")
-        .getPublicUrl(fileName);
-
+      const { data } = supabase.storage.from("team-images").getPublicUrl(fileName);
       return data.publicUrl;
     } catch (err) {
       console.error("Kompresi atau upload gagal:", err);
-      throw new Error(
-        "Gagal mengunggah gambar, coba file lain atau periksa koneksi."
-      );
+      throw new Error("Gagal mengunggah gambar, coba file lain atau periksa koneksi.");
     }
   };
 
-  // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       const imageUrl = await uploadImage();
-      const payload = {
-        nama: form.nama,
-        jabatan: form.jabatan,
-        foto_url: imageUrl,
-      };
+      const payload = { ...form, foto_url: imageUrl };
 
       if (timId) {
-        const { error } = await supabase
-          .from("tim")
-          .update(payload)
-          .eq("id", timId);
+        const { error } = await supabase.from("tim").update(payload).eq("id", timId);
         if (error) throw error;
       } else {
         const { error } = await supabase.from("tim").insert([payload]);
@@ -128,28 +116,17 @@ export default function TimForm({ timId, onSuccess }) {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-5 bg-white p-6 rounded-lg shadow-md"
-    >
+    <form onSubmit={handleSubmit} className="space-y-5 bg-white p-6 rounded-lg shadow-md text-gray-600">
       {/* Upload Foto */}
       <div>
-        <label className="block mb-2 font-semibold text-gray-700">
-          Foto Anggota
-        </label>
+        <label className="block mb-2 font-semibold text-gray-700">Foto Anggota</label>
         <input
           type="file"
           accept="image/*"
           onChange={handleFileChange}
           className="mb-3 w-full file:bg-[#FB6B00] file:text-white text-gray-600 file:py-2 file:px-4 file:rounded-full"
         />
-        {preview && (
-          <img
-            src={preview}
-            alt="Preview"
-            className="w-full h-64 object-cover rounded-lg shadow-sm"
-          />
-        )}
+        {preview && <img src={preview} alt="Preview" className="w-full h-64 object-cover rounded-lg shadow-sm" />}
       </div>
 
       {/* Nama */}
@@ -161,7 +138,7 @@ export default function TimForm({ timId, onSuccess }) {
           onChange={handleChange}
           required
           placeholder="Masukkan nama anggota"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-[#FB6B00] text-gray-700 placeholder-gray-600"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-[#FB6B00]"
         />
       </div>
 
@@ -174,8 +151,34 @@ export default function TimForm({ timId, onSuccess }) {
           onChange={handleChange}
           required
           placeholder="Masukkan jabatan anggota"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-[#FB6B00] text-gray-700 placeholder-gray-600"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-[#FB6B00]"
         />
+      </div>
+
+      {/* Kategori */}
+      <div>
+        <label className="block mb-2 font-semibold text-gray-700">Kategori</label>
+        <select
+          name="kategori"
+          value={form.kategori}
+          onChange={handleChange}
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-[#FB6B00]"
+        >
+          <option value="Tim Utama">Tim Utama</option>
+          <option value="Tim Unit Bisnis">Tim Unit Bisnis</option>
+        </select>
+      </div>
+
+      {/* Status */}
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          name="status"
+          checked={form.status}
+          onChange={handleChange}
+          className="w-4 h-4 text-[#FB6B00] border-gray-300 rounded"
+        />
+        <label className="font-medium text-gray-700">Aktif</label>
       </div>
 
       {/* Tombol aksi */}
