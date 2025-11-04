@@ -35,23 +35,18 @@ export default function LokasiPage() {
     if (!confirm("Yakin ingin menghapus lokasi ini beserta gambarnya?")) return;
 
     try {
-      // Hapus file di storage jika ada
       if (gambar_url) {
         try {
           const url = new URL(gambar_url);
           const path = url.pathname.replace("/storage/v1/object/public/lokasi-images/", "");
           if (path) {
             const { error: storageError } = await supabase.storage
-              .from("lokaSI-images") // intentional fallback if typo; will try correct next
+              .from("lokasi-images")
               .remove([path]);
-            // jika gagal pada nama bucket yang salah, ulangi dengan nama benar
-            if (storageError) {
-              await supabase.storage.from("lokasi-images").remove([path]);
-            }
+            if (storageError) throw storageError;
           }
         } catch (e) {
-          // jika gambar_url bukan URL lengkap (misal relative path), coba hapus berdasarkan nama file
-          console.warn("Tidak bisa parsing gambar_url untuk penghapusan storage:", e);
+          console.warn("Tidak bisa parsing gambar_url:", e);
         }
       }
 
@@ -69,7 +64,7 @@ export default function LokasiPage() {
   const lokasiUtama = lokasi.filter((l) => l.jenis === "utama");
   const lokasiMitra = lokasi.filter((l) => l.jenis === "mitra");
 
-  const renderGallery = (data) => {
+  const renderTable = (data) => {
     if (loading) {
       return (
         <div className="text-center py-10 text-orange-600 font-medium animate-pulse">
@@ -77,6 +72,7 @@ export default function LokasiPage() {
         </div>
       );
     }
+
     if (!data || data.length === 0) {
       return (
         <div className="text-center py-10 text-gray-400 italic bg-orange-50/30 rounded-lg">
@@ -84,50 +80,85 @@ export default function LokasiPage() {
         </div>
       );
     }
+
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {data.map((item) => (
-          <div
-            key={item.id}
-            className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-md hover:shadow-lg transition-all"
-          >
-            <img
-              src={item.gambar_url || "/placeholder.jpg"}
-              alt={item.nama}
-              className="w-full h-48 object-cover"
-            />
-            <div className="p-4">
-              <h3 className="font-semibold text-gray-800">{item.nama}</h3>
-              <p className="text-xs text-gray-500 capitalize">{item.jenis}</p>
-              {item.alamat && <p className="text-sm text-gray-600 mt-2">{item.alamat}</p>}
-            </div>
-            <div className="flex justify-between items-center px-4 pb-4">
-              <Link
-                href={`/dashboard/lokasi/${item.id}`}
-                className="flex items-center gap-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 px-3 py-1 rounded-lg text-sm font-medium transition"
+      <div className="overflow-hidden rounded-xl shadow-md border border-orange-100 bg-white">
+        <table className="min-w-full text-sm">
+          <thead className="bg-[#FB6B00]/10 text-[#FB6B00] uppercase text-xs font-semibold tracking-wide">
+            <tr>
+              <th className="px-6 py-3 text-left">Nama</th>
+              <th className="px-6 py-3 text-left">Jenis</th>
+              <th className="px-6 py-3 text-left">Alamat</th>
+              <th className="px-6 py-3 text-left">Deskripsi</th>
+              <th className="px-6 py-3 text-left">Kontak</th>
+              <th className="px-6 py-3 text-left">Jam Operasional</th>
+              <th className="px-6 py-3 text-center">Gambar</th>
+              <th className="px-6 py-3 text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((item, index) => (
+              <tr
+                key={item.id}
+                className={`border-b border-orange-100 transition-all duration-200 ${
+                  index % 2 === 0
+                    ? "bg-white hover:bg-orange-50/60"
+                    : "bg-orange-50/40 hover:bg-orange-100/50"
+                }`}
               >
-                <FaEdit /> Edit
-              </Link>
-              <button
-                onClick={() => handleDelete(item.id, item.gambar_url)}
-                className="flex items-center gap-1 bg-red-100 hover:bg-red-200 text-red-600 px-3 py-1 rounded-lg text-sm font-medium transition"
-              >
-                <FaTrash /> Hapus
-              </button>
-            </div>
-          </div>
-        ))}
+                <td className="px-6 py-4 font-medium text-gray-800">{item.nama}</td>
+                <td className="px-6 py-4 capitalize text-gray-600">{item.jenis}</td>
+                <td className="px-6 py-4 text-gray-700">{item.alamat || "-"}</td>
+                <td className="px-6 py-4 text-gray-700">
+                  {item.deskripsi ? item.deskripsi.slice(0, 60) + "..." : "-"}
+                </td>
+                <td className="px-6 py-4 text-gray-700">{item.kontak || "-"}</td>
+                <td className="px-6 py-4 text-gray-700">{item.jam_operasional || "-"}</td>
+                <td className="px-6 py-4 text-center">
+                  {item.gambar_url ? (
+                    <img
+                      src={item.gambar_url}
+                      alt={item.nama}
+                      className="w-16 h-16 object-cover rounded-md mx-auto border border-orange-200"
+                    />
+                  ) : (
+                    <span className="text-gray-400 italic">Tidak ada</span>
+                  )}
+                </td>
+                <td className="px-6 py-4 text-center">
+                  <div className="flex justify-center gap-5">
+                    <Link
+                      href={`/dashboard/lokasi/${item.id}`}
+                      className="p-2 rounded-full hover:bg-yellow-100 text-yellow-600 hover:text-yellow-800 transition-all"
+                      title="Edit"
+                    >
+                      <FaEdit />
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(item.id, item.gambar_url)}
+                      className="p-2 rounded-full hover:bg-red-100 text-red-600 hover:text-red-800 transition-all"
+                      title="Hapus"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     );
   };
 
   return (
-    <section className="min-h-screen bg-gradient-to-b from-orange-50 to-white p-6 md:p-10">
+    <section className="p-6 md:p-10 min-h-screen bg-gradient-to-b from-orange-50 to-white rounded-2xl shadow-md">
+      {/* Header */}
       <div className="flex items-center justify-between mb-8 border-b border-orange-200 pb-4">
         <div>
           <h1 className="text-3xl font-bold text-[#FB6B00]">Manajemen Lokasi</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Kelola lokasi utama dan mitra Bank Jatah Indonesia.
+            Kelola lokasi utama dan mitra Bank Jatah Indonesia dengan mudah.
           </p>
         </div>
         <Link
@@ -138,11 +169,14 @@ export default function LokasiPage() {
         </Link>
       </div>
 
+      {/* Tabs */}
       <div className="flex gap-3 mb-6">
         <button
           onClick={() => setActiveTab("utama")}
           className={`px-5 py-2 rounded-full font-semibold transition-all ${
-            activeTab === "utama" ? "bg-[#FB6B00] text-white shadow" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            activeTab === "utama"
+              ? "bg-[#FB6B00] text-white shadow"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
           }`}
         >
           Lokasi Utama
@@ -150,17 +184,23 @@ export default function LokasiPage() {
         <button
           onClick={() => setActiveTab("mitra")}
           className={`px-5 py-2 rounded-full font-semibold transition-all ${
-            activeTab === "mitra" ? "bg-[#FB6B00] text-white shadow" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            activeTab === "mitra"
+              ? "bg-[#FB6B00] text-white shadow"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
           }`}
         >
           Lokasi Mitra
         </button>
       </div>
 
-      {activeTab === "utama" && renderGallery(lokasiUtama)}
-      {activeTab === "mitra" && renderGallery(lokasiMitra)}
+      {/* Table */}
+      {activeTab === "utama" && renderTable(lokasiUtama)}
+      {activeTab === "mitra" && renderTable(lokasiMitra)}
 
-      <div className="text-xs text-gray-400 text-center mt-10">© {new Date().getFullYear()} Dashboard Lokasi | Bank Jatah Indonesia</div>
+      {/* Footer */}
+      <div className="text-xs text-gray-400 text-center mt-6">
+        © {new Date().getFullYear()} Dashboard Lokasi | Bank Jatah Indonesia
+      </div>
     </section>
   );
 }

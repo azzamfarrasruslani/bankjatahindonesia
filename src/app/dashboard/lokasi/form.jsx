@@ -8,10 +8,7 @@ import imageCompression from "browser-image-compression";
 
 const MapPicker = dynamic(() => import("./MapPicker"), { ssr: false });
 
-export default function LokasiForm({
-  lokasi: initialLokasi = null,
-  onSuccess,
-}) {
+export default function LokasiForm({ lokasi: initialLokasi = null, onSuccess }) {
   const [form, setForm] = useState({
     nama: "",
     jenis: "utama",
@@ -20,6 +17,8 @@ export default function LokasiForm({
     gambar_url: "",
     latitude: "",
     longitude: "",
+    kontak: "",
+    jam_operasional: "",
   });
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
@@ -36,6 +35,8 @@ export default function LokasiForm({
         gambar_url: initialLokasi.gambar_url || "",
         latitude: initialLokasi.latitude ?? "",
         longitude: initialLokasi.longitude ?? "",
+        kontak: initialLokasi.kontak || "",
+        jam_operasional: initialLokasi.jam_operasional || "",
       });
       setPreview(initialLokasi.gambar_url || "");
     }
@@ -100,6 +101,8 @@ export default function LokasiForm({
         gambar_url: publicUrl || form.gambar_url || null,
         latitude: form.latitude ? parseFloat(form.latitude) : null,
         longitude: form.longitude ? parseFloat(form.longitude) : null,
+        kontak: form.kontak || null,
+        jam_operasional: form.jam_operasional || null,
         updated_at: new Date().toISOString(),
       };
 
@@ -131,6 +134,7 @@ export default function LokasiForm({
       onSubmit={handleSubmit}
       className="mx-auto bg-white p-6 rounded-xl shadow text-gray-600"
     >
+      {/* Nama Lokasi */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Nama Lokasi
@@ -144,6 +148,7 @@ export default function LokasiForm({
         />
       </div>
 
+      {/* Jenis & Alamat */}
       <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -173,6 +178,35 @@ export default function LokasiForm({
         </div>
       </div>
 
+      {/* Kontak & Jam Operasional */}
+      <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Kontak (No. HP)
+          </label>
+          <input
+            name="kontak"
+            value={form.kontak}
+            onChange={handleChange}
+            placeholder="+62xxxxxxxxxxx"
+            className="w-full border rounded-lg px-3 py-2"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Jam Operasional
+          </label>
+          <input
+            name="jam_operasional"
+            value={form.jam_operasional}
+            onChange={handleChange}
+            placeholder="Senin - Jumat, 08.00 - 17.00"
+            className="w-full border rounded-lg px-3 py-2"
+          />
+        </div>
+      </div>
+
+      {/* Deskripsi */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Deskripsi
@@ -186,6 +220,7 @@ export default function LokasiForm({
         />
       </div>
 
+      {/* Peta Lokasi */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Koordinat Lokasi
@@ -201,6 +236,7 @@ export default function LokasiForm({
         />
       </div>
 
+      {/* Latitude Longitude */}
       <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -230,6 +266,7 @@ export default function LokasiForm({
         </div>
       </div>
 
+      {/* Upload Gambar */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Gambar
@@ -257,6 +294,7 @@ export default function LokasiForm({
         )}
       </div>
 
+      {/* Tombol Aksi */}
       <div className="flex justify-end gap-3">
         <button
           type="button"

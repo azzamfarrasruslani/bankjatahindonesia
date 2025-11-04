@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 const heroImages = [
-  "/images/hero.jpeg",
+  "/images/hero.webp",
   "/images/hero2.jpeg",
   "/images/hero3.jpeg",
 ];
