@@ -14,7 +14,11 @@ export default function EditLokasiPage() {
     if (!id) return;
     const fetchLokasi = async () => {
       try {
-        const { data, error } = await supabase.from("lokasi").select("*").eq("id", id).single();
+        const { data, error } = await supabase
+          .from("lokasi")
+          .select("*")
+          .eq("id", id)
+          .single();
         if (error) throw error;
         setLokasi(data);
       } catch (err) {
@@ -28,7 +32,8 @@ export default function EditLokasiPage() {
   }, [id]);
 
   if (loading) return <div className="p-6">Memuat data lokasi...</div>;
-  if (!lokasi) return <div className="p-6 text-red-500">Lokasi tidak ditemukan.</div>;
+  if (!lokasi)
+    return <div className="p-6 text-red-500">Lokasi tidak ditemukan.</div>;
 
   return (
     <section className="p-6 md:p-10 bg-gradient-to-b from-orange-50 to-white rounded-2xl shadow-md">

@@ -3,8 +3,15 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import dynamic from "next/dynamic";
+import imageCompression from "browser-image-compression";
 
-export default function LokasiForm({ lokasi: initialLokasi = null, onSuccess }) {
+const MapPicker = dynamic(() => import("./MapPicker"), { ssr: false });
+
+export default function LokasiForm({
+  lokasi: initialLokasi = null,
+  onSuccess,
+}) {
   const [form, setForm] = useState({
     nama: "",
     jenis: "utama",
@@ -47,12 +54,37 @@ export default function LokasiForm({ lokasi: initialLokasi = null, onSuccess }) 
   };
 
   const uploadImage = async () => {
-    if (!file) return form.gambar_url;
-    const fileName = `lokasi/${Date.now()}_${file.name}`;
-    const { error } = await supabase.storage.from("lokasi-images").upload(fileName, file, { upsert: true });
-    if (error) throw error;
-    const { data } = supabase.storage.from("lokasi-images").getPublicUrl(fileName);
-    return data.publicUrl;
+    if (!file) return form.gambar_url || "";
+
+    try {
+      const options = {
+        maxSizeMB: 0.25,
+        maxWidthOrHeight: 1000,
+        initialQuality: 0.85,
+        useWebWorker: true,
+        fileType: "image/webp",
+      };
+
+      const compressedFile = await imageCompression(file, options);
+      const fileName = `lokasi/${Date.now()}.webp`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("lokasi-images")
+        .upload(fileName, compressedFile, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from("lokasi-images")
+        .getPublicUrl(fileName);
+      return data.publicUrl;
+    } catch (err) {
+      console.error("Kompresi/upload gagal:", err);
+      throw new Error("Gagal mengunggah gambar, periksa koneksi.");
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -72,7 +104,10 @@ export default function LokasiForm({ lokasi: initialLokasi = null, onSuccess }) 
       };
 
       if (initialLokasi?.id) {
-        const { error } = await supabase.from("lokasi").update(payload).eq("id", initialLokasi.id);
+        const { error } = await supabase
+          .from("lokasi")
+          .update(payload)
+          .eq("id", initialLokasi.id);
         if (error) throw error;
         alert("✅ Lokasi berhasil diperbarui");
       } else {
@@ -85,7 +120,6 @@ export default function LokasiForm({ lokasi: initialLokasi = null, onSuccess }) 
       if (onSuccess) onSuccess();
       else router.push("/dashboard/lokasi");
     } catch (err) {
-      console.error("Simpan lokasi error:", err);
       alert("❌ Gagal menyimpan lokasi: " + (err.message || err));
     } finally {
       setLoading(false);
@@ -93,55 +127,149 @@ export default function LokasiForm({ lokasi: initialLokasi = null, onSuccess }) 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow border">
+    <form
+      onSubmit={handleSubmit}
+      className="mx-auto bg-white p-6 rounded-xl shadow text-gray-600"
+    >
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Nama Lokasi</label>
-        <input name="nama" value={form.nama} onChange={handleChange} required className="w-full border rounded-lg px-3 py-2" />
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Nama Lokasi
+        </label>
+        <input
+          name="nama"
+          value={form.nama}
+          onChange={handleChange}
+          required
+          className="w-full border rounded-lg px-3 py-2"
+        />
       </div>
 
       <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Jenis</label>
-          <select name="jenis" value={form.jenis} onChange={handleChange} className="w-full border rounded-lg px-3 py-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Jenis
+          </label>
+          <select
+            name="jenis"
+            value={form.jenis}
+            onChange={handleChange}
+            className="w-full border rounded-lg px-3 py-2"
+          >
             <option value="utama">Lokasi Utama</option>
             <option value="mitra">Lokasi Mitra</option>
           </select>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Alamat</label>
-          <input name="alamat" value={form.alamat} onChange={handleChange} className="w-full border rounded-lg px-3 py-2" />
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Alamat
+          </label>
+          <input
+            name="alamat"
+            value={form.alamat}
+            onChange={handleChange}
+            className="w-full border rounded-lg px-3 py-2"
+          />
         </div>
       </div>
 
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
-        <textarea name="deskripsi" value={form.deskripsi} onChange={handleChange} rows="4" className="w-full border rounded-lg px-3 py-2" />
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Deskripsi
+        </label>
+        <textarea
+          name="deskripsi"
+          value={form.deskripsi}
+          onChange={handleChange}
+          rows="4"
+          className="w-full border rounded-lg px-3 py-2"
+        />
+      </div>
+
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Koordinat Lokasi
+        </label>
+        <MapPicker
+          value={{
+            lat: parseFloat(form.latitude) || -0.9471,
+            lng: parseFloat(form.longitude) || 100.4172,
+          }}
+          onChange={(lat, lng) =>
+            setForm((prev) => ({ ...prev, latitude: lat, longitude: lng }))
+          }
+        />
       </div>
 
       <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
-          <input name="latitude" value={form.latitude} onChange={handleChange} className="w-full border rounded-lg px-3 py-2" />
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Latitude
+          </label>
+          <input
+            name="latitude"
+            value={form.latitude}
+            onChange={(e) =>
+              setForm((prev) => ({ ...prev, latitude: e.target.value }))
+            }
+            className="w-full border rounded-lg px-3 py-2"
+          />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
-          <input name="longitude" value={form.longitude} onChange={handleChange} className="w-full border rounded-lg px-3 py-2" />
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Longitude
+          </label>
+          <input
+            name="longitude"
+            value={form.longitude}
+            onChange={(e) =>
+              setForm((prev) => ({ ...prev, longitude: e.target.value }))
+            }
+            className="w-full border rounded-lg px-3 py-2"
+          />
         </div>
       </div>
 
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Gambar (upload atau masukkan URL)</label>
-        <input type="file" accept="image/*" onChange={handleFileChange} className="mb-3 w-full" />
-        <input type="text" name="gambar_url" value={form.gambar_url} onChange={handleChange} placeholder="Atau tempel URL gambar" className="w-full border rounded-lg px-3 py-2 mb-3" />
-        {preview && <img src={preview} alt="preview" className="w-full h-48 object-cover rounded-lg shadow-sm" />}
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Gambar
+        </label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="mb-3 w-full"
+        />
+        <input
+          type="text"
+          name="gambar_url"
+          value={form.gambar_url}
+          onChange={handleChange}
+          placeholder="Atau tempel URL gambar"
+          className="w-full border rounded-lg px-3 py-2 mb-3"
+        />
+        {preview && (
+          <img
+            src={preview}
+            alt="preview"
+            className="w-full h-48 object-cover rounded-lg shadow-sm"
+          />
+        )}
       </div>
 
       <div className="flex justify-end gap-3">
-        <button type="button" onClick={() => (onSuccess ? router.push("/dashboard/lokasi") : router.push("/dashboard/lokasi"))} className="px-5 py-2 bg-gray-200 text-gray-600 rounded-lg">
+        <button
+          type="button"
+          onClick={() => router.push("/dashboard/lokasi")}
+          className="px-5 py-2 bg-gray-200 text-gray-600 rounded-lg"
+        >
           Batal
         </button>
-        <button type="submit" disabled={loading} className="px-5 py-2 bg-[#FB6B00] text-white rounded-lg">
+        <button
+          type="submit"
+          disabled={loading}
+          className="px-5 py-2 bg-[#FB6B00] text-white rounded-lg"
+        >
           {loading ? "Menyimpan..." : initialLokasi ? "Perbarui" : "Simpan"}
         </button>
       </div>
