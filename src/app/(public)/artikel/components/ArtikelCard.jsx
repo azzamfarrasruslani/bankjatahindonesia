@@ -1,55 +1,65 @@
+"use client";
+
 import { motion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
+import parse from "html-react-parser";
 
-export default function ArtikelCard({
-  image,
-  title,
-  date,
-  views,
-  category,
-  excerpt,
-  index,
-}) {
+export default function ArtikelCard({ id, image, title, date, views, excerpt, index, kategori }) {
+  // Format tanggal jadi misal: 23 Jun 2025
+  const formattedDate = new Date(date).toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
-      whileHover={{ scale: 1.02 }}
-      className="bg-white rounded-xl shadow-sm hover:shadow-md overflow-hidden transition"
+      className="bg-white rounded-xl shadow-sm hover:shadow-md overflow-hidden transition flex flex-col"
     >
+      {/* Gambar */}
       <div className="relative h-48 w-full">
-        <Image
-          src={image}
-          alt={title}
-          fill
-          className="object-cover"
-        />
+        <Image src={image} alt={title} fill className="object-cover" />
+        {kategori && (
+          <span className="absolute top-2 left-2 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded">
+            {kategori}
+          </span>
+        )}
       </div>
 
-      <div className="p-6 flex flex-col justify-between h-full">
+      {/* Konten */}
+      <div className="p-6 flex flex-col justify-between flex-grow">
         <div>
-          <div className="flex items-center gap-2 mb-2 text-xs text-gray-500">
-            <span>{date}</span>
+          {/* Meta info */}
+          <div className="flex flex-wrap items-center gap-2 mb-2 text-xs text-gray-500">
+            <span>{formattedDate}</span>
             <span>•</span>
             <span>{views} views</span>
-            <span>•</span>
-            <span className="bg-[#FB6B00] text-white px-2 py-0.5 rounded-full text-[10px] font-semibold">
-              {category}
-            </span>
           </div>
+
+          {/* Judul */}
           <h3 className="text-lg font-bold text-gray-900 mb-2 hover:text-[#FB6B00] transition-colors">
             {title}
           </h3>
-          <p className="text-gray-600 text-sm line-clamp-3">
-            {excerpt}
-          </p>
+
+          {/* Excerpt */}
+          <div className="text-gray-700 text-sm line-clamp-4">
+            {parse(excerpt.length > 150 ? excerpt.slice(0, 150) + "..." : excerpt)}
+          </div>
         </div>
+
+        {/* Tombol Baca Selengkapnya */}
         <div className="mt-4">
-          <button className="text-[#FB6B00] font-semibold text-sm hover:underline">
+          <Link
+            href={`/artikel/${id}`}
+            className="text-[#FB6B00] font-semibold text-sm hover:underline"
+          >
             Baca Selengkapnya →
-          </button>
+          </Link>
         </div>
       </div>
     </motion.div>

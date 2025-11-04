@@ -1,68 +1,58 @@
+"use client";
+
 import { motion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
+import parse from "html-react-parser";
 
-export default function ArtikelHighlight({
-  image,
-  title,
-  date,
-  views,
-  category,
-  excerpt,
-}) {
+export default function ArtikelHighlight({ id, image, title, date, views, excerpt }) {
+  const altText = title ? `Gambar artikel: ${title}` : "Gambar artikel";
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
       viewport={{ once: true }}
-      className="flex flex-col lg:flex-row gap-8 bg-white rounded-xl shadow-md overflow-hidden p-6 min-h-[420px]"
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="mb-12 bg-gradient-to-b from-orange-50 to-white rounded-2xl shadow-lg overflow-hidden border border-orange-100"
     >
-      {/* Gambar dengan badge dan overlay */}
-      <div className="relative w-full h-80 lg:w-1/2 lg:h-auto">
+      {/* Gambar utama dengan overlay */}
+      <div className="relative h-96 w-full">
         <Image
-          src={image}
-          alt={title}
+          src={image || "/placeholder.jpg"}
+          alt={altText}
           fill
-          className="object-cover rounded-lg hover:scale-105 transition-transform duration-500"
+          className="object-cover"
+          sizes="100vw"
+          priority
         />
 
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent rounded-lg" />
-
-        {/* Badge "Highlight" */}
-        <div className="absolute top-4 left-4 bg-[#FB6B00] text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-          Highlight Artikel
-        </div>
-      </div>
-
-      {/* Konten */}
-      <div className="flex flex-col justify-between lg:w-1/2">
-        <div>
-          {/* Kategori */}
-          <span className="inline-block bg-orange-100 text-[#FB6B00] text-xs font-semibold px-3 py-1 rounded-full mb-3">
-            {category}
-          </span>
-
-          <h2 className="text-3xl font-bold text-gray-900 mb-4 hover:text-[#FB6B00] transition-colors leading-tight">
-            {title}
-          </h2>
-
-          {/* Meta info */}
-          <div className="flex items-center gap-2 text-xs text-gray-500 mb-4">
-            <span>{date}</span>
-            <span>•</span>
-            <span>{views} views</span>
+        {/* Overlay gradien dan konten teks + tombol */}
+        <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-[#FB6B00]/20 via-[#FB6B00]/30 to-transparent p-8">
+          <div className="mb-6">
+            <h2 className="text-white text-2xl md:text-3xl font-bold mb-2 drop-shadow-lg">
+              {title}
+            </h2>
+            <div className="flex items-center text-orange-100 text-sm space-x-4">
+              <span>{date || "Tanggal tidak tersedia"}</span>
+              <span>{views ? `${views} views` : "Views tidak tersedia"}</span>
+            </div>
           </div>
 
-          <p className="text-gray-700 text-base leading-relaxed line-clamp-4">
-            {excerpt}
-          </p>
-        </div>
-
-        <div className="mt-6">
-          <button className="text-[#FB6B00] font-semibold text-sm hover:underline transition duration-300">
-            Baca Selengkapnya →
-          </button>
+          {/* Tombol berada di atas gambar */}
+          <div>
+            <Link
+              href={`/artikel/${id}`}
+              className="relative inline-flex items-center justify-center px-6 py-2.5 
+                         font-semibold text-sm text-white tracking-wide
+                         bg-gradient-to-r from-[#FB6B00] to-[#ff8c32]
+                         rounded-full shadow-md hover:shadow-lg hover:scale-105
+                         transition-all duration-300 ease-out
+                         before:absolute before:inset-0 before:rounded-full before:bg-white/20 before:opacity-0 hover:before:opacity-100"
+            >
+              <span className="relative z-10">Baca Selengkapnya</span>
+            </Link>
+          </div>
         </div>
       </div>
     </motion.div>
