@@ -9,13 +9,12 @@ export default function DashboardTestimoniPage() {
   const [testimoniList, setTestimoniList] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch testimoni dari Supabase
   const fetchTestimoni = async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("testimoni")
       .select("*")
-      .order("id", { ascending: false });
+      .order("created_at", { ascending: false });
     if (error) console.error("Fetch error:", error);
     else setTestimoniList(data || []);
     setLoading(false);
@@ -25,7 +24,6 @@ export default function DashboardTestimoniPage() {
     fetchTestimoni();
   }, []);
 
-  // Delete testimoni
   const handleDelete = async (id) => {
     if (!confirm("Yakin ingin menghapus testimoni ini?")) return;
     const { error } = await supabase.from("testimoni").delete().eq("id", id);
@@ -36,7 +34,7 @@ export default function DashboardTestimoniPage() {
     }
   };
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <p className="text-center py-10">Loading...</p>;
 
   return (
     <section className="min-h-screen bg-gradient-to-b from-orange-50 to-white p-6 md:p-10">
@@ -68,7 +66,7 @@ export default function DashboardTestimoniPage() {
           {testimoniList.map((item) => (
             <div
               key={item.id}
-              className="relative bg-white border border-orange-100 rounded-2xl p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
+              className="relative bg-white border border-orange-100 rounded-2xl p-6 shadow-md hover:shadow-lg overflow-hidden"
             >
               <div className="flex justify-between items-start mb-3">
                 <div>
@@ -85,7 +83,7 @@ export default function DashboardTestimoniPage() {
                 </div>
                 <div className="flex gap-2">
                   <Link
-                    href={`/dashboard/testimoni/edit/${item.id}`}
+                    href={`/dashboard/testimoni/${item.id}`}
                     className="p-2 rounded-full hover:bg-orange-100 text-[#FB6B00] hover:text-orange-700 transition-all"
                     title="Edit"
                   >
