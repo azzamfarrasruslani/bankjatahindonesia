@@ -1,29 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import TimForm from "../form";
-import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
 
 export default function TambahTimPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ nama: "", jabatan: "", foto_url: "" });
-  const [uploading, setUploading] = useState(false);
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setUploading(true);
-    const { error } = await supabase.from("tim_perusahaan").insert([form]);
-    setUploading(false);
-
-    if (error) {
-      console.error(error.message);
-      alert("Gagal menambahkan data tim.");
-    } else {
-      alert("Anggota tim berhasil ditambahkan!");
-      router.push("/dashboard/profil");
-    }
-  }
+  const handleSuccess = () => {
+    router.push("/dashboard/profil");
+  };
 
   return (
     <section className="p-6 md:p-10 bg-gradient-to-b from-orange-50 to-white rounded-2xl shadow-md">
@@ -38,12 +23,8 @@ export default function TambahTimPage() {
         </div>
       </div>
 
-      <TimForm
-        form={form}
-        setForm={setForm}
-        handleSubmit={handleSubmit}
-        uploading={uploading}
-      />
+      {/* Form reuse */}
+      <TimForm onSuccess={handleSuccess} />
     </section>
   );
 }

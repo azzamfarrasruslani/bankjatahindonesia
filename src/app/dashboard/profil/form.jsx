@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
+import imageCompression from "browser-image-compression";
 
 export default function TimForm({ timId, onSuccess }) {
   const router = useRouter();
@@ -15,7 +16,7 @@ export default function TimForm({ timId, onSuccess }) {
   const [preview, setPreview] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Fetch data untuk edit
+  // Ambil data tim untuk mode edit
   useEffect(() => {
     if (!timId) return;
 
@@ -33,19 +34,21 @@ export default function TimForm({ timId, onSuccess }) {
           foto_url: data.foto_url || "",
         });
         setPreview(data.foto_url || "");
+      } else if (error) {
+        console.error("Gagal mengambil data:", error.message);
       }
     };
 
     fetchData();
   }, [timId]);
 
-  // Handle perubahan input text
+  // Handle input teks
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle upload gambar
+  // Handle file
   const handleFileChange = (e) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
@@ -53,25 +56,45 @@ export default function TimForm({ timId, onSuccess }) {
     setPreview(URL.createObjectURL(selectedFile));
   };
 
-  // Upload ke Supabase
+  // Upload gambar dengan kompresi sebelum ke Supabase
   const uploadImage = async () => {
-    if (!file) return form.foto_url;
+    if (!file) return form.foto_url || "";
 
-    const fileName = `tim/${Date.now()}_${file.name}`;
-    const { error } = await supabase.storage
-      .from("tim-images")
-      .upload(fileName, file, { upsert: true });
+    try {
+      const options = {
+        maxSizeMB: 0.25, // target 250KB
+        maxWidthOrHeight: 1000,
+        initialQuality: 0.85,
+        useWebWorker: true,
+        fileType: "image/webp",
+      };
 
-    if (error) throw error;
+      const compressedFile = await imageCompression(file, options);
+      const fileName = `${Date.now()}.webp`;
 
-    const { data: publicUrlData } = supabase.storage
-      .from("tim-images")
-      .getPublicUrl(fileName);
+      const { error: uploadError } = await supabase.storage
+        .from("team-images")
+        .upload(fileName, compressedFile, {
+          cacheControl: "3600",
+          upsert: false,
+        });
 
-    return publicUrlData.publicUrl;
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from("team-images")
+        .getPublicUrl(fileName);
+
+      return data.publicUrl;
+    } catch (err) {
+      console.error("Kompresi atau upload gagal:", err);
+      throw new Error(
+        "Gagal mengunggah gambar, coba file lain atau periksa koneksi."
+      );
+    }
   };
 
-  // Submit
+  // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -95,10 +118,10 @@ export default function TimForm({ timId, onSuccess }) {
         if (error) throw error;
       }
 
+      alert("✅ Data berhasil disimpan!");
       onSuccess?.();
     } catch (err) {
-      console.error(err);
-      alert("Gagal menyimpan: " + err.message);
+      alert("❌ " + err.message);
     } finally {
       setLoading(false);
     }

@@ -13,6 +13,7 @@ export default function EditGaleriPage() {
 
   useEffect(() => {
     const fetchGaleri = async () => {
+      if (!id) return;
       const { data, error } = await supabase
         .from("galeri")
         .select("*")
@@ -20,7 +21,7 @@ export default function EditGaleriPage() {
         .single();
 
       if (error) {
-        console.error("Gagal mengambil data galeri:", error);
+        console.error("Gagal mengambil data galeri:", error.message);
       } else {
         setGaleri(data);
       }
@@ -63,7 +64,7 @@ export default function EditGaleriPage() {
           </p>
         </div>
       </div>
-      <GaleriForm galeri={galeri} onSuccess={handleSuccess} />
+      <GaleriForm galeriId={id} onSuccess={handleSuccess} />
     </section>
   );
 }

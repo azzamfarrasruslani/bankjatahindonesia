@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
+import imageCompression from "browser-image-compression";
 
 export default function GaleriForm({ galeriId, onSuccess }) {
   const router = useRouter();
@@ -16,7 +17,7 @@ export default function GaleriForm({ galeriId, onSuccess }) {
   const [preview, setPreview] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Fetch data jika edit
+  // Fetch data jika mode edit
   useEffect(() => {
     if (!galeriId) return;
     const fetchGaleri = async () => {
@@ -39,13 +40,13 @@ export default function GaleriForm({ galeriId, onSuccess }) {
     fetchGaleri();
   }, [galeriId]);
 
-  // Handler input biasa
+  // Handler input text
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handler upload file
+  // Handler file upload
   const handleFileChange = (e) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
@@ -53,22 +54,37 @@ export default function GaleriForm({ galeriId, onSuccess }) {
     setPreview(URL.createObjectURL(selectedFile));
   };
 
-  // Upload gambar ke Supabase Storage
+  // Upload gambar dengan kompresi sebelum ke Supabase
   const uploadImage = async () => {
-    if (!file) return form.gambar_url;
+    if (!file) return form.gambar_url || "";
 
-    const fileName = `galeri/${Date.now()}_${file.name}`;
-    const { error } = await supabase.storage
-      .from("galeri-images")
-      .upload(fileName, file, { upsert: true });
+    try {
+      const options = {
+        maxSizeMB: 0.25, // target sekitar 250KB
+        maxWidthOrHeight: 1000,
+        initialQuality: 0.85,
+        useWebWorker: true,
+        fileType: "image/webp",
+      };
 
-    if (error) throw error;
+      const compressedFile = await imageCompression(file, options);
+      const fileName = `galeri/${Date.now()}.webp`;
 
-    const { data: publicUrlData } = supabase.storage
-      .from("galeri-images")
-      .getPublicUrl(fileName);
+      const { error: uploadError } = await supabase.storage
+        .from("galeri-images")
+        .upload(fileName, compressedFile, { cacheControl: "3600", upsert: false });
 
-    return publicUrlData.publicUrl;
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from("galeri-images")
+        .getPublicUrl(fileName);
+
+      return data.publicUrl;
+    } catch (err) {
+      console.error("Kompresi atau upload gagal:", err);
+      throw new Error("Gagal mengunggah gambar, coba file lain atau periksa koneksi.");
+    }
   };
 
   // Submit form
@@ -86,10 +102,7 @@ export default function GaleriForm({ galeriId, onSuccess }) {
       };
 
       if (galeriId) {
-        const { error } = await supabase
-          .from("galeri")
-          .update(payload)
-          .eq("id", galeriId);
+        const { error } = await supabase.from("galeri").update(payload).eq("id", galeriId);
         if (error) throw error;
       } else {
         const { error } = await supabase.from("galeri").insert([payload]);
@@ -106,15 +119,10 @@ export default function GaleriForm({ galeriId, onSuccess }) {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-5 bg-white p-6 rounded-lg shadow-md"
-    >
+    <form onSubmit={handleSubmit} className="space-y-5 bg-white p-6 rounded-lg shadow-md">
       {/* Upload gambar */}
       <div>
-        <label className="block mb-2 font-semibold text-gray-700">
-          Gambar Galeri
-        </label>
+        <label className="block mb-2 font-semibold text-gray-700">Gambar Galeri</label>
         <input
           type="file"
           accept="image/*"
@@ -122,11 +130,7 @@ export default function GaleriForm({ galeriId, onSuccess }) {
           className="mb-3 w-full file:bg-[#FB6B00] file:text-white text-gray-600 file:py-2 file:px-4 file:rounded-full"
         />
         {preview && (
-          <img
-            src={preview}
-            alt="Preview"
-            className="w-full h-64 object-cover rounded-lg shadow-sm"
-          />
+          <img src={preview} alt="Preview" className="w-full h-64 object-cover rounded-lg shadow-sm" />
         )}
       </div>
 
@@ -145,9 +149,7 @@ export default function GaleriForm({ galeriId, onSuccess }) {
 
       {/* Deskripsi */}
       <div>
-        <label className="block mb-2 font-semibold text-gray-700">
-          Deskripsi
-        </label>
+        <label className="block mb-2 font-semibold text-gray-700">Deskripsi</label>
         <textarea
           name="deskripsi"
           value={form.deskripsi}

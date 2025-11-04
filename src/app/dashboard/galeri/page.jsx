@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { FaPlus, FaTrash } from "react-icons/fa";
+import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 
 export default function DashboardGaleriPage() {
+  const router = useRouter();
   const [galeriList, setGaleriList] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -68,6 +70,25 @@ export default function DashboardGaleriPage() {
               key={item.id}
               className="relative bg-white border border-orange-100 rounded-2xl overflow-hidden shadow-md hover:shadow-lg transition-all"
             >
+              {/* Tombol Aksi */}
+              <div className="absolute top-3 right-3 flex gap-2">
+                <button
+                  onClick={() => router.push(`/dashboard/galeri/${item.id}`)}
+                  className="p-2 bg-orange-50 hover:bg-orange-100 text-[#FB6B00] rounded-full shadow-sm transition-all"
+                  title="Edit"
+                >
+                  <FaEdit />
+                </button>
+                <button
+                  onClick={() => handleDelete(item.id)}
+                  className="p-2 bg-red-50 hover:bg-red-100 text-red-500 rounded-full shadow-sm transition-all"
+                  title="Hapus"
+                >
+                  <FaTrash />
+                </button>
+              </div>
+
+              {/* Konten Galeri */}
               <img
                 src={item.gambar_url}
                 alt={item.judul}
@@ -84,12 +105,6 @@ export default function DashboardGaleriPage() {
                   {new Date(item.tanggal).toLocaleDateString("id-ID")}
                 </p>
               </div>
-              <button
-                onClick={() => handleDelete(item.id)}
-                className="absolute top-3 right-3 p-2 rounded-full bg-white/80 hover:bg-red-100 text-red-500 hover:text-red-700"
-              >
-                <FaTrash />
-              </button>
             </div>
           ))}
         </div>

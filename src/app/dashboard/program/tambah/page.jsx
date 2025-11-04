@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import ProgramForm from "../form";
+import ProgramForm from "../form-add";
 
 export default function TambahProgramPage() {
   const router = useRouter();
@@ -12,7 +12,7 @@ export default function TambahProgramPage() {
   };
 
   return (
-    <section className="p-6 md:p-10  bg-gradient-to-b from-orange-50 to-white rounded-2xl shadow-md">
+    <section className="p-6 md:p-10 bg-gradient-to-b from-orange-50 to-white rounded-2xl shadow-md">
       <div className="mb-6 flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-[#FB6B00] mb-1">
@@ -29,6 +29,7 @@ export default function TambahProgramPage() {
           Kembali
         </button>
       </div>
+
       <ProgramForm onSuccess={handleSuccess} />
     </section>
   );

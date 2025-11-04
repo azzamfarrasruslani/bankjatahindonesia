@@ -52,7 +52,9 @@ export default function DashboardProgramPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row items-center justify-between mb-8 border-b border-orange-200 pb-4">
         <div className="text-center md:text-left">
-          <h1 className="text-3xl font-bold text-[#FB6B00]">Manajemen Program</h1>
+          <h1 className="text-3xl font-bold text-[#FB6B00]">
+            Manajemen Program
+          </h1>
           <p className="text-sm text-gray-500 mt-1">
             Kelola daftar program Bank Jatah Indonesia.
           </p>
@@ -89,12 +91,14 @@ export default function DashboardProgramPage() {
           programs.map((program) => (
             <div
               key={program.id}
-              className="relative bg-white border border-orange-100 shadow-sm hover:shadow-lg rounded-xl p-6 flex flex-col items-center text-center transition-all duration-200 hover:-translate-y-1"
+              className="relative bg-white border border-orange-100 shadow-sm hover:shadow-lg rounded-xl overflow-hidden transition-all"
             >
               {/* Tombol Edit dan Hapus */}
-              <div className="absolute top-3 right-3 flex gap-2">
+              <div className="absolute top-3 right-3 flex gap-2 z-10">
                 <button
-                  onClick={() => router.push(`/dashboard/program/${program.id}`)}
+                  onClick={() =>
+                    router.push(`/dashboard/program/${program.id}`)
+                  }
                   className="p-2 bg-orange-50 hover:bg-orange-100 text-[#FB6B00] rounded-full shadow-sm transition-all"
                   title="Edit"
                 >
@@ -109,29 +113,34 @@ export default function DashboardProgramPage() {
                 </button>
               </div>
 
-              {/* Konten Program */}
-              <div className="mb-3 mt-4">
-                <img
-                  src={program.icon_url}
-                  alt={program.title}
-                  className="w-16 h-16 object-contain mx-auto"
-                />
+              {/* Gambar Header */}
+              <div
+                className="h-40 bg-cover bg-center"
+                style={{ backgroundImage: `url(${program.icon_url})` }}
+              >
+                <div className="absolute inset-0"></div>
               </div>
-              <h2 className="text-xl font-semibold text-gray-800 mb-1">
-                {program.title}
-              </h2>
-              <span className="text-xs font-medium text-[#FB6B00] bg-[#FB6B00]/10 px-3 py-1 rounded-full mb-3">
-                {program.status}
-              </span>
-              <p className="text-gray-600 text-sm mb-4">{program.description}</p>
 
-              {program.details && (
-                <ul className="text-gray-500 text-sm text-left mb-4 list-disc list-inside">
-                  {program.details.map((point, idx) => (
-                    <li key={idx}>{point}</li>
-                  ))}
-                </ul>
-              )}
+              {/* Konten Program */}
+              <div className="p-6 flex  flex-col items-center text-center">
+                <h2 className="text-xl font-semibold text-gray-800 mb-1">
+                  {program.title}
+                </h2>
+                <span className="text-xs font-medium text-[#FB6B00] bg-[#FB6B00]/10 px-3 py-1 rounded-full mb-3">
+                  {program.status}
+                </span>
+                <p className="text-gray-600 text-sm mb-4">
+                  {program.description}
+                </p>
+
+                {program.details && Array.isArray(program.details) && (
+                  <ul className="text-gray-500 text-sm text-left mb-2 list-disc list-inside">
+                    {program.details.map((point, idx) => (
+                      <li key={idx}>{point}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
           ))
         )}
