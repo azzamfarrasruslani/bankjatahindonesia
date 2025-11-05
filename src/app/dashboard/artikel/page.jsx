@@ -29,30 +29,24 @@ export default function ArtikelPage() {
     fetchArtikel();
   }, []);
 
-
   const handleDelete = async (id, gambar_url) => {
     if (!confirm("Yakin ingin menghapus artikel ini?")) return;
 
     try {
-      if (gambar_url) {
-        const filePath = gambar_url.replace(
-          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/artikel-images/artikel/`,
-          ""
-        );
-        const { error: storageError } = await supabase.storage
-          .from("artikel-images")
-          .remove([filePath]);
-        if (storageError)
-          console.error("Gagal menghapus gambar:", storageError);
-      }
+      const res = await fetch("/api/artikel", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, gambar_url }),
+      });
 
-      const { error } = await supabase.from("artikel").delete().eq("id", id);
-      if (error) throw error;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal menghapus artikel");
 
-      setArtikel((prev) => prev.filter((a) => a.id !== id));
+      setArtikel((prev) => prev.filter((item) => item.id !== id));
+      alert("✅ Artikel dan gambarnya berhasil dihapus");
     } catch (err) {
-      alert("Gagal menghapus artikel. Cek console.");
       console.error(err);
+      alert("❌ Gagal menghapus artikel. Cek console untuk detail.");
     }
   };
 
@@ -150,7 +144,7 @@ export default function ArtikelPage() {
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-gray-600">
+                  <td className="px-6 py-4 text-red-600">
                     {new Date(item.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 text-center">
@@ -163,9 +157,7 @@ export default function ArtikelPage() {
                         <FaEdit />
                       </Link>
                       <button
-                        onClick={() => handleDelete(item.id)}
-                        className="p-2 rounded-full hover:bg-red-100 text-red-500 hover:text-red-700 transition-all"
-                        title="Hapus"
+                        onClick={() => handleDelete(item.id, item.gambar_url)}
                       >
                         <FaTrash />
                       </button>
