@@ -8,7 +8,6 @@ export default function TambahBeritaPage() {
   const router = useRouter();
 
   const handleSuccess = () => {
-    alert("Berita berhasil ditambahkan!");
     router.push("/dashboard/berita");
   };
   return (

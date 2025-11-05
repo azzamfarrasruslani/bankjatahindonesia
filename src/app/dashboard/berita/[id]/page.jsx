@@ -31,7 +31,6 @@ export default function EditBeritaPage() {
   }, [id]);
 
   const handleSuccess = () => {
-    alert("Berita berhasil diperbarui!");
     router.push("/dashboard/berita");
   };
 
