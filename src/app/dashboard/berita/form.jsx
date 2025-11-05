@@ -5,7 +5,6 @@ import { supabase } from "@/lib/supabaseClient";
 import imageCompression from "browser-image-compression";
 import RichTextEditor from "@/components/dashboard/RichTextEditor";
 import { useRouter } from "next/navigation";
-import Toast from "@/components/common/Toast"; // import toast
 
 export default function BeritaForm({ beritaId, onSuccess }) {
   const router = useRouter();
@@ -19,13 +18,6 @@ export default function BeritaForm({ beritaId, onSuccess }) {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
   const [loading, setLoading] = useState(false);
-  const [oldImage, setOldImage] = useState("");
-  const [toast, setToast] = useState({ message: "", type: "success" });
-
-  // Fungsi untuk menampilkan toast
-  const showToast = (message, type = "success") => {
-    setToast({ message, type });
-  };
 
   // Ambil data berita jika mode edit
   useEffect(() => {
@@ -40,7 +32,6 @@ export default function BeritaForm({ beritaId, onSuccess }) {
 
       if (error) {
         console.error("Gagal mengambil data:", error);
-        showToast("❌ Gagal memuat data berita", "error");
       } else if (data) {
         setForm({
           judul: data.judul || "",
@@ -50,7 +41,6 @@ export default function BeritaForm({ beritaId, onSuccess }) {
           gambar_url: data.gambar_url || "",
         });
         setPreview(data.gambar_url || "");
-        setOldImage(data.gambar_url || "");
       }
     };
 
@@ -74,22 +64,24 @@ export default function BeritaForm({ beritaId, onSuccess }) {
     setPreview(URL.createObjectURL(selectedFile));
   };
 
-  // Upload gambar ke Supabase
+  // Upload gambar dengan kompresi WebP sebelum ke Supabase
   const uploadImage = async () => {
     if (!file) return form.gambar_url || "";
 
     try {
       const options = {
-        maxSizeMB: 0.25,
+        maxSizeMB: 0.25, // target sekitar 250KB
         maxWidthOrHeight: 1000,
         initialQuality: 0.85,
         useWebWorker: true,
         fileType: "image/webp",
       };
 
+      // Kompres file
       const compressedFile = await imageCompression(file, options);
       const fileName = `berita/${Date.now()}.webp`;
 
+      // Upload ke bucket "berita-images"
       const { error: uploadError } = await supabase.storage
         .from("berita-images")
         .upload(fileName, compressedFile, {
@@ -99,6 +91,7 @@ export default function BeritaForm({ beritaId, onSuccess }) {
 
       if (uploadError) throw uploadError;
 
+      // Ambil URL publik
       const { data } = supabase.storage
         .from("berita-images")
         .getPublicUrl(fileName);
@@ -106,7 +99,7 @@ export default function BeritaForm({ beritaId, onSuccess }) {
       return data.publicUrl;
     } catch (err) {
       console.error("Kompresi atau upload gagal:", err);
-      throw new Error("❌ Gagal mengunggah gambar, coba file lain atau periksa koneksi.");
+      throw new Error("Gagal mengunggah gambar, coba file lain atau periksa koneksi.");
     }
   };
 
@@ -118,146 +111,123 @@ export default function BeritaForm({ beritaId, onSuccess }) {
     try {
       const imageUrl = await uploadImage();
       const payload = {
-        ...form,
+        judul: form.judul,
+        penulis: form.penulis || "Admin",
+        isi: form.isi,
+        is_top: form.is_top,
         gambar_url: imageUrl,
       };
 
       if (beritaId) {
-        // Mode Edit
-        payload.id = beritaId;
-        payload.old_image = oldImage;
-
-        const res = await fetch("/api/berita", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        if (!res.ok) throw new Error("❌ Gagal memperbarui berita");
-        showToast("✅ Berita berhasil diperbarui!", "success");
+        const { error } = await supabase
+          .from("berita")
+          .update(payload)
+          .eq("id", beritaId);
+        if (error) throw error;
       } else {
-        // Mode Tambah
-        const res = await fetch("/api/berita", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        if (!res.ok) throw new Error("❌ Gagal menambah berita");
-        showToast("✅ Berita baru berhasil ditambahkan!", "success");
+        const { error } = await supabase.from("berita").insert([payload]);
+        if (error) throw error;
       }
 
       onSuccess?.();
     } catch (err) {
-      console.error("❌ Error saat menyimpan berita:", err);
-      showToast(err.message, "error");
+      console.error(err);
+      alert("Gagal menyimpan: " + err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="relative">
-      {/* Toast Notification */}
-      {toast.message && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          duration={3000}
-          onClose={() => setToast({ message: "", type: "success" })}
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-5 bg-white p-6 rounded-lg shadow-md"
+    >
+      {/* Upload gambar */}
+      <div>
+        <label className="block mb-2 font-semibold text-gray-700">
+          Gambar Berita
+        </label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="mb-3 w-full file:bg-[#FB6B00] file:text-white text-gray-600 file:py-2 file:px-4 file:rounded-full"
         />
-      )}
-
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-5 bg-white p-6 rounded-lg shadow-md"
-      >
-        {/* Upload gambar */}
-        <div>
-          <label className="block mb-2 font-semibold text-gray-700">
-            Gambar Berita
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="mb-3 w-full file:bg-[#FB6B00] file:text-white text-gray-600 file:py-2 file:px-4 file:rounded-full"
+        {preview && (
+          <img
+            src={preview}
+            alt="Preview"
+            className="w-full h-64 object-cover rounded-lg shadow-sm"
           />
-          {preview && (
-            <img
-              src={preview}
-              alt="Preview"
-              className="w-full h-64 object-cover rounded-lg shadow-sm"
-            />
-          )}
-        </div>
+        )}
+      </div>
 
-        {/* Judul */}
-        <div>
-          <label className="block mb-2 font-semibold text-gray-700">Judul</label>
-          <input
-            name="judul"
-            value={form.judul}
-            onChange={handleChange}
-            required
-            placeholder="Masukkan judul berita"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-[#FB6B00] text-gray-700 placeholder-gray-600"
-          />
-        </div>
+      {/* Judul */}
+      <div>
+        <label className="block mb-2 font-semibold text-gray-700">Judul</label>
+        <input
+          name="judul"
+          value={form.judul}
+          onChange={handleChange}
+          required
+          placeholder="Masukkan judul berita"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-[#FB6B00] text-gray-700 placeholder-gray-600"
+        />
+      </div>
 
-        {/* Penulis */}
-        <div>
-          <label className="block mb-2 font-semibold text-gray-700">Penulis</label>
-          <input
-            name="penulis"
-            value={form.penulis}
-            onChange={handleChange}
-            placeholder="Kosongkan jika Admin"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-[#FB6B00] text-gray-700 placeholder-gray-600"
-          />
-        </div>
+      {/* Penulis */}
+      <div>
+        <label className="block mb-2 font-semibold text-gray-700">Penulis</label>
+        <input
+          name="penulis"
+          value={form.penulis}
+          onChange={handleChange}
+          placeholder="Kosongkan jika Admin"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-[#FB6B00] text-gray-700 placeholder-gray-600"
+        />
+      </div>
 
-        {/* Isi berita */}
-        <div className="text-gray-700">
-          <label className="block mb-2 font-semibold text-gray-700">
-            Isi Berita
-          </label>
-          <RichTextEditor
-            key={beritaId || "new"}
-            value={form.isi}
-            onChange={(val) => setForm((prev) => ({ ...prev, isi: val }))}
-          />
-        </div>
+      {/* Isi berita */}
+      <div className="text-gray-700">
+        <label className="block mb-2 font-semibold text-gray-700">
+          Isi Berita
+        </label>
+        <RichTextEditor
+          key={beritaId || "new"} // penting agar value muncul saat edit
+          value={form.isi}
+          onChange={(val) => setForm((prev) => ({ ...prev, isi: val }))}
+        />
+      </div>
 
-        {/* Checkbox berita utama */}
-        <div className="flex items-center gap-3 text-gray-600">
-          <input
-            type="checkbox"
-            name="is_top"
-            checked={form.is_top}
-            onChange={handleChange}
-          />
-          <label>Jadikan berita utama</label>
-        </div>
+      {/* Checkbox berita utama */}
+      <div className="flex items-center gap-3 text-gray-600">
+        <input
+          type="checkbox"
+          name="is_top"
+          checked={form.is_top}
+          onChange={handleChange}
+        />
+        <label>Jadikan berita utama</label>
+      </div>
 
-        {/* Tombol aksi */}
-        <div className="flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={() => router.push("/dashboard/berita")}
-            className="px-5 py-2 bg-gray-200 text-gray-600 rounded-lg"
-          >
-            Batal
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-5 py-2 bg-[#FB6B00] text-white rounded-lg"
-          >
-            {loading ? "Menyimpan..." : beritaId ? "Perbarui" : "Simpan"}
-          </button>
-        </div>
-      </form>
-    </div>
+      {/* Tombol aksi */}
+      <div className="flex justify-end gap-3">
+        <button
+          type="button"
+          onClick={() => router.push("/dashboard/berita")}
+          className="px-5 py-2 bg-gray-200 text-gray-600 rounded-lg"
+        >
+          Batal
+        </button>
+        <button
+          type="submit"
+          disabled={loading}
+          className="px-5 py-2 bg-[#FB6B00] text-white rounded-lg"
+        >
+          {loading ? "Menyimpan..." : beritaId ? "Perbarui" : "Simpan"}
+        </button>
+      </div>
+    </form>
   );
 }

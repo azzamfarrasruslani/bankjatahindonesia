@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import RichTextEditor from "@/components/dashboard/RichTextEditor";
 import imageCompression from "browser-image-compression";
-import Toast from "@/components/common/Toast"; // pakai Toast custom
 
 export default function ArtikelForm({ artikel = null, onSuccess }) {
   const [form, setForm] = useState({
@@ -19,18 +18,22 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(artikel?.gambar_url || "");
   const [loading, setLoading] = useState(false);
+
   const router = useRouter();
 
+  // Handle input form biasa
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Checkbox is_top
   const handleCheckbox = (e) => {
     const { checked } = e.target;
     setForm((prev) => ({ ...prev, is_top: checked }));
   };
 
+  // Pilih file dan buat preview
   const handleFileChange = (e) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
@@ -38,6 +41,7 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
     setPreview(URL.createObjectURL(selectedFile));
   };
 
+  // Upload gambar ke Supabase Storage
   const uploadImage = async () => {
     if (!file) return form.gambar_url || "";
 
@@ -54,10 +58,7 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
 
       const { error } = await supabase.storage
         .from("artikel-images")
-        .upload(fileName, compressedFile, {
-          cacheControl: "3600",
-          upsert: false,
-        });
+        .upload(fileName, compressedFile, { cacheControl: "3600", upsert: false });
 
       if (error) throw error;
 
@@ -68,11 +69,11 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
       return data.publicUrl;
     } catch (err) {
       console.error("Upload gagal:", err);
-      Toast.error("Gagal mengunggah gambar. Periksa koneksi atau file Anda.");
-      throw err;
+      throw new Error("Gagal mengunggah gambar. Coba file lain atau periksa koneksi.");
     }
   };
 
+  // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -81,46 +82,30 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
       const imageUrl = await uploadImage();
       const payload = { ...form, gambar_url: imageUrl };
 
-      let res;
       if (artikel?.id) {
-        payload.id = artikel.id;
-        payload.old_image = artikel.gambar_url;
-        res = await fetch("/api/artikel", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw new Error("Gagal memperbarui artikel");
-        Toast.success("Artikel berhasil diperbarui!");
+        // Update artikel
+        const { error } = await supabase.from("artikel").update(payload).eq("id", artikel.id);
+        if (error) throw error;
       } else {
-        res = await fetch("/api/artikel", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw new Error("Gagal menambah artikel");
-        Toast.success("Artikel berhasil ditambahkan!");
+        // Insert artikel baru
+        const { error } = await supabase.from("artikel").insert([payload]);
+        if (error) throw error;
       }
 
       onSuccess?.();
     } catch (err) {
       console.error(err);
-      Toast.error(err.message || "Terjadi kesalahan saat menyimpan artikel.");
+      alert(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-5 bg-white p-6 rounded-lg shadow-md mx-auto text-gray-600"
-    >
+    <form onSubmit={handleSubmit} className="space-y-5 bg-white p-6 rounded-lg shadow-md mx-auto text-gray-600">
       {/* Upload gambar */}
       <div>
-        <label className="block mb-2 font-semibold text-gray-700">
-          Gambar Artikel
-        </label>
+        <label className="block mb-2 font-semibold text-gray-700">Gambar Artikel</label>
         <input
           type="file"
           accept="image/*"
@@ -152,9 +137,7 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
 
       {/* Penulis */}
       <div>
-        <label className="block mb-2 font-semibold text-gray-700">
-          Penulis
-        </label>
+        <label className="block mb-2 font-semibold text-gray-700">Penulis</label>
         <input
           type="text"
           name="penulis"
@@ -167,9 +150,7 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
 
       {/* Kategori */}
       <div>
-        <label className="block mb-2 font-semibold text-gray-700">
-          Kategori
-        </label>
+        <label className="block mb-2 font-semibold text-gray-700">Kategori</label>
         <input
           type="text"
           name="kategori"
@@ -180,7 +161,7 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
         />
       </div>
 
-      {/* Artikel Utama */}
+      {/* Tandai sebagai Artikel Unggulan */}
       <div>
         <label className="inline-flex items-center gap-2">
           <input
@@ -195,9 +176,7 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
 
       {/* Isi Artikel */}
       <div>
-        <label className="block mb-2 font-semibold text-gray-700">
-          Isi Artikel
-        </label>
+        <label className="block mb-2 font-semibold text-gray-700">Isi Artikel</label>
         <RichTextEditor
           key={artikel?.id || "new"}
           value={form.isi}
@@ -205,7 +184,7 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
         />
       </div>
 
-      {/* Tombol */}
+      {/* Tombol aksi */}
       <div className="flex justify-end gap-3">
         <button
           type="button"

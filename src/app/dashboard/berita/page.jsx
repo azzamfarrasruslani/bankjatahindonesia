@@ -4,22 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { supabase } from "@/lib/supabaseClient";
-import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal";
-import Toast from "@/components/common/Toast";
 
 export default function DashboardBeritaPage() {
   const [berita, setBerita] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [toast, setToast] = useState({ message: "", type: "success" });
 
-  const showToast = (message, type = "success") => {
-    setToast({ message, type });
-  };
-
-  // Fetch data berita
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -32,7 +21,7 @@ export default function DashboardBeritaPage() {
         setBerita(data || []);
       } catch (err) {
         console.error("Fetch error:", err);
-        showToast("Gagal memuat data berita", "error");
+        alert("Gagal memuat data berita.");
       } finally {
         setLoading(false);
       }
@@ -40,52 +29,34 @@ export default function DashboardBeritaPage() {
     fetchData();
   }, []);
 
-  // Buka modal konfirmasi hapus
-  const openDeleteModal = (item) => {
-    setSelectedItem(item);
-    setShowModal(true);
-  };
-
-  // Aksi hapus
-  const handleDeleteConfirm = async () => {
-    if (!selectedItem) return;
-    const { id, gambar_url } = selectedItem;
-    setDeletingId(id);
+  const handleDelete = async (id, imageUrl) => {
+    if (!confirm("Yakin ingin menghapus berita ini beserta gambarnya?")) return;
 
     try {
-      const res = await fetch("/api/berita", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, gambar_url }),
-      });
+      if (imageUrl) {
+        const url = new URL(imageUrl);
+        const path = url.pathname.replace("/storage/v1/object/public/berita-images/", "");
+        if (path) {
+          const { error: storageError } = await supabase.storage
+            .from("berita-images")
+            .remove([path]);
+          if (storageError) console.error("Gagal hapus gambar di storage:", storageError);
+        }
+      }
 
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error || "Gagal menghapus berita");
+      const { error } = await supabase.from("berita").delete().eq("id", id);
+      if (error) throw error;
 
       setBerita((prev) => prev.filter((item) => item.id !== id));
-      showToast("✅ Berita berhasil dihapus", "success");
+      alert("✅ Berita dan gambar berhasil dihapus");
     } catch (err) {
-      console.error("❌ Error saat hapus berita:", err);
-      showToast("❌ Gagal menghapus berita", "error");
-    } finally {
-      setShowModal(false);
-      setDeletingId(null);
-      setSelectedItem(null);
+      console.error("Delete error:", err);
+      alert("❌ Gagal menghapus berita. Periksa RLS/permission user.");
     }
   };
 
   return (
     <section className="p-6 md:p-10 min-h-screen bg-gradient-to-b from-orange-50 to-white rounded-2xl shadow-md">
-      {/* Toast Notification */}
-      {toast.message && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          duration={3000}
-          onClose={() => setToast({ message: "", type: "success" })}
-        />
-      )}
-
       {/* Header */}
       <div className="flex items-center justify-between mb-8 border-b border-orange-200 pb-4">
         <div>
@@ -117,19 +88,13 @@ export default function DashboardBeritaPage() {
           <tbody>
             {loading ? (
               <tr>
-                <td
-                  colSpan="5"
-                  className="text-center py-10 text-orange-600 font-medium animate-pulse"
-                >
+                <td colSpan="5" className="text-center py-10 text-orange-600 font-medium animate-pulse">
                   Memuat data berita...
                 </td>
               </tr>
             ) : berita.length === 0 ? (
               <tr>
-                <td
-                  colSpan="5"
-                  className="text-center py-10 text-gray-400 italic bg-orange-50/30"
-                >
+                <td colSpan="5" className="text-center py-10 text-gray-400 italic bg-orange-50/30">
                   Belum ada berita yang tercatat.
                 </td>
               </tr>
@@ -138,9 +103,7 @@ export default function DashboardBeritaPage() {
                 <tr
                   key={item.id}
                   className={`border-b border-orange-100 transition-all duration-200 ${
-                    index % 2 === 0
-                      ? "bg-white hover:bg-orange-50/60"
-                      : "bg-orange-50/40 hover:bg-orange-100/50"
+                    index % 2 === 0 ? "bg-white hover:bg-orange-50/60" : "bg-orange-50/40 hover:bg-orange-100/50"
                   }`}
                 >
                   {/* Judul + Thumbnail */}
@@ -167,9 +130,7 @@ export default function DashboardBeritaPage() {
                   </td>
 
                   {/* Penulis */}
-                  <td className="px-6 py-4 text-gray-600">
-                    {item.penulis || "Admin"}
-                  </td>
+                  <td className="px-6 py-4 text-gray-600">{item.penulis || "Admin"}</td>
 
                   {/* Status */}
                   <td className="px-6 py-4 text-center">
@@ -195,14 +156,9 @@ export default function DashboardBeritaPage() {
                         <FaEdit />
                       </Link>
                       <button
-                        onClick={() => openDeleteModal(item)}
-                        className={`p-2 rounded-full hover:bg-red-100 text-red-500 hover:text-red-700 transition-all ${
-                          deletingId === item.id
-                            ? "opacity-50 cursor-not-allowed"
-                            : ""
-                        }`}
+                        onClick={() => handleDelete(item.id, item.gambar_url)}
+                        className="p-2 rounded-full hover:bg-red-100 text-red-500 hover:text-red-700 transition-all"
                         title="Hapus"
-                        disabled={deletingId === item.id}
                       >
                         <FaTrash />
                       </button>
@@ -214,15 +170,6 @@ export default function DashboardBeritaPage() {
           </tbody>
         </table>
       </div>
-
-      {/* Modal Konfirmasi Hapus */}
-      <ConfirmDeleteModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        onConfirm={handleDeleteConfirm}
-        title="Hapus Berita"
-        message={`Apakah Anda yakin ingin menghapus berita "${selectedItem?.judul}"?`}
-      />
 
       {/* Footer Info */}
       <div className="text-xs text-gray-400 text-center mt-6">
