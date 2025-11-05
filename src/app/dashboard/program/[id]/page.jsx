@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import ProgramFormEdit from "../form-edit";
+import ProgramFormEdit from "../form";
 
 export default function EditProgramPage() {
   const { id } = useParams();

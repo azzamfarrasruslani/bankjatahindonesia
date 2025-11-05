@@ -1,17 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
 import imageCompression from "browser-image-compression";
 
 export default function ProgramFormAdd({ onSuccess }) {
   const [form, setForm] = useState({
     nama: "",
     deskripsi: "",
-    status: "",
+    status: "Program Aktif",
     iconUrl: "",
     iconFile: null,
-    steps: [""],
+    details: [""],
   });
   const [loading, setLoading] = useState(false);
 
@@ -23,62 +22,67 @@ export default function ProgramFormAdd({ onSuccess }) {
     }
   };
 
+  // ✅ Upload ke API route pakai FormData
   const uploadImage = async () => {
-    if (!form.iconFile) return form.iconUrl || "";
+    if (!form.iconFile) return "";
 
     try {
       const options = {
-        maxSizeMB: 0.25, // target sekitar 250KB
-        maxWidthOrHeight: 1000, // batasi resolusi maksimal
-        initialQuality: 0.85, // pertahankan kualitas tinggi
-        useWebWorker: true, // kompresi di thread terpisah
-        fileType: "image/webp", // format efisien tapi tajam
+        maxSizeMB: 0.25,
+        maxWidthOrHeight: 1000,
+        fileType: "image/webp",
       };
 
-      const compressedFile = await imageCompression(form.iconFile, options);
-      const fileName = `${Date.now()}.webp`;
+      const compressed = await imageCompression(form.iconFile, options);
+      const fileName = `program/${Date.now()}.webp`;
 
-      // Upload ke Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from("program-images")
-        .upload(fileName, compressedFile, {
-          cacheControl: "3600",
-          upsert: false,
-        });
+      const formData = new FormData();
+      formData.append("file", compressed, fileName);
 
-      if (uploadError) throw uploadError;
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-      const { data } = supabase.storage
-        .from("program-images")
-        .getPublicUrl(fileName);
+      const result = await res.json().catch(() => {
+        throw new Error("Response bukan JSON (cek console)");
+      });
 
-      return data.publicUrl;
+      if (!res.ok) throw new Error(result.error || "Gagal upload icon");
+      return result.url;
     } catch (err) {
-      console.error("Kompresi atau upload gagal:", err);
-      throw new Error(
-        "Gagal mengunggah ikon, coba file lain atau periksa koneksi."
-      );
+      console.error("Upload gagal:", err);
+      throw err;
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     try {
       const iconUrl = await uploadImage();
-      const { error } = await supabase.from("program").insert([
-        {
-          title: form.nama,
-          description: form.deskripsi,
-          status: form.status,
-          icon_url: iconUrl,
-          steps: form.steps,
-        },
-      ]);
-      if (error) throw error;
+      const payload = {
+        title: form.nama,
+        description: form.deskripsi,
+        status: form.status,
+        icon_url: iconUrl,
+        details: form.details,
+      };
+
+      const res = await fetch("/api/program", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Gagal menyimpan program");
+
+      alert("✅ Program berhasil ditambahkan!");
       onSuccess?.();
     } catch (err) {
-      alert("Gagal menyimpan: " + err.message);
+      alert("❌ " + err.message);
     } finally {
       setLoading(false);
     }
@@ -87,69 +91,61 @@ export default function ProgramFormAdd({ onSuccess }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-7 bg-white p-6 rounded-lg shadow-md text-gray-600"
+      className="space-y-6 bg-white p-6 rounded-lg shadow text-gray-700"
     >
-      {/* Nama Program */}
       <div>
-        <label className="block text-sm font-medium mb-1">Nama Program</label>
+        <label className="block font-medium mb-1">Nama Program</label>
         <input
-          type="text"
           value={form.nama}
           onChange={(e) => setForm({ ...form, nama: e.target.value })}
           className="w-full border rounded-md px-3 py-2"
-          placeholder="Masukkan nama program"
           required
         />
       </div>
 
-      {/* Deskripsi */}
       <div>
-        <label className="block text-sm font-medium mb-1">Deskripsi</label>
+        <label className="block font-medium mb-1">Deskripsi</label>
         <textarea
           value={form.deskripsi}
           onChange={(e) => setForm({ ...form, deskripsi: e.target.value })}
+          rows={3}
           className="w-full border rounded-md px-3 py-2"
-          rows="3"
         />
       </div>
 
-      {/* Status */}
       <div>
-        <label className="block text-sm font-medium mb-1">Status</label>
-        <input
-          type="text"
+        <label className="block font-medium mb-1">Status</label>
+        <select
           value={form.status}
           onChange={(e) => setForm({ ...form, status: e.target.value })}
           className="w-full border rounded-md px-3 py-2"
-          placeholder="Aktif / Nonaktif"
-        />
+        >
+          <option>Program Aktif</option>
+          <option>Program Nonaktif</option>
+        </select>
       </div>
 
-      {/* Steps */}
       <div>
-        <label className="block text-sm font-medium mb-1">
-          Langkah Program
-        </label>
-        {form.steps.map((s, i) => (
+        <label className="block font-medium mb-1">Langkah Program</label>
+        {form.details.map((s, i) => (
           <div key={i} className="flex gap-2 mb-2">
             <input
-              type="text"
               value={s}
               onChange={(e) => {
-                const steps = [...form.steps];
-                steps[i] = e.target.value;
-                setForm({ ...form, steps });
+                const details = [...form.details];
+                details[i] = e.target.value;
+                setForm({ ...form, details });
               }}
-              className="flex-1 border rounded-md px-3 py-2"
               placeholder={`Langkah ${i + 1}`}
+              className="flex-1 border rounded-md px-3 py-2"
             />
-            {form.steps.length > 1 && (
+            {form.details.length > 1 && (
               <button
                 type="button"
                 onClick={() =>
                   setForm({
                     ...form,
-                    steps: form.steps.filter((_, j) => j !== i),
+                    details: form.details.filter((_, j) => j !== i),
                   })
                 }
                 className="text-red-500"
@@ -161,20 +157,22 @@ export default function ProgramFormAdd({ onSuccess }) {
         ))}
         <button
           type="button"
-          onClick={() => setForm({ ...form, steps: [...form.steps, ""] })}
+          onClick={() =>
+            setForm({ ...form, details: [...form.details, ""] })
+          }
           className="text-sm text-[#FB6B00]"
         >
           + Tambah Langkah
         </button>
       </div>
 
-      {/* Icon Upload */}
       <div>
-        <label className="block text-sm font-medium mb-1">Upload Ikon</label>
+        <label className="block font-medium mb-1">Upload Ikon</label>
         <input type="file" accept="image/*" onChange={handleFileChange} />
         {form.iconUrl && (
           <img
             src={form.iconUrl}
+            alt="Preview"
             className="mt-3 w-20 h-20 object-contain border rounded-md"
           />
         )}
@@ -183,7 +181,7 @@ export default function ProgramFormAdd({ onSuccess }) {
       <button
         type="submit"
         disabled={loading}
-        className="bg-[#FB6B00] hover:bg-orange-700 text-white px-6 py-2 rounded-lg"
+        className="bg-[#FB6B00] hover:bg-orange-700 text-white px-6 py-2 rounded-md"
       >
         {loading ? "Menyimpan..." : "Tambah Program"}
       </button>

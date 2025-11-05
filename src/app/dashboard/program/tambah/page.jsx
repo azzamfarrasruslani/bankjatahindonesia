@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import ProgramForm from "../form-add";
+import ProgramForm from "../form";
 
 export default function TambahProgramPage() {
   const router = useRouter();

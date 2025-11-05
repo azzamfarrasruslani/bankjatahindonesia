@@ -1,24 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
 import imageCompression from "browser-image-compression";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function ProgramFormEdit({ programId, onSuccess }) {
   const [form, setForm] = useState({
     nama: "",
     deskripsi: "",
-    status: "",
+    status: "Program Aktif",
     iconUrl: "",
     iconFile: null,
     details: [""],
   });
+  const [oldIcon, setOldIcon] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Ambil data program berdasarkan ID
+  // Ambil data program dari Supabase
   useEffect(() => {
     if (!programId) return;
-    const fetch = async () => {
+    const fetchProgram = async () => {
       const { data, error } = await supabase
         .from("program")
         .select("*")
@@ -33,14 +34,15 @@ export default function ProgramFormEdit({ programId, onSuccess }) {
       setForm({
         nama: data.title || "",
         deskripsi: data.description || "",
-        status: data.status || "",
+        status: data.status || "Program Aktif",
         iconUrl: data.icon_url || "",
         iconFile: null,
         details:
           data.details && Array.isArray(data.details) ? data.details : [""],
       });
+      setOldIcon(data.icon_url || "");
     };
-    fetch();
+    fetchProgram();
   }, [programId]);
 
   const handleFileChange = (e) => {
@@ -56,36 +58,32 @@ export default function ProgramFormEdit({ programId, onSuccess }) {
 
     try {
       const options = {
-        maxSizeMB: 0.25, // target sekitar 250KB
-        maxWidthOrHeight: 1000, // batasi resolusi maksimal
-        initialQuality: 0.85, // pertahankan kualitas tinggi
-        useWebWorker: true, // kompresi di thread terpisah
-        fileType: "image/webp", // format efisien tapi tajam
+        maxSizeMB: 0.25,
+        maxWidthOrHeight: 1000,
+        initialQuality: 0.85,
+        useWebWorker: true,
+        fileType: "image/webp",
       };
 
       const compressedFile = await imageCompression(form.iconFile, options);
-      const fileName = `${Date.now()}.webp`;
+      const fileName = `program/${Date.now()}.webp`;
 
-      // Upload ke Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from("program-images")
-        .upload(fileName, compressedFile, {
-          cacheControl: "3600",
-          upsert: false,
-        });
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: JSON.stringify({
+          bucket: "program-images",
+          path: fileName,
+          file: await compressedFile.arrayBuffer(),
+        }),
+      });
 
-      if (uploadError) throw uploadError;
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Gagal upload icon");
 
-      const { data } = supabase.storage
-        .from("program-images")
-        .getPublicUrl(fileName);
-
-      return data.publicUrl;
+      return result.url;
     } catch (err) {
-      console.error("Kompresi atau upload gagal:", err);
-      throw new Error(
-        "Gagal mengunggah ikon, coba file lain atau periksa koneksi."
-      );
+      console.error("Upload gagal:", err);
+      throw err;
     }
   };
 
@@ -95,21 +93,29 @@ export default function ProgramFormEdit({ programId, onSuccess }) {
 
     try {
       const iconUrl = await uploadImage();
-      const { error } = await supabase
-        .from("program")
-        .update({
-          title: form.nama,
-          description: form.deskripsi,
-          status: form.status,
-          icon_url: iconUrl,
-          details: form.details,
-        })
-        .eq("id", programId);
+      const payload = {
+        id: programId,
+        title: form.nama,
+        description: form.deskripsi,
+        status: form.status,
+        icon_url: iconUrl,
+        details: form.details,
+        old_icon: oldIcon,
+      };
 
-      if (error) throw error;
+      const res = await fetch("/api/program", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Gagal memperbarui program");
+
+      alert("✅ Program berhasil diperbarui!");
       onSuccess?.();
     } catch (err) {
-      alert("Gagal memperbarui: " + err.message);
+      alert("❌ " + err.message);
     } finally {
       setLoading(false);
     }
@@ -120,6 +126,8 @@ export default function ProgramFormEdit({ programId, onSuccess }) {
       onSubmit={handleSubmit}
       className="space-y-7 bg-white p-6 rounded-lg shadow-md text-gray-600"
     >
+      <h2 className="text-lg font-semibold mb-3">Edit Program</h2>
+
       {/* Nama Program */}
       <div>
         <label className="block text-sm font-medium mb-1">Nama Program</label>
@@ -146,19 +154,19 @@ export default function ProgramFormEdit({ programId, onSuccess }) {
       {/* Status */}
       <div>
         <label className="block text-sm font-medium mb-1">Status</label>
-        <input
-          type="text"
+        <select
           value={form.status}
           onChange={(e) => setForm({ ...form, status: e.target.value })}
           className="w-full border rounded-md px-3 py-2"
-        />
+        >
+          <option value="Program Aktif">Program Aktif</option>
+          <option value="Program Nonaktif">Program Nonaktif</option>
+        </select>
       </div>
 
-      {/* Detail/Langkah */}
+      {/* Detail Langkah */}
       <div>
-        <label className="block text-sm font-medium mb-1">
-          Langkah Program
-        </label>
+        <label className="block text-sm font-medium mb-1">Langkah Program</label>
         {form.details.map((step, i) => (
           <div key={i} className="flex gap-2 mb-2">
             <input
@@ -196,7 +204,7 @@ export default function ProgramFormEdit({ programId, onSuccess }) {
         </button>
       </div>
 
-      {/* Ganti Ikon */}
+      {/* Upload Ikon */}
       <div>
         <label className="block text-sm font-medium mb-1">Ganti Ikon</label>
         <input type="file" accept="image/*" onChange={handleFileChange} />
@@ -208,13 +216,12 @@ export default function ProgramFormEdit({ programId, onSuccess }) {
         )}
       </div>
 
-      {/* Tombol Submit */}
       <button
         type="submit"
         disabled={loading}
         className="bg-[#FB6B00] hover:bg-orange-700 text-white px-6 py-2 rounded-lg"
       >
-        {loading ? "Menyimpan..." : "Perbarui Program"}
+        {loading ? "Menyimpan..." : "Update Program"}
       </button>
     </form>
   );
