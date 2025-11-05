@@ -4,10 +4,26 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { supabase } from "@/lib/supabaseClient";
+import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal";
+import Toast from "@/components/common/Toast";
 
 export default function ArtikelPage() {
   const [artikel, setArtikel] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedArtikel, setSelectedArtikel] = useState(null);
+
+  // Toast state
+  const [toast, setToast] = useState({ message: "", type: "success" });
+
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast({ message: "", type: "success" });
+    }, 3000);
+  };
 
   const fetchArtikel = async () => {
     setLoading(true);
@@ -29,8 +45,19 @@ export default function ArtikelPage() {
     fetchArtikel();
   }, []);
 
-  const handleDelete = async (id, gambar_url) => {
-    if (!confirm("Yakin ingin menghapus artikel ini?")) return;
+  const handleOpenDelete = (item) => {
+    setSelectedArtikel(item);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedArtikel(null);
+    setIsModalOpen(false);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedArtikel) return;
+    const { id, gambar_url, judul } = selectedArtikel;
 
     try {
       const res = await fetch("/api/artikel", {
@@ -43,15 +70,28 @@ export default function ArtikelPage() {
       if (!res.ok) throw new Error(data.error || "Gagal menghapus artikel");
 
       setArtikel((prev) => prev.filter((item) => item.id !== id));
-      alert("✅ Artikel dan gambarnya berhasil dihapus");
+      showToast(`✅ Artikel "${judul}" berhasil dihapus`, "success");
     } catch (err) {
       console.error(err);
-      alert("❌ Gagal menghapus artikel. Cek console untuk detail.");
+      showToast("❌ Gagal menghapus artikel. Cek console untuk detail.", "error");
+    } finally {
+      handleCloseModal();
     }
   };
 
   return (
-    <section className="p-6 md:p-10 min-h-screen bg-gradient-to-b from-orange-50 to-white rounded-2xl shadow-md">
+    <section className="relative p-6 md:p-10 min-h-screen bg-gradient-to-b from-orange-50 to-white rounded-2xl shadow-md">
+      {/* Toast Notification */}
+      {toast.message && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          duration={3000}
+          onClose={() => setToast({ message: "", type: "success" })}
+        />
+      )}
+
+      {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 border-b border-orange-200 pb-4 gap-3 md:gap-0">
         <div>
           <h1 className="text-3xl font-bold text-[#FB6B00]">
@@ -69,6 +109,7 @@ export default function ArtikelPage() {
         </Link>
       </div>
 
+      {/* Table */}
       <div className="overflow-x-auto rounded-xl shadow-md border border-orange-100 bg-white">
         <table className="min-w-max w-full text-sm table-auto border-collapse">
           <thead className="bg-[#FB6B00]/10 text-[#FB6B00] uppercase text-xs font-semibold tracking-wide">
@@ -151,14 +192,15 @@ export default function ArtikelPage() {
                     <div className="flex justify-center gap-3">
                       <Link
                         href={`/dashboard/artikel/${item.id}`}
-                        className="p-2 rounded-full text-[#FB6B00] hover:text-orange-700 ransition-all"
+                        className="p-2 rounded-full text-[#FB6B00] hover:text-orange-700 transition-all"
                         title="Edit"
                       >
                         <FaEdit />
                       </Link>
                       <button
-                        onClick={() => handleDelete(item.id, item.gambar_url)}
+                        onClick={() => handleOpenDelete(item)}
                         className="p-2 rounded-full text-red-500 hover:text-red-700 transition-all"
+                        title="Hapus"
                       >
                         <FaTrash />
                       </button>
@@ -174,6 +216,14 @@ export default function ArtikelPage() {
       <div className="text-xs text-gray-400 text-center mt-6">
         © {new Date().getFullYear()} Dashboard Artikel | Bank Jatah Indonesia
       </div>
+
+      {/* Modal konfirmasi hapus */}
+      <ConfirmDeleteModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmDelete}
+        itemName={selectedArtikel?.judul}
+      />
     </section>
   );
 }

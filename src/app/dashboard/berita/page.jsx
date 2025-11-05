@@ -4,12 +4,22 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { supabase } from "@/lib/supabaseClient";
+import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal";
+import Toast from "@/components/common/Toast";
 
 export default function DashboardBeritaPage() {
   const [berita, setBerita] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState(null); // ID berita yang sedang dihapus
+  const [deletingId, setDeletingId] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [toast, setToast] = useState({ message: "", type: "success" });
 
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+  };
+
+  // Fetch data berita
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -22,7 +32,7 @@ export default function DashboardBeritaPage() {
         setBerita(data || []);
       } catch (err) {
         console.error("Fetch error:", err);
-        alert("Gagal memuat data berita.");
+        showToast("Gagal memuat data berita", "error");
       } finally {
         setLoading(false);
       }
@@ -30,8 +40,17 @@ export default function DashboardBeritaPage() {
     fetchData();
   }, []);
 
-  const handleDelete = async (id, gambar_url) => {
-    if (!confirm("🗑️ Yakin ingin menghapus berita ini?")) return;
+  // Buka modal konfirmasi hapus
+  const openDeleteModal = (item) => {
+    setSelectedItem(item);
+    setShowModal(true);
+  };
+
+  // Aksi hapus
+  const handleDeleteConfirm = async () => {
+    if (!selectedItem) return;
+    const { id, gambar_url } = selectedItem;
+    setDeletingId(id);
 
     try {
       const res = await fetch("/api/berita", {
@@ -43,24 +62,34 @@ export default function DashboardBeritaPage() {
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || "Gagal menghapus berita");
 
-      // Hapus data dari state lokal agar langsung hilang di UI
       setBerita((prev) => prev.filter((item) => item.id !== id));
-
-      alert("✅ Berita dan gambarnya berhasil dihapus");
+      showToast("✅ Berita berhasil dihapus", "success");
     } catch (err) {
       console.error("❌ Error saat hapus berita:", err);
-      alert("❌ Gagal menghapus berita. Silakan cek console untuk detail.");
+      showToast("❌ Gagal menghapus berita", "error");
+    } finally {
+      setShowModal(false);
+      setDeletingId(null);
+      setSelectedItem(null);
     }
   };
 
   return (
     <section className="p-6 md:p-10 min-h-screen bg-gradient-to-b from-orange-50 to-white rounded-2xl shadow-md">
+      {/* Toast Notification */}
+      {toast.message && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          duration={3000}
+          onClose={() => setToast({ message: "", type: "success" })}
+        />
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-8 border-b border-orange-200 pb-4">
         <div>
-          <h1 className="text-3xl font-bold text-[#FB6B00]">
-            Manajemen Berita
-          </h1>
+          <h1 className="text-3xl font-bold text-[#FB6B00]">Manajemen Berita</h1>
           <p className="text-sm text-gray-500 mt-1">
             Kelola daftar berita, ubah, atau hapus dengan mudah.
           </p>
@@ -166,9 +195,7 @@ export default function DashboardBeritaPage() {
                         <FaEdit />
                       </Link>
                       <button
-                        onClick={() =>
-                          handleDelete(item.id, item.gambar_url)
-                        }
+                        onClick={() => openDeleteModal(item)}
                         className={`p-2 rounded-full hover:bg-red-100 text-red-500 hover:text-red-700 transition-all ${
                           deletingId === item.id
                             ? "opacity-50 cursor-not-allowed"
@@ -187,6 +214,15 @@ export default function DashboardBeritaPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Modal Konfirmasi Hapus */}
+      <ConfirmDeleteModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Hapus Berita"
+        message={`Apakah Anda yakin ingin menghapus berita "${selectedItem?.judul}"?`}
+      />
 
       {/* Footer Info */}
       <div className="text-xs text-gray-400 text-center mt-6">

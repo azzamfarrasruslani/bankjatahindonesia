@@ -4,59 +4,73 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { supabase } from "@/lib/supabaseClient";
+import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal"; // ← modal konfirmasi
+import Toast from "@/components/common/Toast";
 
 export default function LokasiPage() {
   const [activeTab, setActiveTab] = useState("utama");
   const [lokasi, setLokasi] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Modal & Toast
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [toast, setToast] = useState({ message: "", type: "success" });
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("lokasi")
-          .select("*")
-          .order("created_at", { ascending: false });
-
-        if (error) throw error;
-        setLokasi(data || []);
-      } catch (err) {
-        console.error("Fetch lokasi error:", err);
-        alert("Gagal memuat data lokasi.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, []);
 
-  const handleDelete = async (id, gambar_url) => {
-    if (!confirm("Yakin ingin menghapus lokasi ini beserta gambarnya?")) return;
+  async function fetchData() {
+    try {
+      const { data, error } = await supabase
+        .from("lokasi")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setLokasi(data || []);
+    } catch (err) {
+      console.error("Fetch lokasi error:", err);
+      showToast("❌ Gagal memuat data lokasi", "error");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+  };
+
+  const handleDelete = async () => {
+    if (!selectedItem) return;
 
     try {
       // Hapus gambar di storage jika ada
-      if (gambar_url) {
-        const filePath = gambar_url.replace(
+      if (selectedItem.gambar_url) {
+        const filePath = selectedItem.gambar_url.replace(
           `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/lokasi-images/lokasi/`,
           ""
         );
         const { error: storageError } = await supabase.storage
           .from("lokasi-images")
           .remove([filePath]);
-        if (storageError)
-          console.error("Gagal menghapus gambar:", storageError);
+        if (storageError) console.error("Gagal menghapus gambar:", storageError);
       }
 
       // Hapus record lokasi
-      const { error } = await supabase.from("lokasi").delete().eq("id", id);
+      const { error } = await supabase.from("lokasi").delete().eq("id", selectedItem.id);
       if (error) throw error;
 
       // Update state UI
-      setLokasi((prev) => prev.filter((item) => item.id !== id));
+      setLokasi((prev) => prev.filter((item) => item.id !== selectedItem.id));
+      showToast("✅ Lokasi berhasil dihapus", "success");
     } catch (err) {
-      alert("Gagal menghapus lokasi. Cek console.");
       console.error(err);
+      showToast("❌ Gagal menghapus lokasi. Cek console.", "error");
+    } finally {
+      setIsModalOpen(false);
+      setSelectedItem(null);
     }
   };
 
@@ -105,24 +119,12 @@ export default function LokasiPage() {
                     : "bg-orange-50/40 hover:bg-orange-100/50"
                 }`}
               >
-                <td className="px-6 py-4 font-medium text-gray-800">
-                  {item.nama}
-                </td>
-                <td className="px-6 py-4 capitalize text-gray-600">
-                  {item.jenis}
-                </td>
-                <td className="px-6 py-4 text-gray-700">
-                  {item.alamat || "-"}
-                </td>
-                <td className="px-6 py-4 text-gray-700">
-                  {item.deskripsi ? item.deskripsi.slice(0, 60) + "..." : "-"}
-                </td>
-                <td className="px-6 py-4 text-gray-700">
-                  {item.kontak || "-"}
-                </td>
-                <td className="px-6 py-4 text-gray-700">
-                  {item.jam_operasional || "-"}
-                </td>
+                <td className="px-6 py-4 font-medium text-gray-800">{item.nama}</td>
+                <td className="px-6 py-4 capitalize text-gray-600">{item.jenis}</td>
+                <td className="px-6 py-4 text-gray-700">{item.alamat || "-"}</td>
+                <td className="px-6 py-4 text-gray-700">{item.deskripsi ? item.deskripsi.slice(0, 60) + "..." : "-"}</td>
+                <td className="px-6 py-4 text-gray-700">{item.kontak || "-"}</td>
+                <td className="px-6 py-4 text-gray-700">{item.jam_operasional || "-"}</td>
                 <td className="px-6 py-4 text-center">
                   {item.gambar_url ? (
                     <img
@@ -144,7 +146,10 @@ export default function LokasiPage() {
                       <FaEdit />
                     </Link>
                     <button
-                      onClick={() => handleDelete(item.id, item.gambar_url)}
+                      onClick={() => {
+                        setSelectedItem(item);
+                        setIsModalOpen(true);
+                      }}
                       className="p-2 rounded-full hover:bg-red-100 text-red-600 hover:text-red-800 transition-all"
                       title="Hapus"
                     >
@@ -161,13 +166,29 @@ export default function LokasiPage() {
   };
 
   return (
-    <section className="p-6 md:p-10 min-h-screen bg-gradient-to-b from-orange-50 to-white rounded-2xl shadow-md">
+    <section className="p-6 md:p-10 min-h-screen bg-gradient-to-b from-orange-50 to-white rounded-2xl shadow-md relative">
+      {/* Toast */}
+      {toast.message && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          duration={3000}
+          onClose={() => setToast({ message: "", type: "success" })}
+        />
+      )}
+
+      {/* Modal Konfirmasi Hapus */}
+      <ConfirmDeleteModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleDelete}
+        itemName={selectedItem?.nama || "lokasi ini"}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between mb-8 border-b border-orange-200 pb-4">
         <div>
-          <h1 className="text-3xl font-bold text-[#FB6B00]">
-            Manajemen Lokasi
-          </h1>
+          <h1 className="text-3xl font-bold text-[#FB6B00]">Manajemen Lokasi</h1>
           <p className="text-sm text-gray-500 mt-1">
             Kelola lokasi utama dan mitra Bank Jatah Indonesia dengan mudah.
           </p>
@@ -185,9 +206,7 @@ export default function LokasiPage() {
         <button
           onClick={() => setActiveTab("utama")}
           className={`px-5 py-2 rounded-full font-semibold transition-all ${
-            activeTab === "utama"
-              ? "bg-[#FB6B00] text-white shadow"
-              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            activeTab === "utama" ? "bg-[#FB6B00] text-white shadow" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
           }`}
         >
           Lokasi Utama
@@ -195,9 +214,7 @@ export default function LokasiPage() {
         <button
           onClick={() => setActiveTab("mitra")}
           className={`px-5 py-2 rounded-full font-semibold transition-all ${
-            activeTab === "mitra"
-              ? "bg-[#FB6B00] text-white shadow"
-              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            activeTab === "mitra" ? "bg-[#FB6B00] text-white shadow" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
           }`}
         >
           Lokasi Mitra

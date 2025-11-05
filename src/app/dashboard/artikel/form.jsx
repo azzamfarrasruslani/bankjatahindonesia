@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import RichTextEditor from "@/components/dashboard/RichTextEditor";
 import imageCompression from "browser-image-compression";
+import Toast from "@/components/common/Toast"; // pakai Toast custom
 
 export default function ArtikelForm({ artikel = null, onSuccess }) {
   const [form, setForm] = useState({
@@ -18,22 +19,18 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(artikel?.gambar_url || "");
   const [loading, setLoading] = useState(false);
-
   const router = useRouter();
 
-  // Handle input form biasa
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Checkbox is_top
   const handleCheckbox = (e) => {
     const { checked } = e.target;
     setForm((prev) => ({ ...prev, is_top: checked }));
   };
 
-  // Pilih file dan buat preview
   const handleFileChange = (e) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
@@ -41,7 +38,6 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
     setPreview(URL.createObjectURL(selectedFile));
   };
 
-  // Upload gambar ke Supabase Storage
   const uploadImage = async () => {
     if (!file) return form.gambar_url || "";
 
@@ -72,9 +68,8 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
       return data.publicUrl;
     } catch (err) {
       console.error("Upload gagal:", err);
-      throw new Error(
-        "Gagal mengunggah gambar. Coba file lain atau periksa koneksi."
-      );
+      Toast.error("Gagal mengunggah gambar. Periksa koneksi atau file Anda.");
+      throw err;
     }
   };
 
@@ -86,33 +81,31 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
       const imageUrl = await uploadImage();
       const payload = { ...form, gambar_url: imageUrl };
 
-      // Jika edit artikel
+      let res;
       if (artikel?.id) {
         payload.id = artikel.id;
         payload.old_image = artikel.gambar_url;
-
-        const res = await fetch("/api/artikel", {
+        res = await fetch("/api/artikel", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-
         if (!res.ok) throw new Error("Gagal memperbarui artikel");
+        Toast.success("Artikel berhasil diperbarui!");
       } else {
-        // Tambah artikel baru
-        const res = await fetch("/api/artikel", {
+        res = await fetch("/api/artikel", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-
         if (!res.ok) throw new Error("Gagal menambah artikel");
+        Toast.success("Artikel berhasil ditambahkan!");
       }
 
       onSuccess?.();
     } catch (err) {
-      alert(err.message);
       console.error(err);
+      Toast.error(err.message || "Terjadi kesalahan saat menyimpan artikel.");
     } finally {
       setLoading(false);
     }
@@ -187,7 +180,7 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
         />
       </div>
 
-      {/* Tandai sebagai Artikel Unggulan */}
+      {/* Artikel Utama */}
       <div>
         <label className="inline-flex items-center gap-2">
           <input
@@ -212,7 +205,7 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
         />
       </div>
 
-      {/* Tombol aksi */}
+      {/* Tombol */}
       <div className="flex justify-end gap-3">
         <button
           type="button"
