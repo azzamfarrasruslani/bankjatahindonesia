@@ -1,21 +1,56 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 import { FiMail, FiPhone, FiUser, FiMessageSquare } from "react-icons/fi";
-import { FaFacebookF, FaInstagram, FaSnapchatGhost, FaTiktok, FaTwitter } from "react-icons/fa";
+import { FaFacebookF, FaInstagram, FaWhatsapp } from "react-icons/fa";
 
 export default function KontakPage() {
+  const [kontak, setKontak] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchKontak = async () => {
+      const { data, error } = await supabase.from("kontak").select("*").single();
+      if (error) console.error("Gagal mengambil data kontak:", error);
+      else setKontak(data);
+      setLoading(false);
+    };
+    fetchKontak();
+  }, []);
+
   const formFields = [
     { id: "first-name", label: "Nama Depan", placeholder: "Masukkan nama depan Anda", type: "text", icon: FiUser },
     { id: "last-name", label: "Nama Belakang", placeholder: "Masukkan nama belakang Anda", type: "text", icon: FiUser },
     { id: "email", label: "Email", placeholder: "contoh@email.com", type: "email", icon: FiMail },
   ];
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-32 text-orange-500 font-semibold">
+        Memuat data kontak...
+      </div>
+    );
+  }
+
+  if (!kontak) {
+    return (
+      <div className="flex justify-center items-center py-32 text-red-500 font-semibold">
+        Data kontak tidak ditemukan.
+      </div>
+    );
+  }
+
   const contactInfo = [
-    { id: "hotline", label: "Hotline 24/7", value: "+971 56 498 3456", icon: FiPhone },
-    { id: "email-support", label: "Email Support", value: "support@zalomi.com", icon: FiMail },
+    { id: "whatsapp", label: "WhatsApp", value: kontak.whatsapp, link: kontak.whatsapp_link, icon: FaWhatsapp },
+    { id: "telepon", label: "Telepon", value: kontak.telepon, icon: FiPhone },
+    { id: "email", label: "Email", value: kontak.email, icon: FiMail },
   ];
 
-  const socialIcons = [FaFacebookF, FaInstagram, FaSnapchatGhost, FaTiktok, FaTwitter];
+  const socialLinks = [
+    { icon: FaFacebookF, href: kontak.facebook },
+    { icon: FaInstagram, href: kontak.instagram },
+  ];
 
   return (
     <section className="py-24 px-6 sm:px-12 lg:px-24 bg-gradient-to-br from-orange-50 via-white to-orange-100 text-gray-800">
@@ -25,7 +60,7 @@ export default function KontakPage() {
         </h1>
 
         <div className="flex flex-col lg:flex-row gap-10">
-          {/* Formulir */}
+          {/* Formulir */} 
           <div className="flex-1 bg-white rounded-3xl shadow-2xl p-8 lg:p-12 hover:shadow-orange-300 transition-shadow">
             <h2 className="text-2xl font-bold mb-4 text-gray-900">Kirim Pesan</h2>
             <p className="text-gray-600 mb-6">Tim kami siap merespon pertanyaan Anda secepat mungkin.</p>
@@ -33,7 +68,9 @@ export default function KontakPage() {
             <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {formFields.map((field, i) => (
                 <div key={i} className={field.id === "email" ? "md:col-span-2 relative" : "relative"}>
-                  <label htmlFor={field.id} className="block text-sm font-medium text-gray-700 mb-1">{field.label}</label>
+                  <label htmlFor={field.id} className="block text-sm font-medium text-gray-700 mb-1">
+                    {field.label}
+                  </label>
                   <div className="relative">
                     <field.icon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
                     <input
@@ -48,7 +85,9 @@ export default function KontakPage() {
               ))}
 
               <div className="md:col-span-2 relative">
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">Pesan</label>
+                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
+                  Pesan
+                </label>
                 <div className="relative">
                   <FiMessageSquare className="absolute left-3 top-4 text-gray-400 w-5 h-5" />
                   <textarea
@@ -73,7 +112,7 @@ export default function KontakPage() {
             </form>
           </div>
 
-          {/* Info Kontak */}
+          {/* Info Kontak */} 
           <div className="w-full lg:w-96 bg-[#FB6B00] text-white rounded-3xl p-8 flex flex-col justify-between shadow-lg hover:shadow-orange-400 transition-shadow">
             <div>
               <h2 className="text-2xl font-bold mb-6">Kami Siap Membantu</h2>
@@ -85,22 +124,36 @@ export default function KontakPage() {
                     </div>
                     <div>
                       <p className="font-semibold text-lg">{item.label}</p>
-                      <p className="text-sm">{item.value}</p>
+                      {item.link ? (
+                        <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-sm underline hover:text-black/70 transition">
+                          {item.value}
+                        </a>
+                      ) : (
+                        <p className="text-sm">{item.value}</p>
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Sosial Media */}
+            {/* Sosial Media */} 
             <div className="mt-10 border-t border-white border-opacity-30 pt-6">
               <p className="font-semibold mb-4">Terhubung dengan Kami</p>
               <div className="flex gap-4">
-                {socialIcons.map((Icon, i) => (
-                  <a key={i} href="#" aria-label={`Ikon ${Icon.name}`} className="rounded-full p-3 bg-gradient-to-br from-white/30 to-white/10 hover:scale-110 transition transform shadow">
-                    <Icon className="h-5 w-5" />
-                  </a>
-                ))}
+                {socialLinks.map((soc, i) =>
+                  soc.href ? (
+                    <a
+                      key={i}
+                      href={soc.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-full p-3 bg-gradient-to-br from-white/30 to-white/10 hover:scale-110 transition transform shadow"
+                    >
+                      <soc.icon className="h-5 w-5" />
+                    </a>
+                  ) : null
+                )}
               </div>
             </div>
           </div>

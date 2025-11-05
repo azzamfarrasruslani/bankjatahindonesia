@@ -1,12 +1,32 @@
-// app/components/FloatingWAButton.js
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaWhatsapp } from "react-icons/fa";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function FloatingWAButton() {
   const [isHover, setIsHover] = useState(false);
+  const [whatsappLink, setWhatsappLink] = useState("");
+
+  useEffect(() => {
+    const fetchKontak = async () => {
+      const { data, error } = await supabase
+        .from("kontak")
+        .select("whatsapp_link")
+        .order("id", { ascending: true })
+        .limit(1)
+        .single(); // Ambil satu data kontak terbaru
+
+      if (error) {
+        console.error("Gagal memuat data kontak:", error);
+      } else {
+        setWhatsappLink(data?.whatsapp_link || "");
+      }
+    };
+
+    fetchKontak();
+  }, []);
 
   return (
     <motion.div
@@ -29,12 +49,16 @@ export default function FloatingWAButton() {
       </AnimatePresence>
 
       <motion.a
-        href="https://wa.me/6281234567890" // Ganti dengan nomor WA asli
+        href={whatsappLink || "#"}
         target="_blank"
         rel="noopener noreferrer"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
-        className="bg-[#25D366] text-white p-4 rounded-full shadow-lg flex items-center justify-center"
+        className={`${
+          whatsappLink
+            ? "bg-[#25D366] cursor-pointer"
+            : "bg-gray-300 cursor-not-allowed"
+        } text-white p-4 rounded-full shadow-lg flex items-center justify-center`}
         title="Hubungi via WhatsApp"
       >
         <FaWhatsapp size={24} />

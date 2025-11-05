@@ -206,6 +206,35 @@ export default function ManajemenKontakPage() {
               )}
             </div>
           </div>
+
+          {/** WhatsApp Link **/}
+          <div className="flex items-center gap-3 p-4 border border-gray-100 rounded-xl bg-orange-50/30 hover:shadow-sm transition">
+            <FaWhatsapp className="text-green-500 text-2xl" />
+            <div className="flex-1">
+              <p className="text-sm text-gray-500">Link WhatsApp</p>
+              {isEditing ? (
+                <input
+                  type="url"
+                  name="whatsapp_link"
+                  value={tempData.whatsapp_link || ""}
+                  onChange={handleChange}
+                  placeholder="https://wa.link/xxxxx"
+                  className="mt-1 w-full px-3 py-1 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-[#FB6B00] focus:outline-none"
+                />
+              ) : tempData.whatsapp_link ? (
+                <a
+                  href={kontak.whatsapp_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-[#25D366] hover:underline"
+                >
+                  {kontak.whatsapp_link}
+                </a>
+              ) : (
+                <p className="font-medium text-gray-400 italic">Belum diisi</p>
+              )}
+            </div>
+          </div>
         </div>
 
         {isEditing && (
