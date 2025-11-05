@@ -11,16 +11,20 @@ export async function GET() {
       scopes: ["https://www.googleapis.com/auth/analytics.readonly"],
     });
 
-    const analyticsDataClient = google.analyticsdata({ version: "v1beta", auth });
+    const analyticsDataClient = google.analyticsdata({
+      version: "v1beta",
+      auth,
+    });
     const propertyId = process.env.GA_PROPERTY_ID;
 
-    // Historical 7 hari terakhir
+    // Ambil historical total (gunakan startDate yang lebih jauh, misal "2000-01-01" untuk total seluruh waktu)
     const historicalRes = await analyticsDataClient.properties.runReport({
       property: `properties/${propertyId}`,
       requestBody: {
         dimensions: [{ name: "date" }],
-        metrics: [{ name: "screenPageViews" }, { name: "activeUsers" }],
-        dateRanges: [{ startDate: "7daysAgo", endDate: "today" }],
+        metrics: [{ name: "screenPageViews" }],
+        // ambil dari 1 tahun terakhir
+        dateRanges: [{ startDate: "365daysAgo", endDate: "today" }],
       },
     });
 
@@ -30,32 +34,21 @@ export async function GET() {
       requestBody: { metrics: [{ name: "activeUsers" }] },
     });
 
-    // Optional: Simulasi data per menit dan event/pages
-    const perMinute = [
-      { minute: "-30", users: 2 },
-      { minute: "-25", users: 1 },
-      { minute: "-20", users: 1 },
-      { minute: "-15", users: 2 },
-      { minute: "-10", users: 2 },
-      { minute: "-5", users: 1 },
-      { minute: "-1", users: 1 },
-    ];
-    const events = [
-      { name: "page_view", count: 14 },
-      { name: "user_engagement", count: 7 },
-      { name: "scroll", count: 5 },
-      { name: "form_start", count: 2 },
-    ];
-    const pages = [{ title: "Bank Jatah Indonesia", views: 14 }];
+    const rows = historicalRes.data.rows || [];
 
     return NextResponse.json({
-      historical: historicalRes.data,
-      realtime: { activeUsers: parseInt(realtimeRes.data.totals?.[0]?.metricValues?.[0]?.value || 0), perMinute },
-      events,
-      pages,
+      historical: { rows },
+      realtime: {
+        activeUsers: parseInt(
+          realtimeRes.data.totals?.[0]?.metricValues?.[0]?.value || 0
+        ),
+      },
     });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "GA fetch failed", message: err.message }, { status: 500 });
+    return NextResponse.json(
+      { error: "GA fetch failed", message: err.message },
+      { status: 500 }
+    );
   }
 }

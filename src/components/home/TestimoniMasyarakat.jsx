@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient"; // pastikan file ini sudah ada
+import { supabase } from "@/lib/supabaseClient";
 
 export default function TestimoniMasyarakat() {
   const [testimonies, setTestimonies] = useState([]);
@@ -22,7 +21,6 @@ export default function TestimoniMasyarakat() {
 
         if (error) throw error;
 
-        // tambahkan gambar default jika belum ada
         const withPhotos = data.map((item) => ({
           ...item,
           photo: "/images/tentang-kami.png",
@@ -54,9 +52,35 @@ export default function TestimoniMasyarakat() {
     return testimonies[index];
   });
 
+  // === Skeleton Loader ===
+  const SkeletonCard = () => (
+    <div className="animate-pulse rounded-3xl p-6 bg-gradient-to-tr from-white to-orange-50 border border-gray-100 shadow-md">
+      <div className="h-4 w-12 bg-orange-200/60 rounded mb-3"></div>
+      <div className="h-20 bg-gray-200/80 rounded mb-4"></div>
+      <div className="h-4 w-1/2 bg-gray-200/60 rounded mb-2"></div>
+      <div className="h-3 w-1/3 bg-gray-200/60 rounded"></div>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="text-center py-20 text-gray-600">Memuat testimoni...</div>
+      <section className="w-full bg-gradient-to-b from-white via-orange-50 to-white py-20 px-6 sm:px-10 lg:px-24">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl md:text-5xl font-extrabold text-[#FB6B00]">
+            Testimoni Masyarakat
+          </h2>
+          <p className="text-gray-600 mt-3 max-w-xl mx-auto">
+            Cerita nyata dari pengguna program Bank Jatah Indonesia yang
+            menginspirasi dan berdampak.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+          {[...Array(3)].map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+      </section>
     );
   }
 
@@ -112,8 +136,6 @@ export default function TestimoniMasyarakat() {
                 transition={{ type: "spring", stiffness: 300 }}
                 className="group relative flex flex-col items-center text-center rounded-3xl p-6 bg-gradient-to-tr from-white to-orange-50 border border-gray-100 shadow-md hover:shadow-2xl duration-300"
               >
-            
-
                 <span className="absolute top-4 left-4 text-6xl text-[#FB6B00] opacity-10">
                   “
                 </span>
@@ -131,7 +153,6 @@ export default function TestimoniMasyarakat() {
         )}
       </motion.div>
 
-      {/* Navigasi Tombol */}
       <div className="flex justify-center gap-6 mt-12">
         <button
           onClick={handlePrev}
