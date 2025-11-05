@@ -1,12 +1,56 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 import { Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function Footer() {
+  const { t, ready } = useTranslation();
+  const [kontak, setKontak] = useState(null);
+
+  useEffect(() => {
+    fetchKontak();
+  }, []);
+
+  const fetchKontak = async () => {
+    const { data, error } = await supabase
+      .from("kontak")
+      .select("*")
+      .order("id", { ascending: true })
+      .limit(1)
+      .single();
+
+    if (error) {
+      console.error("Error fetching kontak:", error);
+    } else {
+      setKontak(data);
+    }
+  };
+
+  if (!ready || !kontak) return null;
+
+  // Quick Links sesuai ListMenu
+  const quickLinks = [
+    { label: t("navbar.beranda"), href: "/" },
+    { label: t("navbar.program-kami"), href: "/program-kami" },
+    { label: t("navbar.tentang-kami"), href: "/tentang-kami" },
+    { label: t("navbar.lokasi"), href: "/lokasi" },
+    { label: t("navbar.galeri"), href: "/galeri" },
+  ];
+
+  const infoLinks = [
+    { label: t("navbar.artikel"), href: "/artikel" },
+    { label: t("navbar.berita"), href: "/berita" },
+    { label: t("navbar.faq"), href: "/faq" },
+    { label: t("navbar.kontak"), href: "/kontak" },
+  ];
+
   return (
     <footer className="bg-black text-white pt-12 pb-6 px-6 md:px-16">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
-
         {/* Brand */}
         <div>
           <Image
@@ -25,27 +69,33 @@ export default function Footer() {
         <div>
           <h4 className="text-lg font-semibold mb-3">Navigasi</h4>
           <ul className="space-y-2 text-sm">
-            <li><Link href="/" className="hover:underline">Beranda</Link></li>
-            <li><Link href="/tabungan-jelantah" className="hover:underline">Tabungan Jelantah</Link></li>
-            <li><Link href="/jual-beli-jelantah" className="hover:underline">Jual Beli Jelantah</Link></li>
-            <li><Link href="/sedekah-jelantah" className="hover:underline">Sedekah Jelantah</Link></li>
+            {quickLinks.map((link, idx) => (
+              <li key={idx}>
+                <Link href={link.href} className="hover:underline">
+                  {link.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
 
         {/* Info & Artikel */}
         <div>
-          <h4 className="text-lg font-semibold mb-3">Informasi</h4>
+          <h4 className="text-lg font-semibold mb-3">{t("navbar.info-artikel")}</h4>
           <ul className="space-y-2 text-sm">
-            <li><Link href="/artikel" className="hover:underline">Artikel</Link></li>
-            <li><Link href="/berita" className="hover:underline">Berita</Link></li>
-            <li><Link href="/faq" className="hover:underline">FAQ</Link></li>
-            <li><Link href="/kontak" className="hover:underline">Kontak Kami</Link></li>
+            {infoLinks.map((link, idx) => (
+              <li key={idx}>
+                <Link href={link.href} className="hover:underline">
+                  {link.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
 
         {/* Kontak */}
         <div>
-          <h4 className="text-lg font-semibold mb-3">Kontak</h4>
+          <h4 className="text-lg font-semibold mb-3">{t("navbar.kontak")}</h4>
           <ul className="space-y-3 text-sm">
             <li className="flex items-start gap-2">
               <MapPin size={16} />
@@ -53,14 +103,17 @@ export default function Footer() {
             </li>
             <li className="flex items-center gap-2">
               <Mail size={16} />
-              <a href="mailto:info@bankjatahindonesia.com" className="hover:underline">
-                info@bankjatahindonesia.com
+              <a href={`mailto:${kontak.email}`} className="hover:underline">
+                {kontak.email}
               </a>
             </li>
             <li className="flex items-center gap-2">
               <Phone size={16} />
-              <a href="https://wa.me/6281234567890" className="hover:underline">
-                0812-3456-7890
+              <a
+                href={kontak.whatsapp_link || `https://wa.me/${kontak.whatsapp}`}
+                className="hover:underline"
+              >
+                {kontak.telepon}
               </a>
             </li>
           </ul>
@@ -72,12 +125,16 @@ export default function Footer() {
         <p>&copy; {new Date().getFullYear()} Bank Jatah Indonesia. All rights reserved.</p>
 
         <div className="flex gap-4">
-          <a href="#" aria-label="Facebook" className="hover:text-gray-200">
-            <Facebook size={18} />
-          </a>
-          <a href="#" aria-label="Instagram" className="hover:text-gray-200">
-            <Instagram size={18} />
-          </a>
+          {kontak.facebook && (
+            <a href={kontak.facebook} aria-label="Facebook" className="hover:text-gray-200">
+              <Facebook size={18} />
+            </a>
+          )}
+          {kontak.instagram && (
+            <a href={kontak.instagram} aria-label="Instagram" className="hover:text-gray-200">
+              <Instagram size={18} />
+            </a>
+          )}
         </div>
       </div>
     </footer>
