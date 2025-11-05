@@ -149,9 +149,6 @@ export default function MobileNavbar({ setIsOpen, openDropdown, toggleDropdown }
                 <button onClick={() => handleNavigation("/lokasi")} className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md">
                   {t("navbar.lokasi")}
                 </button>
-                <button onClick={() => handleNavigation("/kebijakan")} className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md">
-                  {t("navbar.kebijakan")}
-                </button>
               </motion.div>
             )}
           </AnimatePresence>

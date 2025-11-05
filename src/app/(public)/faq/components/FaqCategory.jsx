@@ -12,8 +12,13 @@ export default function FaqCategory({ section, categoryIdx }) {
 
   return (
     <div className="mb-16 scroll-mt-32">
-      <h2 className="text-2xl font-bold text-[#FB6B00] mb-2">{section.category}</h2>
-      <p className="text-gray-600 mb-6">{section.description}</p>
+      <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#FB6B00] mb-2">
+        {section.category}
+      </h2>
+      <p className="text-gray-600 text-sm sm:text-base md:text-lg mb-6">
+        {section.description}
+      </p>
+
       <div className="space-y-4">
         {section.faqs.map((faq, faqIdx) => {
           const key = `${categoryIdx}-${faqIdx}`;
