@@ -9,7 +9,6 @@ export default function ArtikelPage() {
   const [artikel, setArtikel] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch artikel dari Supabase
   const fetchArtikel = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -30,25 +29,40 @@ export default function ArtikelPage() {
     fetchArtikel();
   }, []);
 
-  // Hapus artikel
-  const handleDelete = async (id) => {
+
+  const handleDelete = async (id, gambar_url) => {
     if (!confirm("Yakin ingin menghapus artikel ini?")) return;
 
-    const { error } = await supabase.from("artikel").delete().eq("id", id);
-    if (error) {
-      alert("Gagal menghapus artikel. Cek console.");
-      console.error(error);
-    } else {
+    try {
+      if (gambar_url) {
+        const filePath = gambar_url.replace(
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/artikel-images/artikel/`,
+          ""
+        );
+        const { error: storageError } = await supabase.storage
+          .from("artikel-images")
+          .remove([filePath]);
+        if (storageError)
+          console.error("Gagal menghapus gambar:", storageError);
+      }
+
+      const { error } = await supabase.from("artikel").delete().eq("id", id);
+      if (error) throw error;
+
       setArtikel((prev) => prev.filter((a) => a.id !== id));
+    } catch (err) {
+      alert("Gagal menghapus artikel. Cek console.");
+      console.error(err);
     }
   };
 
   return (
     <section className="p-6 md:p-10 min-h-screen bg-gradient-to-b from-orange-50 to-white rounded-2xl shadow-md">
-      {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 border-b border-orange-200 pb-4 gap-3 md:gap-0">
         <div>
-          <h1 className="text-3xl font-bold text-[#FB6B00]">Manajemen Artikel</h1>
+          <h1 className="text-3xl font-bold text-[#FB6B00]">
+            Manajemen Artikel
+          </h1>
           <p className="text-sm text-gray-500 mt-1">
             Kelola daftar artikel, ubah, atau hapus dengan mudah.
           </p>
@@ -61,7 +75,6 @@ export default function ArtikelPage() {
         </Link>
       </div>
 
-      {/* Container Tabel */}
       <div className="overflow-x-auto rounded-xl shadow-md border border-orange-100 bg-white">
         <table className="min-w-max w-full text-sm table-auto border-collapse">
           <thead className="bg-[#FB6B00]/10 text-[#FB6B00] uppercase text-xs font-semibold tracking-wide">
@@ -78,13 +91,19 @@ export default function ArtikelPage() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="7" className="text-center py-10 text-gray-500 italic">
+                <td
+                  colSpan="7"
+                  className="text-center py-10 text-gray-500 italic"
+                >
                   Memuat artikel...
                 </td>
               </tr>
             ) : artikel.length === 0 ? (
               <tr>
-                <td colSpan="7" className="text-center py-10 text-gray-400 italic bg-orange-50/30">
+                <td
+                  colSpan="7"
+                  className="text-center py-10 text-gray-400 italic bg-orange-50/30"
+                >
                   Belum ada artikel yang tercatat.
                 </td>
               </tr>
@@ -93,10 +112,12 @@ export default function ArtikelPage() {
                 <tr
                   key={item.id}
                   className={`border-b border-orange-100 transition-all duration-200 ${
-                    index % 2 === 0 ? "bg-white hover:bg-orange-50/60" : "bg-orange-50/40 hover:bg-orange-100/50"
+                    index % 2 === 0
+                      ? "bg-white hover:bg-orange-50/60"
+                      : "bg-orange-50/40 hover:bg-orange-100/50"
                   }`}
                 >
-                  <td className="px-6 py-4 font-medium text-gray-800 flex items-center gap-2 truncate">
+                  <td className="px-6 py-4 font-medium text-gray-800 flex items-center gap-2">
                     {item.gambar_url && (
                       <img
                         src={item.gambar_url}
@@ -104,10 +125,19 @@ export default function ArtikelPage() {
                         className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
                       />
                     )}
-                    <span title={item.judul} className="truncate">{item.judul}</span>
+                    <span
+                      title={item.judul}
+                      className="truncate max-w-[200px] block"
+                    >
+                      {item.judul}
+                    </span>
                   </td>
-                  <td className="px-6 py-4 text-gray-600">{item.kategori || "-"}</td>
-                  <td className="px-6 py-4 text-gray-600">{item.penulis || "Admin"}</td>
+                  <td className="px-6 py-4 text-gray-600">
+                    {item.kategori || "-"}
+                  </td>
+                  <td className="px-6 py-4 text-gray-600">
+                    {item.penulis || "Admin"}
+                  </td>
                   <td className="px-6 py-4 text-gray-600">{item.views || 0}</td>
                   <td className="px-6 py-4 text-center">
                     {item.is_top ? (
@@ -148,7 +178,6 @@ export default function ArtikelPage() {
         </table>
       </div>
 
-      {/* Footer Info */}
       <div className="text-xs text-gray-400 text-center mt-6">
         © {new Date().getFullYear()} Dashboard Artikel | Bank Jatah Indonesia
       </div>

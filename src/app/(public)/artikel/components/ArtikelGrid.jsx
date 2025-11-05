@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { motion } from "framer-motion";
 import ArtikelHighlight from "./ArtikelHighlight";
 import ArtikelCard from "./ArtikelCard";
 
@@ -28,73 +27,86 @@ export default function ArtikelGrid() {
     fetchArtikel();
   }, []);
 
-  if (loading) {
-    return <p className="text-center py-10 text-orange-600 font-medium animate-pulse">Memuat artikel...</p>;
-  }
+  // Skeleton helper
+  const skeletonArray = Array.from({ length: 3 });
 
-  if (artikelList.length === 0) {
+  if (loading) {
     return (
-      <p className="text-center py-10 text-gray-400 italic">
-        Belum ada artikel yang tercatat.
-      </p>
+      <section className="px-6 sm:px-12 lg:px-24 py-16 space-y-12">
+        {/* Skeleton Highlight */}
+        <div>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-900 animate-pulse bg-gray-200 rounded h-8 w-40" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {skeletonArray.map((_, i) => (
+              <div key={i} className="h-96 bg-gray-200 rounded-2xl animate-pulse" />
+            ))}
+          </div>
+        </div>
+
+        {/* Skeleton Artikel Terkini */}
+        <div>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-900 animate-pulse bg-gray-200 rounded h-8 w-44" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {skeletonArray.map((_, i) => (
+              <div key={i} className="h-80 bg-gray-200 rounded-2xl animate-pulse" />
+            ))}
+          </div>
+        </div>
+      </section>
     );
   }
 
-  const highlight = artikelList.find((a) => a.is_top) || artikelList[0];
-  const others = artikelList.filter((a) => a.id !== highlight.id);
+  if (artikelList.length === 0) {
+    return <p className="text-center py-10 text-gray-400 italic">Belum ada artikel yang tercatat.</p>;
+  }
+
+  // Ambil artikel dengan is_top = true untuk highlight
+  let highlightArtikel = artikelList.filter(a => a.is_top)
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .slice(0, 3);
+
+  // Artikel lainnya
+  const otherArtikel = artikelList.filter(a => !highlightArtikel.includes(a));
 
   return (
     <section className="px-6 sm:px-12 lg:px-24 py-16 space-y-12">
-      {/* Highlight Artikel */}
-      <ArtikelHighlight
-        id={highlight.id}
-        image={highlight.gambar_url}
-        title={highlight.judul}
-        date={new Date(highlight.created_at).toLocaleDateString("id-ID", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        })}
-        views={highlight.views}
-        excerpt={highlight.isi}
-        category={highlight.kategori} // badge kategori
-      />
-
-      {/* Grid Artikel */}
-      <motion.div
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={{
-          visible: { transition: { staggerChildren: 0.15 } },
-        }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
-      >
-        {others.map((item, i) => (
-          <motion.div
-            key={item.id}
-            variants={{
-              hidden: { opacity: 0, y: 30 },
-              visible: { opacity: 1, y: 0 },
-            }}
-          >
-            <ArtikelCard
+      {/* Artikel Populer */}
+      <div>
+        <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-900">Artikel Populer</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {highlightArtikel.map(item => (
+            <ArtikelHighlight
+              key={item.id}
               id={item.id}
               image={item.gambar_url}
               title={item.judul}
-              date={new Date(item.created_at).toLocaleDateString("id-ID", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })}
-              views={item.views}
-              excerpt={item.isi}
-              category={item.kategori} // badge kategori
-              index={i}
+              date={item.created_at}
             />
-          </motion.div>
-        ))}
-      </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Artikel Terkini */}
+      {otherArtikel.length > 0 && (
+        <div>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-900">Artikel Terkini</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {otherArtikel.map((item, i) => (
+              <ArtikelCard
+                key={item.id}
+                id={item.id}
+                image={item.gambar_url}
+                title={item.judul}
+                date={item.created_at}
+                views={item.views}
+                excerpt={item.isi}
+                category={item.kategori}
+                index={i}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 }
