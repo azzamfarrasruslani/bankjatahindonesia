@@ -1,51 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
-const testimonies = [
-  {
-    name: "Ayu Wulandari",
-    quote:
-      "Saya bisa bayar listrik dari jelantah! Program ini sangat membantu ekonomi keluarga saya.",
-    location: "Surabaya, Jawa Timur",
-    photo: "/images/tentang-kami.png",
-  },
-  {
-    name: "Bapak Ridwan",
-    quote:
-      "Minyak bekas tidak lagi jadi limbah, tapi jadi tabungan buat anak sekolah.",
-    location: "Padang, Sumatera Barat",
-    photo: "/images/tentang-kami.png",
-  },
-  {
-    name: "Lina Putri",
-    quote:
-      "Sedekah jelantah bikin saya merasa lebih bermanfaat untuk masyarakat.",
-    location: "Depok, Jawa Barat",
-    photo: "/images/tentang-kami.png",
-  },
-  {
-    name: "Siti Rahma",
-    quote:
-      "Awalnya ragu, tapi ternyata hasil dari jelantah bisa bantu biaya dapur tiap bulan!",
-    location: "Bandung, Jawa Barat",
-    photo: "/images/tentang-kami.png",
-  },
-  {
-    name: "Pak Hendra",
-    quote:
-      "Kami ikut program ini di lingkungan RT, dan hasilnya luar biasa! Kompak dan bermanfaat.",
-    location: "Tangerang, Banten",
-    photo: "/images/tentang-kami.png",
-  },
-];
+import { supabase } from "@/lib/supabaseClient"; // pastikan file ini sudah ada
 
 export default function TestimoniMasyarakat() {
+  const [testimonies, setTestimonies] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [startIndex, setStartIndex] = useState(0);
   const visibleCount = 3;
+
+  useEffect(() => {
+    const fetchTestimonies = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("testimoni")
+          .select("nama, isi, rating, tanggal")
+          .order("tanggal", { ascending: false });
+
+        if (error) throw error;
+
+        // tambahkan gambar default jika belum ada
+        const withPhotos = data.map((item) => ({
+          ...item,
+          photo: "/images/tentang-kami.png",
+        }));
+
+        setTestimonies(withPhotos);
+      } catch (err) {
+        console.error("Gagal memuat testimoni:", err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTestimonies();
+  }, []);
 
   const handlePrev = () => {
     setStartIndex(
@@ -57,12 +49,24 @@ export default function TestimoniMasyarakat() {
     setStartIndex((prev) => (prev + visibleCount) % testimonies.length);
   };
 
-  const visibleTestimonies = Array.from({ length: visibleCount }).map(
-    (_, i) => {
-      const index = (startIndex + i) % testimonies.length;
-      return testimonies[index];
-    }
-  );
+  const visibleTestimonies = Array.from({ length: visibleCount }).map((_, i) => {
+    const index = (startIndex + i) % testimonies.length;
+    return testimonies[index];
+  });
+
+  if (loading) {
+    return (
+      <div className="text-center py-20 text-gray-600">Memuat testimoni...</div>
+    );
+  }
+
+  if (testimonies.length === 0) {
+    return (
+      <div className="text-center py-20 text-gray-500">
+        Belum ada testimoni dari masyarakat.
+      </div>
+    );
+  }
 
   return (
     <section className="w-full bg-gradient-to-b from-white via-orange-50 to-white py-20 px-6 sm:px-10 lg:px-24 overflow-hidden">
@@ -98,36 +102,33 @@ export default function TestimoniMasyarakat() {
           hidden: { opacity: 0 },
         }}
       >
-        {visibleTestimonies.map((testi, i) => (
-          <motion.div
-            key={i}
-            whileHover={{ scale: 1.05, rotate: -1 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 300 }}
-            className="group relative flex flex-col items-center text-center rounded-3xl p-6 bg-gradient-to-tr from-white to-orange-50 border border-gray-100 shadow-md hover:shadow-2xl duration-300"
-          >
-            <div className="relative w-28 h-28 mb-4 rounded-full overflow-hidden shadow-lg border-4 border-white group-hover:border-[#FB6B00] transition">
-              <Image
-                src={testi.photo}
-                alt={testi.name}
-                fill
-                className="object-cover"
-                sizes="112px"
-              />
-            </div>
+        {visibleTestimonies.map(
+          (testi, i) =>
+            testi && (
+              <motion.div
+                key={i}
+                whileHover={{ scale: 1.05, rotate: -1 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 300 }}
+                className="group relative flex flex-col items-center text-center rounded-3xl p-6 bg-gradient-to-tr from-white to-orange-50 border border-gray-100 shadow-md hover:shadow-2xl duration-300"
+              >
+            
 
-            <span className="absolute top-4 left-4 text-6xl text-[#FB6B00] opacity-10">
-              “
-            </span>
+                <span className="absolute top-4 left-4 text-6xl text-[#FB6B00] opacity-10">
+                  “
+                </span>
 
-            <blockquote className="text-gray-700 text-md italic mb-3 leading-relaxed">
-              {testi.quote}
-            </blockquote>
+                <blockquote className="text-gray-700 text-md italic mb-3 leading-relaxed">
+                  {testi.isi}
+                </blockquote>
 
-            <p className="font-bold text-[#FB6B00]">{testi.name}</p>
-            <p className="text-sm text-gray-500">{testi.location}</p>
-          </motion.div>
-        ))}
+                <p className="font-bold text-[#FB6B00]">{testi.nama}</p>
+                <p className="text-sm text-gray-500">
+                  Rating: ⭐ {testi.rating}/5
+                </p>
+              </motion.div>
+            )
+        )}
       </motion.div>
 
       {/* Navigasi Tombol */}

@@ -2,43 +2,46 @@
 
 import Image from "next/image";
 import Link from "next/link";
-
-const newsArticles = [
-  {
-    id: 1,
-    title: "5 Inovasi Pengelolaan Minyak Jelantah untuk Dunia Lebih Hijau",
-    date: "03 September, 2025",
-    category: "Lingkungan",
-    image: "/images/tentang-kami.png",
-    href: "/artikel/inovasi-minyak-jelantah",
-  },
-  {
-    id: 2,
-    title: "7 Langkah Mudah Mengelola Minyak Jelantah di Rumah",
-    date: "04 September, 2025",
-    category: "Tips Rumah",
-    image: "/images/tentang-kami.png",
-    href: "/artikel/langkah-mengelola-jelantah",
-  },
-  {
-    id: 3,
-    title: "Kenali Bahaya Membuang Jelantah Sembarangan ke Lingkungan",
-    date: "05 September, 2025",
-    category: "Edukasi",
-    image: "/images/tentang-kami.png",
-    href: "/artikel/bahaya-membuang-jelantah",
-  },
-  {
-    id: 4,
-    title: "Cara Daur Ulang Minyak Jelantah Jadi Produk Bernilai",
-    date: "06 September, 2025",
-    category: "Daur Ulang",
-    image: "/images/tentang-kami.png",
-    href: "/artikel/daur-ulang-jelantah",
-  },
-];
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function BeritaSection() {
+  const [newsArticles, setNewsArticles] = useState([]);
+
+  useEffect(() => {
+    fetchArticles();
+  }, []);
+
+  const fetchArticles = async () => {
+    const { data, error } = await supabase
+      .from("artikel")
+      .select("id, judul, gambar_url, created_at, kategori")
+      .order("created_at", { ascending: false })
+      .limit(4);
+
+    if (error) {
+      console.error("Error fetching articles:", error);
+    } else {
+      // Mapping data sesuai dengan struktur UI
+      const articles = data.map((item) => ({
+        id: item.id,
+        title: item.judul,
+        date: new Date(item.created_at).toLocaleDateString("id-ID", {
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        }),
+        category: item.kategori || "Umum",
+        image: item.gambar_url || "/images/tentang-kami.png",
+        href: `/artikel/${item.id}`, // link ke detail artikel
+      }));
+
+      setNewsArticles(articles);
+    }
+  };
+
+  if (newsArticles.length === 0) return null; // sementara loading bisa ditambahkan
+
   return (
     <section id="berita" className="py-20 px-4 sm:px-8 ">
       {/* Header */}

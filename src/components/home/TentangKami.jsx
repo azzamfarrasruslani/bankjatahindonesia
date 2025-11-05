@@ -36,7 +36,7 @@ export default function TentangKami() {
           </p>
 
           <Link
-            href="/tentang"
+            href="/tentang-kami"
             className="inline-flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white text-sm font-semibold px-6 py-3 rounded-full transition duration-200 shadow-md"
           >
             Pelajari Lebih Lanjut

@@ -69,14 +69,14 @@ export default function Navbar() {
             currentLang={currentLang}
             languages={languages}
           />
-          <Link href="https://team-revoilution-bank-jatah-indonesia-kmpin-2025-gpmeswqs0.vercel.app/auth/login">
+          <Link href="/login">
             <motion.div
               whileHover={{ scale: 1.05 }}
               className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#FB6B00] text-white cursor-pointer transition"
             >
               <Icon name="user" className="text-white" />
               <span className="text-sm font-medium">
-                {t("navbar.masuk")} / {t("navbar.daftar")}
+                {t("navbar.masuk")}
               </span>
             </motion.div>
           </Link>
