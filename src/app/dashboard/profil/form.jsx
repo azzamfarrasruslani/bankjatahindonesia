@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import imageCompression from "browser-image-compression";
+import Toast from "@/components/common/Toast";
 
 export default function TimForm({ timId, onSuccess }) {
   const router = useRouter();
@@ -11,14 +12,15 @@ export default function TimForm({ timId, onSuccess }) {
     nama: "",
     jabatan: "",
     foto_url: "",
-    kategori: "Tim Utama", // default
-    status: true,          // default aktif
+    kategori: "Tim Utama",
+    status: true,
   });
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState({ message: "", type: "success" });
 
-  // Ambil data tim untuk mode edit
+  // Ambil data tim saat edit
   useEffect(() => {
     if (!timId) return;
 
@@ -40,11 +42,17 @@ export default function TimForm({ timId, onSuccess }) {
         setPreview(data.foto_url || "");
       } else if (error) {
         console.error("Gagal mengambil data:", error.message);
+        showToast("Gagal mengambil data tim", "error");
       }
     };
 
     fetchData();
   }, [timId]);
+
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast({ message: "", type: "success" }), 3000);
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -101,22 +109,42 @@ export default function TimForm({ timId, onSuccess }) {
       if (timId) {
         const { error } = await supabase.from("tim").update(payload).eq("id", timId);
         if (error) throw error;
+        showToast("✅ Data berhasil diperbarui!", "success");
       } else {
         const { error } = await supabase.from("tim").insert([payload]);
         if (error) throw error;
+        showToast("✅ Anggota tim berhasil ditambahkan!", "success");
       }
 
-      alert("✅ Data berhasil disimpan!");
-      onSuccess?.();
+      // Tunggu toast muncul sebentar, baru redirect
+      setTimeout(() => {
+        router.push("/dashboard/profil");
+        router.refresh();
+        onSuccess?.();
+      }, 800);
     } catch (err) {
-      alert("❌ " + err.message);
+      console.error(err);
+      showToast("❌ " + err.message, "error");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 bg-white p-6 rounded-lg shadow-md text-gray-600">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-5 bg-white p-6 rounded-lg shadow-md text-gray-600 relative"
+    >
+      {/* Toast */}
+      {toast.message && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          duration={3000}
+          onClose={() => setToast({ message: "", type: "success" })}
+        />
+      )}
+
       {/* Upload Foto */}
       <div>
         <label className="block mb-2 font-semibold text-gray-700">Foto Anggota</label>
@@ -126,7 +154,13 @@ export default function TimForm({ timId, onSuccess }) {
           onChange={handleFileChange}
           className="mb-3 w-full file:bg-[#FB6B00] file:text-white text-gray-600 file:py-2 file:px-4 file:rounded-full"
         />
-        {preview && <img src={preview} alt="Preview" className="w-full h-64 object-cover rounded-lg shadow-sm" />}
+        {preview && (
+          <img
+            src={preview}
+            alt="Preview"
+            className="w-full h-64 object-cover rounded-lg shadow-sm"
+          />
+        )}
       </div>
 
       {/* Nama */}

@@ -1,10 +1,18 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import TimForm from "../form";
 
 export default function EditTimPage() {
   const { id } = useParams();
+  const router = useRouter();
+
+  const handleSuccess = () => {
+    // Redirect setelah update berhasil
+    setTimeout(() => {
+      router.push("/dashboard/profil");
+    }, 1500);
+  };
 
   return (
     <section className="p-6 md:p-10 bg-gradient-to-b from-orange-50 to-white rounded-2xl shadow-md">
@@ -19,8 +27,8 @@ export default function EditTimPage() {
         </div>
       </div>
 
-      {/* Cukup kirim timId ke TimForm */}
-      <TimForm timId={id} />
+      {/* Kirim handler sukses ke form */}
+      <TimForm timId={id} onSuccess={handleSuccess} />
     </section>
   );
 }

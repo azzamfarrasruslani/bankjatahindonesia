@@ -4,11 +4,18 @@ import { useEffect, useState } from "react";
 import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
+import Toast from "@/components/common/Toast";
+import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal"; // ← import modal konfirmasi
 
 export default function ProfilPage() {
   const [tim, setTim] = useState([]);
   const [filterKategori, setFilterKategori] = useState("Semua");
   const [kategoriOptions, setKategoriOptions] = useState([]);
+  const [toast, setToast] = useState({ message: "", type: "success" });
+
+  // State untuk modal konfirmasi
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   useEffect(() => {
     fetchTim();
@@ -18,6 +25,7 @@ export default function ProfilPage() {
     const { data, error } = await supabase.from("tim").select("*");
     if (error) {
       console.error("Gagal memuat data tim:", error.message);
+      showToast("Gagal memuat data tim", "error");
       return;
     }
     setTim(data);
@@ -29,25 +37,35 @@ export default function ProfilPage() {
     setKategoriOptions(uniqueKategori);
   }
 
-  const handleDelete = async (id, foto_url) => {
-    if (!confirm("Yakin ingin menghapus anggota ini beserta gambarnya?"))
-      return;
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+  };
+
+  // Fungsi hapus dipanggil dari modal
+  const handleDelete = async () => {
+    if (!selectedItem) return;
 
     try {
       const res = await fetch("/api/team", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, foto_url }),
+        body: JSON.stringify({
+          id: selectedItem.id,
+          foto_url: selectedItem.foto_url,
+        }),
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal menghapus");
 
-      setTim((prev) => prev.filter((item) => item.id !== id));
-      alert("✅ Anggota dan gambarnya berhasil dihapus");
+      setTim((prev) => prev.filter((item) => item.id !== selectedItem.id));
+      showToast("✅ Anggota dan gambarnya berhasil dihapus", "success");
     } catch (err) {
       console.error(err);
-      alert("❌ Gagal menghapus anggota. Cek console untuk detail");
+      showToast("❌ Gagal menghapus anggota. Cek console untuk detail", "error");
+    } finally {
+      setIsModalOpen(false);
+      setSelectedItem(null);
     }
   };
 
@@ -57,7 +75,24 @@ export default function ProfilPage() {
       : tim.filter((p) => p.kategori === filterKategori);
 
   return (
-    <section className="min-h-screen bg-gradient-to-b from-orange-50 to-white p-6 md:p-10 space-y-6">
+    <section className="min-h-screen bg-gradient-to-b from-orange-50 to-white p-6 md:p-10 space-y-6 relative">
+      {toast.message && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          duration={3000}
+          onClose={() => setToast({ message: "", type: "success" })}
+        />
+      )}
+
+      {/* Modal Konfirmasi Hapus */}
+      <ConfirmDeleteModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleDelete}
+        itemName={selectedItem?.nama || "anggota ini"}
+      />
+
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-orange-200 pb-4">
         <div>
           <h1 className="text-3xl font-bold text-[#FB6B00]">Manajemen Tim</h1>
@@ -111,7 +146,10 @@ export default function ProfilPage() {
                   <FaEdit />
                 </Link>
                 <button
-                  onClick={() => handleDelete(person.id, person.foto_url)}
+                  onClick={() => {
+                    setSelectedItem(person);
+                    setIsModalOpen(true);
+                  }}
                   className="p-2 bg-white/90 rounded-full text-red-500 hover:text-red-700 shadow-sm"
                 >
                   <FaTrash />

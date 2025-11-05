@@ -1,13 +1,16 @@
 "use client";
 
-import TimForm from "../form";
 import { useRouter } from "next/navigation";
+import TimForm from "../form";
 
 export default function TambahTimPage() {
   const router = useRouter();
 
   const handleSuccess = () => {
-    router.push("/dashboard/profil");
+    // Redirect setelah form sukses
+    setTimeout(() => {
+      router.push("/dashboard/profil");
+    }, 1500);
   };
 
   return (
