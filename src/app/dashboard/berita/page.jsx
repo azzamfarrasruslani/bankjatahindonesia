@@ -31,31 +31,25 @@ export default function DashboardBeritaPage() {
   }, []);
 
   const handleDelete = async (id, gambar_url) => {
-    if (!confirm("Yakin ingin menghapus berita ini?")) return;
+    if (!confirm("🗑️ Yakin ingin menghapus berita ini?")) return;
 
     try {
-      // Hapus gambar di storage jika ada
-      if (gambar_url) {
-        const filePath = gambar_url.replace(
-          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/berita-images/berita/`,
-          ""
-        );
-        const { error: storageError } = await supabase.storage
-          .from("berita-images")
-          .remove([filePath]);
-        if (storageError)
-          console.error("Gagal menghapus gambar:", storageError);
-      }
+      const res = await fetch("/api/berita", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, gambar_url }),
+      });
 
-      // Hapus record berita
-      const { error } = await supabase.from("berita").delete().eq("id", id);
-      if (error) throw error;
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Gagal menghapus berita");
 
-      // Update state UI
+      // Hapus data dari state lokal agar langsung hilang di UI
       setBerita((prev) => prev.filter((item) => item.id !== id));
+
+      alert("✅ Berita dan gambarnya berhasil dihapus");
     } catch (err) {
-      alert("Gagal menghapus berita. Cek console.");
-      console.error(err);
+      console.error("❌ Error saat hapus berita:", err);
+      alert("❌ Gagal menghapus berita. Silakan cek console untuk detail.");
     }
   };
 
@@ -173,7 +167,7 @@ export default function DashboardBeritaPage() {
                       </Link>
                       <button
                         onClick={() =>
-                          handleDelete(item.id, item.judul, item.gambar_url)
+                          handleDelete(item.id, item.gambar_url)
                         }
                         className={`p-2 rounded-full hover:bg-red-100 text-red-500 hover:text-red-700 transition-all ${
                           deletingId === item.id

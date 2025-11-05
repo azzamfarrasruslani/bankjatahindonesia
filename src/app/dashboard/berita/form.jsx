@@ -18,6 +18,7 @@ export default function BeritaForm({ beritaId, onSuccess }) {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
   const [loading, setLoading] = useState(false);
+  const [oldImage, setOldImage] = useState("");
 
   // Ambil data berita jika mode edit
   useEffect(() => {
@@ -41,6 +42,7 @@ export default function BeritaForm({ beritaId, onSuccess }) {
           gambar_url: data.gambar_url || "",
         });
         setPreview(data.gambar_url || "");
+        setOldImage(data.gambar_url || "");
       }
     };
 
@@ -64,24 +66,22 @@ export default function BeritaForm({ beritaId, onSuccess }) {
     setPreview(URL.createObjectURL(selectedFile));
   };
 
-  // Upload gambar dengan kompresi WebP sebelum ke Supabase
+  // Upload gambar ke Supabase
   const uploadImage = async () => {
     if (!file) return form.gambar_url || "";
 
     try {
       const options = {
-        maxSizeMB: 0.25, // target sekitar 250KB
+        maxSizeMB: 0.25,
         maxWidthOrHeight: 1000,
         initialQuality: 0.85,
         useWebWorker: true,
         fileType: "image/webp",
       };
 
-      // Kompres file
       const compressedFile = await imageCompression(file, options);
       const fileName = `berita/${Date.now()}.webp`;
 
-      // Upload ke bucket "berita-images"
       const { error: uploadError } = await supabase.storage
         .from("berita-images")
         .upload(fileName, compressedFile, {
@@ -91,7 +91,6 @@ export default function BeritaForm({ beritaId, onSuccess }) {
 
       if (uploadError) throw uploadError;
 
-      // Ambil URL publik
       const { data } = supabase.storage
         .from("berita-images")
         .getPublicUrl(fileName);
@@ -111,28 +110,37 @@ export default function BeritaForm({ beritaId, onSuccess }) {
     try {
       const imageUrl = await uploadImage();
       const payload = {
-        judul: form.judul,
-        penulis: form.penulis || "Admin",
-        isi: form.isi,
-        is_top: form.is_top,
+        ...form,
         gambar_url: imageUrl,
       };
 
       if (beritaId) {
-        const { error } = await supabase
-          .from("berita")
-          .update(payload)
-          .eq("id", beritaId);
-        if (error) throw error;
+        // Mode Edit
+        payload.id = beritaId;
+        payload.old_image = oldImage; // kirim gambar lama ke backend
+
+        const res = await fetch("/api/berita", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) throw new Error("Gagal memperbarui berita");
       } else {
-        const { error } = await supabase.from("berita").insert([payload]);
-        if (error) throw error;
+        // Mode Tambah
+        const res = await fetch("/api/berita", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) throw new Error("Gagal menambah berita");
       }
 
       onSuccess?.();
     } catch (err) {
-      console.error(err);
-      alert("Gagal menyimpan: " + err.message);
+      alert(err.message);
+      console.error("❌ Error saat menyimpan berita:", err);
     } finally {
       setLoading(false);
     }
@@ -194,7 +202,7 @@ export default function BeritaForm({ beritaId, onSuccess }) {
           Isi Berita
         </label>
         <RichTextEditor
-          key={beritaId || "new"} // penting agar value muncul saat edit
+          key={beritaId || "new"}
           value={form.isi}
           onChange={(val) => setForm((prev) => ({ ...prev, isi: val }))}
         />
