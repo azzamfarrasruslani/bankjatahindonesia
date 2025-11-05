@@ -144,20 +144,21 @@ export default function ArtikelPage() {
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-red-600">
+                  <td className="px-6 py-4 text-gray-600">
                     {new Date(item.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 text-center">
                     <div className="flex justify-center gap-3">
                       <Link
                         href={`/dashboard/artikel/${item.id}`}
-                        className="p-2 rounded-full hover:bg-yellow-100 text-yellow-600 hover:text-yellow-700 transition-all"
+                        className="p-2 rounded-full text-[#FB6B00] hover:text-orange-700 ransition-all"
                         title="Edit"
                       >
                         <FaEdit />
                       </Link>
                       <button
                         onClick={() => handleDelete(item.id, item.gambar_url)}
+                        className="p-2 rounded-full text-red-500 hover:text-red-700 transition-all"
                       >
                         <FaTrash />
                       </button>

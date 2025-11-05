@@ -58,7 +58,10 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
 
       const { error } = await supabase.storage
         .from("artikel-images")
-        .upload(fileName, compressedFile, { cacheControl: "3600", upsert: false });
+        .upload(fileName, compressedFile, {
+          cacheControl: "3600",
+          upsert: false,
+        });
 
       if (error) throw error;
 
@@ -69,11 +72,12 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
       return data.publicUrl;
     } catch (err) {
       console.error("Upload gagal:", err);
-      throw new Error("Gagal mengunggah gambar. Coba file lain atau periksa koneksi.");
+      throw new Error(
+        "Gagal mengunggah gambar. Coba file lain atau periksa koneksi."
+      );
     }
   };
 
-  // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -82,30 +86,48 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
       const imageUrl = await uploadImage();
       const payload = { ...form, gambar_url: imageUrl };
 
+      // Jika edit artikel
       if (artikel?.id) {
-        // Update artikel
-        const { error } = await supabase.from("artikel").update(payload).eq("id", artikel.id);
-        if (error) throw error;
+        payload.id = artikel.id;
+        payload.old_image = artikel.gambar_url;
+
+        const res = await fetch("/api/artikel", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) throw new Error("Gagal memperbarui artikel");
       } else {
-        // Insert artikel baru
-        const { error } = await supabase.from("artikel").insert([payload]);
-        if (error) throw error;
+        // Tambah artikel baru
+        const res = await fetch("/api/artikel", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) throw new Error("Gagal menambah artikel");
       }
 
       onSuccess?.();
     } catch (err) {
-      console.error(err);
       alert(err.message);
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 bg-white p-6 rounded-lg shadow-md mx-auto text-gray-600">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-5 bg-white p-6 rounded-lg shadow-md mx-auto text-gray-600"
+    >
       {/* Upload gambar */}
       <div>
-        <label className="block mb-2 font-semibold text-gray-700">Gambar Artikel</label>
+        <label className="block mb-2 font-semibold text-gray-700">
+          Gambar Artikel
+        </label>
         <input
           type="file"
           accept="image/*"
@@ -137,7 +159,9 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
 
       {/* Penulis */}
       <div>
-        <label className="block mb-2 font-semibold text-gray-700">Penulis</label>
+        <label className="block mb-2 font-semibold text-gray-700">
+          Penulis
+        </label>
         <input
           type="text"
           name="penulis"
@@ -150,7 +174,9 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
 
       {/* Kategori */}
       <div>
-        <label className="block mb-2 font-semibold text-gray-700">Kategori</label>
+        <label className="block mb-2 font-semibold text-gray-700">
+          Kategori
+        </label>
         <input
           type="text"
           name="kategori"
@@ -176,7 +202,9 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
 
       {/* Isi Artikel */}
       <div>
-        <label className="block mb-2 font-semibold text-gray-700">Isi Artikel</label>
+        <label className="block mb-2 font-semibold text-gray-700">
+          Isi Artikel
+        </label>
         <RichTextEditor
           key={artikel?.id || "new"}
           value={form.isi}
