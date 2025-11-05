@@ -1,65 +1,40 @@
-// src/app/dashboard/page.jsx
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { BarChart3, Users, Globe, Settings } from "lucide-react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 export default function DashboardPage() {
-  const supabase = createClientComponentClient();
-  const router = useRouter();
-
-  // State user
-  const [user, setUser] = useState(null);
-
-  // State GA
   const [totalVisits, setTotalVisits] = useState(0);
   const [todayVisits, setTodayVisits] = useState(0);
   const [activeNow, setActiveNow] = useState(0);
 
-  // Ambil data user dari Supabase Auth
-  useEffect(() => {
-    const fetchUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/login"); // redirect jika belum login
-      } else {
-        setUser(user);
-      }
-    };
-    fetchUser();
-  }, [supabase, router]);
+  const [realtimeUsers, setRealtimeUsers] = useState([]); // Array per menit
+  const [events, setEvents] = useState([]); // Event utama
+  const [pages, setPages] = useState([]); // Judul halaman
 
-  // Ambil data GA
   useEffect(() => {
     const fetchGA = async () => {
       try {
         const res = await fetch("/api/ga-dashboard");
         const data = await res.json();
 
-        // Historical 7 hari terakhir
         const historicalRows = data?.historical?.rows || [];
         const total = historicalRows.reduce(
-          (sum, row) => sum + parseInt(row.metricValues?.[1]?.value || 0),
+          (sum, row) => sum + parseInt(row?.metricValues?.[0]?.value || 0),
           0
         );
         setTotalVisits(total);
 
-        // Kunjungan hari ini
+        const todayString = new Date().toISOString().slice(0, 10).replace(/-/g, "");
         const todayRow = historicalRows.find(
-          (row) =>
-            row.dimensionValues?.[0]?.value ===
-            new Date().toISOString().slice(0, 10)
+          (row) => row.dimensionValues?.[0]?.value === todayString
         );
-        setTodayVisits(
-          todayRow ? parseInt(todayRow.metricValues?.[1]?.value || 0) : 0
-        );
+        setTodayVisits(todayRow ? parseInt(todayRow?.metricValues?.[0]?.value || 0) : 0);
 
-        // Realtime active users
         setActiveNow(data?.realtime?.activeUsers || 0);
+        setRealtimeUsers(data?.realtime?.perMinute || []);
+        setEvents(data?.events || []);
+        setPages(data?.pages || []);
       } catch (err) {
         console.error("GA fetch failed:", err);
       }
@@ -67,95 +42,107 @@ export default function DashboardPage() {
     fetchGA();
   }, []);
 
+  const stats = [
+    { label: "Total Kunjungan", value: totalVisits, icon: BarChart3, color: "text-white", bg: "bg-gradient-to-br from-[#FB6B00]/90 to-orange-500" },
+    { label: "Kunjungan Hari Ini", value: todayVisits, icon: Users, color: "text-gray-900", bg: "bg-white border border-gray-200" },
+    { label: "Pengguna Aktif Saat Ini", value: activeNow, icon: Users, color: "text-green-600", bg: "bg-white border border-gray-200" },
+    { label: "Halaman Dikelola", value: 9, icon: Globe, color: "text-gray-900", bg: "bg-white border border-gray-200" },
+    { label: "Status Sistem", value: "Aktif", icon: Settings, color: "text-green-600", bg: "bg-white border border-gray-200" },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center px-6">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center px-6 py-8">
       <div className="w-full max-w-7xl bg-white rounded-2xl shadow-lg p-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gray-200 pb-4 mb-6">
           <h1 className="text-3xl font-bold text-[#FB6B00]">Selamat Datang!</h1>
-          <span className="text-sm text-gray-500 mt-2 sm:mt-0">
-            Dashboard Pengelolaan Profil & Kunjungan Web
-          </span>
-        </div>
-
-        {/* Info Pengguna */}
-        <div className="space-y-4 mb-8">
-          <p className="text-gray-700 text-lg">
-            Hai,{" "}
-            <span className="font-semibold text-[#FB6B00]">
-              {user?.email || "Pengguna"}
-            </span>
-          </p>
-          <div className="p-4 bg-[#FB6B00]/10 rounded-lg border border-[#FB6B00]/20">
-            <p className="text-gray-700">
-              Kamu sedang mengakses panel{" "}
-              <b>Manajemen Profil & Kunjungan Web</b> untuk sistem{" "}
-              <b>Bank Jatah Indonesia</b>.
-            </p>
-          </div>
+          <span className="text-sm text-gray-500 mt-2 sm:mt-0">Dashboard Pengelolaan Kunjungan Web</span>
         </div>
 
         {/* Statistik Section */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
-          {/* Total Kunjungan */}
-          <div className="bg-gradient-to-br from-[#FB6B00]/90 to-orange-500 text-white rounded-xl p-5 shadow-md flex items-center space-x-4">
-            <div className="p-3 bg-white/20 rounded-full">
-              <BarChart3 size={28} />
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6 text-gray-700 mb-8">
+          {stats.map((stat, idx) => (
+            <div key={idx} className={`${stat.bg} rounded-2xl p-6 shadow-lg flex flex-col justify-between hover:shadow-2xl transition-transform transform hover:-translate-y-1`}>
+              <div className="flex items-center justify-between">
+                <div className={`p-3 rounded-full ${stat.bg.includes("white") ? "bg-gray-100" : "bg-white/20"}`}>
+                  <stat.icon size={32} className={stat.bg.includes("white") ? "text-gray-900" : "text-white"} />
+                </div>
+                <p className={`text-2xl font-bold ${stat.color}`}>{stat.value.toLocaleString ? stat.value.toLocaleString() : stat.value}</p>
+              </div>
+              <p className={`mt-4 text-sm ${stat.bg.includes("white") ? "text-gray-900" : "text-white/80"}`}>{stat.label}</p>
             </div>
-            <div>
-              <p className="text-sm opacity-90">Total Kunjungan</p>
-              <p className="text-2xl font-semibold">
-                {totalVisits.toLocaleString()}
-              </p>
-            </div>
-          </div>
+          ))}
+        </div>
 
-          {/* Kunjungan Hari Ini */}
-          <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm flex items-center space-x-4 hover:shadow-md transition">
-            <div className="p-3 bg-[#FB6B00]/10 text-[#FB6B00] rounded-full">
-              <Users size={28} />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Kunjungan Hari Ini</p>
-              <p className="text-xl font-semibold text-gray-800">
-                {todayVisits.toLocaleString()}
-              </p>
-            </div>
-          </div>
-
-          {/* Pengguna Aktif Saat Ini */}
-          <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm flex items-center space-x-4 hover:shadow-md transition">
-            <div className="p-3 bg-[#FB6B00]/10 text-[#FB6B00] rounded-full">
-              <Users size={28} />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Pengguna Aktif Saat Ini</p>
-              <p className="text-xl font-semibold text-green-600">{activeNow}</p>
-            </div>
-          </div>
-
-          {/* Halaman Dikelola */}
-          <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm flex items-center space-x-4 hover:shadow-md transition">
-            <div className="p-3 bg-[#FB6B00]/10 text-[#FB6B00] rounded-full">
-              <Globe size={28} />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Halaman Dikelola</p>
-              <p className="text-xl font-semibold text-gray-800">9</p>
-            </div>
-          </div>
-
-          {/* Status Sistem */}
-          <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm flex items-center space-x-4 hover:shadow-md transition">
-            <div className="p-3 bg-[#FB6B00]/10 text-[#FB6B00] rounded-full">
-              <Settings size={28} />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Status Sistem</p>
-              <p className="text-xl font-semibold text-green-600">Aktif</p>
-            </div>
+        {/* Realtime Users Table */}
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">Pengguna Aktif Per Menit</h2>
+          <div className="overflow-x-auto border rounded-lg">
+            <table className="min-w-full text-left text-gray-700">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="px-4 py-2">Waktu</th>
+                  <th className="px-4 py-2">Pengguna Aktif</th>
+                </tr>
+              </thead>
+              <tbody>
+                {realtimeUsers.map((r, idx) => (
+                  <tr key={idx} className="border-b hover:bg-gray-50">
+                    <td className="px-4 py-2">{r.minute}</td>
+                    <td className="px-4 py-2">{r.users}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
+
+        {/* Events Table */}
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">Peristiwa Utama</h2>
+          <div className="overflow-x-auto border rounded-lg">
+            <table className="min-w-full text-left text-gray-700">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="px-4 py-2">Nama Peristiwa</th>
+                  <th className="px-4 py-2">Jumlah</th>
+                </tr>
+              </thead>
+              <tbody>
+                {events.map((e, idx) => (
+                  <tr key={idx} className="border-b hover:bg-gray-50">
+                    <td className="px-4 py-2">{e.name}</td>
+                    <td className="px-4 py-2">{e.count}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Pages Table */}
+        <div>
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">Tampilan Halaman</h2>
+          <div className="overflow-x-auto border rounded-lg">
+            <table className="min-w-full text-left text-gray-700">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="px-4 py-2">Judul Halaman</th>
+                  <th className="px-4 py-2">Jumlah Tampilan</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pages.map((p, idx) => (
+                  <tr key={idx} className="border-b hover:bg-gray-50">
+                    <td className="px-4 py-2">{p.title}</td>
+                    <td className="px-4 py-2">{p.views}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </div>
   );

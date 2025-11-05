@@ -2,6 +2,7 @@
   "name": "bankjatahindonesia",
   "version": "0.1.0",
   "private": true,
+   "type": "module",   
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -12,6 +13,7 @@
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/supabase-js": "^2.75.1",
     "browser-image-compression": "^2.0.2",
+    "dotenv": "^17.2.3",
     "framer-motion": "^12.23.12",
     "googleapis": "^164.1.0",
     "html-react-parser": "^5.2.8",
