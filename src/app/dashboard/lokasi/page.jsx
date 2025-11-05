@@ -35,29 +35,28 @@ export default function LokasiPage() {
     if (!confirm("Yakin ingin menghapus lokasi ini beserta gambarnya?")) return;
 
     try {
+      // Hapus gambar di storage jika ada
       if (gambar_url) {
-        try {
-          const url = new URL(gambar_url);
-          const path = url.pathname.replace("/storage/v1/object/public/lokasi-images/", "");
-          if (path) {
-            const { error: storageError } = await supabase.storage
-              .from("lokasi-images")
-              .remove([path]);
-            if (storageError) throw storageError;
-          }
-        } catch (e) {
-          console.warn("Tidak bisa parsing gambar_url:", e);
-        }
+        const filePath = gambar_url.replace(
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/lokasi-images/lokasi/`,
+          ""
+        );
+        const { error: storageError } = await supabase.storage
+          .from("lokasi-images")
+          .remove([filePath]);
+        if (storageError)
+          console.error("Gagal menghapus gambar:", storageError);
       }
 
+      // Hapus record lokasi
       const { error } = await supabase.from("lokasi").delete().eq("id", id);
       if (error) throw error;
 
+      // Update state UI
       setLokasi((prev) => prev.filter((item) => item.id !== id));
-      alert("✅ Lokasi berhasil dihapus");
     } catch (err) {
-      console.error("Delete lokasi error:", err);
-      alert("❌ Gagal menghapus lokasi. Periksa permission dan koneksi.");
+      alert("Gagal menghapus lokasi. Cek console.");
+      console.error(err);
     }
   };
 
@@ -106,14 +105,24 @@ export default function LokasiPage() {
                     : "bg-orange-50/40 hover:bg-orange-100/50"
                 }`}
               >
-                <td className="px-6 py-4 font-medium text-gray-800">{item.nama}</td>
-                <td className="px-6 py-4 capitalize text-gray-600">{item.jenis}</td>
-                <td className="px-6 py-4 text-gray-700">{item.alamat || "-"}</td>
+                <td className="px-6 py-4 font-medium text-gray-800">
+                  {item.nama}
+                </td>
+                <td className="px-6 py-4 capitalize text-gray-600">
+                  {item.jenis}
+                </td>
+                <td className="px-6 py-4 text-gray-700">
+                  {item.alamat || "-"}
+                </td>
                 <td className="px-6 py-4 text-gray-700">
                   {item.deskripsi ? item.deskripsi.slice(0, 60) + "..." : "-"}
                 </td>
-                <td className="px-6 py-4 text-gray-700">{item.kontak || "-"}</td>
-                <td className="px-6 py-4 text-gray-700">{item.jam_operasional || "-"}</td>
+                <td className="px-6 py-4 text-gray-700">
+                  {item.kontak || "-"}
+                </td>
+                <td className="px-6 py-4 text-gray-700">
+                  {item.jam_operasional || "-"}
+                </td>
                 <td className="px-6 py-4 text-center">
                   {item.gambar_url ? (
                     <img
@@ -156,7 +165,9 @@ export default function LokasiPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8 border-b border-orange-200 pb-4">
         <div>
-          <h1 className="text-3xl font-bold text-[#FB6B00]">Manajemen Lokasi</h1>
+          <h1 className="text-3xl font-bold text-[#FB6B00]">
+            Manajemen Lokasi
+          </h1>
           <p className="text-sm text-gray-500 mt-1">
             Kelola lokasi utama dan mitra Bank Jatah Indonesia dengan mudah.
           </p>

@@ -36,14 +36,33 @@ export default function DashboardProgramPage() {
     fetchPrograms();
   }, []);
 
-  const handleDelete = async (id) => {
-    if (!confirm("Yakin ingin menghapus program ini?")) return;
+  const handleDelete = async (id, gambar_url) => {
+    if (!confirm("Yakin ingin menghapus program ini beserta gambarnya?"))
+      return;
+
     try {
+      // Hapus gambar di storage jika ada
+      if (gambar_url) {
+        const filePath = gambar_url.replace(
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/program-images/`,
+          ""
+        );
+        const { error: storageError } = await supabase.storage
+          .from("program-images")
+          .remove([filePath]);
+        if (storageError)
+          console.error("Gagal menghapus gambar program:", storageError);
+      }
+
+      // Hapus record program
       const { error } = await supabase.from("program").delete().eq("id", id);
       if (error) throw error;
+
+      // Update state UI
       setPrograms((prev) => prev.filter((p) => p.id !== id));
-    } catch {
-      alert("Gagal hapus data.");
+    } catch (err) {
+      alert("Gagal menghapus program. Cek console.");
+      console.error(err);
     }
   };
 

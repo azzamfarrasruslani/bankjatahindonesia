@@ -27,10 +27,33 @@ export default function DashboardGaleriPage() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm("Yakin ingin menghapus foto ini?")) return;
-    await supabase.from("galeri").delete().eq("id", id);
-    fetchGaleri();
+  const handleDelete = async (id, gambar_url) => {
+    if (!confirm("Yakin ingin menghapus foto ini beserta gambarnya?")) return;
+
+    try {
+      // Hapus gambar di storage jika ada
+      if (gambar_url) {
+        const filePath = gambar_url.replace(
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/galeri-images/galeri/`,
+          ""
+        );
+        const { error: storageError } = await supabase.storage
+          .from("galeri-images")
+          .remove([filePath]);
+        if (storageError)
+          console.error("Gagal menghapus gambar galeri:", storageError);
+      }
+
+      // Hapus record galeri
+      const { error } = await supabase.from("galeri").delete().eq("id", id);
+      if (error) throw error;
+
+      // Update state UI
+      fetchGaleri(); // fungsi untuk refresh state galeri
+    } catch (err) {
+      alert("Gagal menghapus foto. Cek console.");
+      console.error(err);
+    }
   };
 
   useEffect(() => {

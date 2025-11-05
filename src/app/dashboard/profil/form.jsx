@@ -74,7 +74,7 @@ export default function TimForm({ timId, onSuccess }) {
       };
 
       const compressedFile = await imageCompression(file, options);
-      const fileName = `${Date.now()}.webp`;
+      const fileName = `team/${Date.now()}.webp`;
 
       const { error: uploadError } = await supabase.storage
         .from("team-images")

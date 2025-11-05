@@ -22,27 +22,39 @@ export default function ProfilPage() {
     }
     setTim(data);
 
-    // Ambil kategori unik untuk chips filter
-    const uniqueKategori = ["Semua", ...new Set(data.map((item) => item.kategori).filter(Boolean))];
+    const uniqueKategori = [
+      "Semua",
+      ...new Set(data.map((item) => item.kategori).filter(Boolean)),
+    ];
     setKategoriOptions(uniqueKategori);
   }
 
-  async function handleDelete(id) {
-    if (confirm("Yakin ingin menghapus anggota ini?")) {
-      const { error } = await supabase.from("tim").delete().eq("id", id);
-      if (error) {
-        console.error("Gagal menghapus data:", error.message);
-        return;
-      }
-      fetchTim();
-    }
-  }
+  const handleDelete = async (id, foto_url) => {
+    if (!confirm("Yakin ingin menghapus anggota ini beserta gambarnya?"))
+      return;
 
-  // Filter tim sesuai kategori
+    try {
+      const res = await fetch("/api/team", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, foto_url }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal menghapus");
+
+      setTim((prev) => prev.filter((item) => item.id !== id));
+      alert("✅ Anggota dan gambarnya berhasil dihapus");
+    } catch (err) {
+      console.error(err);
+      alert("❌ Gagal menghapus anggota. Cek console untuk detail");
+    }
+  };
+
   const filteredTim =
     filterKategori === "Semua"
       ? tim
-      : tim.filter((person) => person.kategori === filterKategori);
+      : tim.filter((p) => p.kategori === filterKategori);
 
   return (
     <section className="min-h-screen bg-gradient-to-b from-orange-50 to-white p-6 md:p-10 space-y-6">
@@ -53,7 +65,6 @@ export default function ProfilPage() {
             Kelola anggota tim Bank Jatah Indonesia.
           </p>
         </div>
-
         <Link
           href="/dashboard/profil/tambah"
           className="bg-[#FB6B00] text-white px-4 py-2 rounded-lg hover:bg-orange-600 flex items-center gap-2"
@@ -62,19 +73,19 @@ export default function ProfilPage() {
         </Link>
       </div>
 
-      {/* Chips Filter */}
+      {/* Filter Kategori */}
       <div className="flex flex-wrap gap-3">
-        {kategoriOptions.map((kategori) => (
+        {kategoriOptions.map((k) => (
           <button
-            key={kategori}
-            onClick={() => setFilterKategori(kategori)}
+            key={k}
+            onClick={() => setFilterKategori(k)}
             className={`px-4 py-1 rounded-full text-sm font-medium border transition ${
-              filterKategori === kategori
+              filterKategori === k
                 ? "bg-[#FB6B00] text-white border-[#FB6B00]"
                 : "bg-white text-gray-700 border-gray-300 hover:bg-[#FB6B00]/10"
             }`}
           >
-            {kategori}
+            {k}
           </button>
         ))}
       </div>
@@ -100,7 +111,7 @@ export default function ProfilPage() {
                   <FaEdit />
                 </Link>
                 <button
-                  onClick={() => handleDelete(person.id)}
+                  onClick={() => handleDelete(person.id, person.foto_url)}
                   className="p-2 bg-white/90 rounded-full text-red-500 hover:text-red-700 shadow-sm"
                 >
                   <FaTrash />
@@ -109,7 +120,9 @@ export default function ProfilPage() {
             </div>
 
             <div className="p-5 text-center">
-              <h3 className="font-semibold text-lg text-[#FB6B00] mb-1">{person.nama}</h3>
+              <h3 className="font-semibold text-lg text-[#FB6B00] mb-1">
+                {person.nama}
+              </h3>
               <p className="text-gray-600 text-sm">{person.jabatan}</p>
               <p className="text-gray-500 text-xs mt-1">{person.kategori}</p>
             </div>
