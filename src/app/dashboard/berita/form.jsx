@@ -17,13 +17,15 @@ export default function BeritaForm({ beritaId, onSuccess }) {
   });
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(!!beritaId); // loading saat fetch berita
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
 
   // Ambil data berita jika mode edit
   useEffect(() => {
     if (!beritaId) return;
 
     const fetchBerita = async () => {
+      setLoadingData(true);
       const { data, error } = await supabase
         .from("berita")
         .select("*")
@@ -32,6 +34,7 @@ export default function BeritaForm({ beritaId, onSuccess }) {
 
       if (error) {
         console.error("Gagal mengambil data:", error);
+        alert("Gagal mengambil data berita");
       } else if (data) {
         setForm({
           judul: data.judul || "",
@@ -42,12 +45,13 @@ export default function BeritaForm({ beritaId, onSuccess }) {
         });
         setPreview(data.gambar_url || "");
       }
+      setLoadingData(false);
     };
 
     fetchBerita();
   }, [beritaId]);
 
-  // Handle input form umum
+  // Handle input biasa
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
@@ -56,7 +60,7 @@ export default function BeritaForm({ beritaId, onSuccess }) {
     }));
   };
 
-  // Pilih file dan tampilkan preview
+  // Pilih file dan buat preview
   const handleFileChange = (e) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
@@ -64,34 +68,27 @@ export default function BeritaForm({ beritaId, onSuccess }) {
     setPreview(URL.createObjectURL(selectedFile));
   };
 
-  // Upload gambar dengan kompresi WebP sebelum ke Supabase
+  // Upload gambar ke Supabase Storage
   const uploadImage = async () => {
     if (!file) return form.gambar_url || "";
 
     try {
       const options = {
-        maxSizeMB: 0.25, // target sekitar 250KB
+        maxSizeMB: 0.25,
         maxWidthOrHeight: 1000,
         initialQuality: 0.85,
         useWebWorker: true,
         fileType: "image/webp",
       };
-
-      // Kompres file
       const compressedFile = await imageCompression(file, options);
       const fileName = `berita/${Date.now()}.webp`;
 
-      // Upload ke bucket "berita-images"
       const { error: uploadError } = await supabase.storage
         .from("berita-images")
-        .upload(fileName, compressedFile, {
-          cacheControl: "3600",
-          upsert: false,
-        });
+        .upload(fileName, compressedFile, { cacheControl: "3600", upsert: false });
 
       if (uploadError) throw uploadError;
 
-      // Ambil URL publik
       const { data } = supabase.storage
         .from("berita-images")
         .getPublicUrl(fileName);
@@ -103,10 +100,10 @@ export default function BeritaForm({ beritaId, onSuccess }) {
     }
   };
 
-  // Simpan data ke Supabase
+  // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setLoadingSubmit(true);
 
     try {
       const imageUrl = await uploadImage();
@@ -134,20 +131,24 @@ export default function BeritaForm({ beritaId, onSuccess }) {
       console.error(err);
       alert("Gagal menyimpan: " + err.message);
     } finally {
-      setLoading(false);
+      setLoadingSubmit(false);
     }
   };
 
+  // Tampilkan loading saat data berita sedang diambil
+  if (loadingData) {
+    return (
+      <div className="p-6 text-center text-gray-500">
+        Memuat data berita...
+      </div>
+    );
+  }
+
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-5 bg-white p-6 rounded-lg shadow-md"
-    >
+    <form onSubmit={handleSubmit} className="space-y-5 bg-white p-6 rounded-lg shadow-md text-gray-700">
       {/* Upload gambar */}
       <div>
-        <label className="block mb-2 font-semibold text-gray-700">
-          Gambar Berita
-        </label>
+        <label className="block mb-2 font-semibold text-gray-700">Gambar Berita</label>
         <input
           type="file"
           accept="image/*"
@@ -172,7 +173,7 @@ export default function BeritaForm({ beritaId, onSuccess }) {
           onChange={handleChange}
           required
           placeholder="Masukkan judul berita"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-[#FB6B00] text-gray-700 placeholder-gray-600"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-[#FB6B00]"
         />
       </div>
 
@@ -184,24 +185,21 @@ export default function BeritaForm({ beritaId, onSuccess }) {
           value={form.penulis}
           onChange={handleChange}
           placeholder="Kosongkan jika Admin"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-[#FB6B00] text-gray-700 placeholder-gray-600"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-[#FB6B00]"
         />
       </div>
 
       {/* Isi berita */}
-      <div className="text-gray-700">
-        <label className="block mb-2 font-semibold text-gray-700">
-          Isi Berita
-        </label>
+      <div>
+        <label className="block mb-2 font-semibold text-gray-700">Isi Berita</label>
         <RichTextEditor
-          key={beritaId || "new"} // penting agar value muncul saat edit
           value={form.isi}
           onChange={(val) => setForm((prev) => ({ ...prev, isi: val }))}
         />
       </div>
 
       {/* Checkbox berita utama */}
-      <div className="flex items-center gap-3 text-gray-600">
+      <div className="flex items-center gap-3">
         <input
           type="checkbox"
           name="is_top"
@@ -222,10 +220,10 @@ export default function BeritaForm({ beritaId, onSuccess }) {
         </button>
         <button
           type="submit"
-          disabled={loading}
+          disabled={loadingSubmit}
           className="px-5 py-2 bg-[#FB6B00] text-white rounded-lg"
         >
-          {loading ? "Menyimpan..." : beritaId ? "Perbarui" : "Simpan"}
+          {loadingSubmit ? "Menyimpan..." : beritaId ? "Perbarui" : "Simpan"}
         </button>
       </div>
     </form>
