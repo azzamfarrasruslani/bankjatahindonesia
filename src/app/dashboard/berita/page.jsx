@@ -30,60 +30,50 @@ export default function DashboardBeritaPage() {
   }, []);
 
   const handleDelete = async (id, imageUrl) => {
-    if (!confirm("Yakin ingin menghapus berita ini beserta gambarnya?")) return;
+  if (!confirm("Yakin ingin menghapus berita ini beserta gambarnya?")) return;
 
-    try {
-      // Hapus gambar di storage dulu
-      if (imageUrl) {
-        const url = new URL(imageUrl);
-        const path = url.pathname.replace(
-          "/storage/v1/object/public/berita-images/",
-          ""
-        );
-        if (path) {
-          const { error: storageError } = await supabase.storage
-            .from("berita-images")
-            .remove([path]);
-          if (storageError) {
-            console.error(
-              "Gagal hapus gambar di storage:",
-              storageError.message
-            );
-            alert("❌ Gagal menghapus gambar. Periksa storage permission.");
-            return; // hentikan proses jika gagal hapus gambar
-          }
+  try {
+    if (imageUrl) {
+      // Ambil nama file dari path atau URL
+      // Jika imageUrl penuh (URL), ambil nama file di akhir
+      // Jika imageUrl relatif, gunakan langsung
+      const filename = imageUrl.split("/").pop();
+
+      if (filename) {
+        const { error: storageError } = await supabase.storage
+          .from("berita-images")
+          .remove([filename]);
+
+        if (storageError) {
+          console.error("Gagal hapus gambar di storage:", storageError.message);
+          alert("❌ Gagal menghapus gambar. Periksa storage permission.");
+          return;
         }
       }
-
-      // Hapus record di database
-      const { error: deleteError } = await supabase
-        .from("berita")
-        .delete()
-        .eq("id", id);
-
-      if (deleteError) {
-        console.error("Delete error:", deleteError.message);
-        alert("❌ Gagal menghapus berita. Periksa RLS/permission user.");
-        return;
-      }
-
-      // Update state jika berhasil
-      setBerita((prev) => prev.filter((item) => item.id !== id));
-      alert("✅ Berita dan gambar berhasil dihapus");
-    } catch (err) {
-      console.error("Unexpected error:", err);
-      alert("❌ Terjadi kesalahan. Cek console.");
     }
-  };
+
+    const { error: deleteError } = await supabase.from("berita").delete().eq("id", id);
+    if (deleteError) {
+      console.error("Delete error:", deleteError.message);
+      alert("❌ Gagal menghapus berita. Periksa RLS/permission user.");
+      return;
+    }
+
+    setBerita((prev) => prev.filter((item) => item.id !== id));
+    alert("✅ Berita dan gambar berhasil dihapus");
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    alert("❌ Terjadi kesalahan. Cek console.");
+  }
+};
+
 
   return (
     <section className="p-6 md:p-10 min-h-screen bg-gradient-to-b from-orange-50 to-white rounded-2xl shadow-md">
       {/* Header */}
       <div className="flex items-center justify-between mb-8 border-b border-orange-200 pb-4">
         <div>
-          <h1 className="text-3xl font-bold text-[#FB6B00]">
-            Manajemen Berita
-          </h1>
+          <h1 className="text-3xl font-bold text-[#FB6B00]">Manajemen Berita</h1>
           <p className="text-sm text-gray-500 mt-1">
             Kelola daftar berita, ubah, atau hapus dengan mudah.
           </p>
@@ -111,19 +101,13 @@ export default function DashboardBeritaPage() {
           <tbody>
             {loading ? (
               <tr>
-                <td
-                  colSpan="5"
-                  className="text-center py-10 text-orange-600 font-medium animate-pulse"
-                >
+                <td colSpan="5" className="text-center py-10 text-orange-600 font-medium animate-pulse">
                   Memuat data berita...
                 </td>
               </tr>
             ) : berita.length === 0 ? (
               <tr>
-                <td
-                  colSpan="5"
-                  className="text-center py-10 text-gray-400 italic bg-orange-50/30"
-                >
+                <td colSpan="5" className="text-center py-10 text-gray-400 italic bg-orange-50/30">
                   Belum ada berita yang tercatat.
                 </td>
               </tr>
@@ -132,9 +116,7 @@ export default function DashboardBeritaPage() {
                 <tr
                   key={item.id}
                   className={`border-b border-orange-100 transition-all duration-200 ${
-                    index % 2 === 0
-                      ? "bg-white hover:bg-orange-50/60"
-                      : "bg-orange-50/40 hover:bg-orange-100/50"
+                    index % 2 === 0 ? "bg-white hover:bg-orange-50/60" : "bg-orange-50/40 hover:bg-orange-100/50"
                   }`}
                 >
                   {/* Judul + Thumbnail */}
@@ -161,9 +143,7 @@ export default function DashboardBeritaPage() {
                   </td>
 
                   {/* Penulis */}
-                  <td className="px-6 py-4 text-gray-600">
-                    {item.penulis || "Admin"}
-                  </td>
+                  <td className="px-6 py-4 text-gray-600">{item.penulis || "Admin"}</td>
 
                   {/* Status */}
                   <td className="px-6 py-4 text-center">
