@@ -4,55 +4,39 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { supabase } from "@/lib/supabaseClient";
+import { fetchArtikel, deleteArtikel } from "@/lib/services/artikelService";
 
 export default function ArtikelPage() {
   const [artikel, setArtikel] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchArtikel = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("artikel")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Gagal mengambil artikel:", error);
+ useEffect(() => {
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const result = await fetchArtikel();
+      setArtikel(result);
+    } catch (err) {
+      console.error(err.message);
       setArtikel([]);
-    } else {
-      setArtikel(data);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  useEffect(() => {
-    fetchArtikel();
-  }, []);
+  loadData();
+}, []);
 
-
-  const handleDelete = async (id, gambar_url) => {
+  const handleDelete = async (id) => {
     if (!confirm("Yakin ingin menghapus artikel ini?")) return;
 
     try {
-      if (gambar_url) {
-        const filePath = gambar_url.replace(
-          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/artikel-images/artikel/`,
-          ""
-        );
-        const { error: storageError } = await supabase.storage
-          .from("artikel-images")
-          .remove([filePath]);
-        if (storageError)
-          console.error("Gagal menghapus gambar:", storageError);
-      }
+      await deleteArtikel(id);
 
-      const { error } = await supabase.from("artikel").delete().eq("id", id);
-      if (error) throw error;
-
-      setArtikel((prev) => prev.filter((a) => a.id !== id));
+      // Update state lokal agar UI responsif
+      setArtikel((prev) => prev.filter((item) => item.id !== id));
     } catch (err) {
-      alert("Gagal menghapus artikel. Cek console.");
-      console.error(err);
+      alert(err.message);
     }
   };
 

@@ -1,124 +1,106 @@
-import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
+import { supabase } from "@/lib/supabaseClient";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
-// 🔹 Tambah artikel baru
-export async function POST(req) {
+export async function GET() {
   try {
-    const body = await req.json();
-    const { judul, isi, penulis, kategori, gambar_url, is_top } = body;
-
-    const { error } = await supabase.from("artikel").insert([
-      { judul, isi, penulis, kategori, gambar_url, is_top },
-    ]);
+    const { data, error } = await supabase
+      .from("artikel")
+      .select("*")
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
 
-    return new Response(
-      JSON.stringify({ message: "Artikel berhasil ditambahkan" }),
-      { status: 201 }
-    );
+    return NextResponse.json(data);
   } catch (err) {
-    console.error("[ERROR] Tambah artikel gagal:", err);
-    return new Response(JSON.stringify({ error: "Gagal menambah artikel" }), {
-      status: 500,
-    });
+    return NextResponse.json(
+      { error: err.message },
+      { status: 500 }
+    );
   }
 }
 
-// 🔹 Hapus artikel + gambar
-export async function DELETE(req) {
-  try {
-    const { id, gambar_url } = await req.json();
 
-    if (!id)
-      return new Response(
-        JSON.stringify({ error: "ID artikel tidak ditemukan" }),
+// Insert artikel baru
+export async function POST(req) {
+  try {
+    const body = await req.json();
+
+    const { error } = await supabase.from("artikel").insert([body]);
+    if (error) throw error;
+
+    return NextResponse.json({ message: "Artikel berhasil dibuat" });
+  } catch (err) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+// Update artikel
+export async function PUT(req) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "ID artikel wajib disertakan" },
         { status: 400 }
       );
+    }
 
-    // Hapus file gambar jika ada
-    if (gambar_url) {
-      try {
-        const url = new URL(gambar_url);
-        const relativePath = url.pathname.split("/artikel-images/")[1];
-        if (relativePath) {
-          const { error } = await supabase.storage
-            .from("artikel-images")
-            .remove([relativePath]);
-          if (error) console.warn("Gagal hapus gambar:", error.message);
-        }
-      } catch (err) {
-        console.error("[ERROR] Parsing URL gagal:", err);
+    const body = await req.json();
+    const { error } = await supabase.from("artikel").update(body).eq("id", id);
+
+    if (error) throw error;
+    return NextResponse.json({ message: "Artikel berhasil diperbarui" });
+  } catch (err) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(req) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "ID artikel wajib disertakan" },
+        { status: 400 }
+      );
+    }
+
+    // Ambil data artikel
+    const { data: artikel, error: fetchError } = await supabase
+      .from("artikel")
+      .select("gambar_url")
+      .eq("id", id)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    // Jika ada gambar ⇒ hapus dari storage
+    if (artikel?.gambar_url) {
+      const publicBase = "/storage/v1/object/public/artikel-images/";
+
+      // Ambil: artikel/<namafile.webp>
+      const filePath = artikel.gambar_url.split(publicBase)[1];
+
+      if (filePath) {
+        await supabase.storage.from("artikel-images").remove([filePath]);
       }
     }
 
-    // Hapus artikel dari tabel
-    const { error: dbError } = await supabase
+    // Hapus dari tabel
+    const { error: deleteError } = await supabase
       .from("artikel")
       .delete()
       .eq("id", id);
 
-    if (dbError) throw dbError;
+    if (deleteError) throw deleteError;
 
-    return new Response(
-      JSON.stringify({ message: "Artikel dan gambar berhasil dihapus" }),
-      { status: 200 }
-    );
+    return NextResponse.json({ message: "Artikel berhasil dihapus" });
   } catch (err) {
-    console.error("[ERROR] Hapus artikel gagal:", err);
-    return new Response(JSON.stringify({ error: "Gagal menghapus artikel" }), {
-      status: 500,
-    });
-  }
-}
-
-// 🔹 Update artikel + hapus gambar lama jika diganti
-export async function PUT(req) {
-  try {
-    const { id, judul, isi, penulis, kategori, gambar_url, is_top, old_image } =
-      await req.json();
-
-    if (!id)
-      return new Response(
-        JSON.stringify({ error: "ID artikel tidak ditemukan" }),
-        { status: 400 }
-      );
-
-    // Jika gambar baru diunggah, hapus gambar lama
-    if (old_image && gambar_url && old_image !== gambar_url) {
-      try {
-        const url = new URL(old_image);
-        const relativePath = url.pathname.split("/artikel-images/")[1];
-        if (relativePath) {
-          const { error } = await supabase.storage
-            .from("artikel-images")
-            .remove([relativePath]);
-          if (error) console.warn("Gagal hapus gambar lama:", error.message);
-        }
-      } catch (err) {
-        console.error("[ERROR] Gagal hapus gambar lama:", err);
-      }
-    }
-
-    const { error } = await supabase
-      .from("artikel")
-      .update({ judul, isi, penulis, kategori, gambar_url, is_top })
-      .eq("id", id);
-
-    if (error) throw error;
-
-    return new Response(
-      JSON.stringify({ message: "Artikel berhasil diperbarui" }),
-      { status: 200 }
-    );
-  } catch (err) {
-    console.error("[ERROR] Update artikel gagal:", err);
-    return new Response(JSON.stringify({ error: "Gagal memperbarui artikel" }), {
-      status: 500,
-    });
+    console.error("DELETE error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

@@ -4,14 +4,14 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --brand-orange: #fb6b00; /* ✅ Tambahkan warna brand di sini */
+  --brand-orange: #fb6b00;
   --font-poppins: "Poppins", sans-serif;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-primary: var(--brand-orange); /* 👈 Gunakan warna utama */
+  --color-primary: var(--brand-orange);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
