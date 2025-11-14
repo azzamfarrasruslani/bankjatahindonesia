@@ -1,7 +1,6 @@
 "use client";
 
 import HeroSection from "@/components/common/HeroSection";
-import ProgramUtama from "./components/ProgramUtama";
 import SejarahVisiMisi from "./components/SejarahVisiMisi";
 import TargetPasar from "./components/TargetPasar";
 import TimKami from "./components/TimKami";
@@ -17,7 +16,6 @@ export default function TentangKamiPage() {
 
       <div className="px-6 sm:px-12 lg:px-24 py-16 space-y-16">
         <SejarahVisiMisi />
-        <ProgramUtama />
         <TargetPasar />
         <TimKami />
       </div>

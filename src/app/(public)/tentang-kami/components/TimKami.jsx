@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient"; // ✅ pakai import dari lib
+import { ArrowUpRight, Users, User } from "lucide-react";
+import Image from "next/image";
+import { supabase } from "@/lib/supabaseClient"
 
 export default function TimKami() {
   const [teamMembers, setTeamMembers] = useState([]);
@@ -44,21 +45,40 @@ export default function TimKami() {
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
       viewport={{ once: true }}
-      className="py-16 px-6 md:px-1"
+      className="px-6 md:px-1"
     >
       {/* Header */}
-      <div className="max-w-6xl mx-auto text-center mb-12">
-        <p className="text-[#FB6B00] uppercase text-sm font-semibold tracking-wider">
-          Tim Kami
-        </p>
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">
-          Temui Tim di Balik Bank Jatah Indonesia
-        </h2>
-        <p className="text-gray-700 mt-2 text-sm md:text-base">
-          Tim kami berdedikasi untuk mengubah limbah menjadi manfaat ekonomi,
-          sosial, dan lingkungan yang berkelanjutan.
-        </p>
-      </div>
+      {/* Header Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+          className="text-center mb-16 lg:mb-20"
+        >
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
+            <Users className="w-4 h-4 text-primary" />
+            <span className="text-sm font-semibold text-primary uppercase tracking-wide">
+              Tim Kami
+            </span>
+          </div>
+
+          {/* Title */}
+          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight">
+            Tim di Balik{" "}
+            <span className="bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-primary">
+              Bank Jatah
+            </span>
+          </h2>
+
+          {/* Description */}
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            Bertemu dengan para profesional yang berdedikasi mengubah limbah 
+            menjadi solusi berkelanjutan untuk masa depan yang lebih baik.
+          </p>
+        </motion.div>
+
 
       {/* Jika data kosong */}
       {teamMembers.length === 0 ? (
