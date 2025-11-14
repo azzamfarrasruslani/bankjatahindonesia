@@ -57,7 +57,7 @@ export default function LokasiPage() {
   }, [lokasiData, filterJenis, searchTerm]);
 
   return (
-    <section className="min-h-screen py-20 px-6 sm:px-12 lg:px-20 bg-gradient-to-br from-orange-50 via-white to-orange-100 text-gray-800">
+    <section className="min-h-screen py-40 px-6 sm:px-12 lg:px-20 bg-gradient-to-br from-orange-50 via-white to-orange-100 text-gray-800">
       <div className="max-w-7xl mx-auto">
         <LokasiHeader />
         <LokasiFilter
