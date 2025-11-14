@@ -1,9 +1,9 @@
 // src/layouts/DashboardLayout.jsx
 "use client";
 
-import Sidebar from "@/components/dashboard/Sidebar";
-import Navbar from "@/components/dashboard/Navbar";
-import Breadcrumb from "@/components/dashboard/Breadcrumb";
+import Sidebar from "@/components/features/(admin)/dashboard/Sidebar";
+import Navbar from "@/components/features/(admin)/dashboard/Navbar";
+import Breadcrumb from "@/components/features/(admin)/dashboard/Breadcrumb";
 
 export default function DashboardLayout({ children }) {
   const breadcrumbItems = ["Dashboard"];

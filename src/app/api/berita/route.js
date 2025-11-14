@@ -5,7 +5,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY // pakai role key agar bisa delete storage
 );
 
-// ✅ Tambah berita
 export async function POST(req) {
   try {
     const body = await req.json();

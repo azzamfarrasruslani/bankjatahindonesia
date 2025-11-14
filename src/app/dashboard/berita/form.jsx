@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import imageCompression from "browser-image-compression";
-import RichTextEditor from "@/components/dashboard/RichTextEditor";
+import RichTextEditor from "@/components/features/(admin)/dashboard/RichTextEditor";
 import { useRouter } from "next/navigation";
 
 export default function BeritaForm({ beritaId, onSuccess }) {
@@ -85,7 +85,10 @@ export default function BeritaForm({ beritaId, onSuccess }) {
 
       const { error: uploadError } = await supabase.storage
         .from("berita-images")
-        .upload(fileName, compressedFile, { cacheControl: "3600", upsert: false });
+        .upload(fileName, compressedFile, {
+          cacheControl: "3600",
+          upsert: false,
+        });
 
       if (uploadError) throw uploadError;
 
@@ -96,7 +99,9 @@ export default function BeritaForm({ beritaId, onSuccess }) {
       return data.publicUrl;
     } catch (err) {
       console.error("Kompresi atau upload gagal:", err);
-      throw new Error("Gagal mengunggah gambar, coba file lain atau periksa koneksi.");
+      throw new Error(
+        "Gagal mengunggah gambar, coba file lain atau periksa koneksi."
+      );
     }
   };
 
@@ -138,17 +143,20 @@ export default function BeritaForm({ beritaId, onSuccess }) {
   // Tampilkan loading saat data berita sedang diambil
   if (loadingData) {
     return (
-      <div className="p-6 text-center text-gray-500">
-        Memuat data berita...
-      </div>
+      <div className="p-6 text-center text-gray-500">Memuat data berita...</div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 bg-white p-6 rounded-lg shadow-md text-gray-700">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-5 bg-white p-6 rounded-lg shadow-md text-gray-700"
+    >
       {/* Upload gambar */}
       <div>
-        <label className="block mb-2 font-semibold text-gray-700">Gambar Berita</label>
+        <label className="block mb-2 font-semibold text-gray-700">
+          Gambar Berita
+        </label>
         <input
           type="file"
           accept="image/*"
@@ -179,7 +187,9 @@ export default function BeritaForm({ beritaId, onSuccess }) {
 
       {/* Penulis */}
       <div>
-        <label className="block mb-2 font-semibold text-gray-700">Penulis</label>
+        <label className="block mb-2 font-semibold text-gray-700">
+          Penulis
+        </label>
         <input
           name="penulis"
           value={form.penulis}
@@ -188,17 +198,15 @@ export default function BeritaForm({ beritaId, onSuccess }) {
           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-[#FB6B00]"
         />
       </div>
-
-      {/* Isi berita */}
       <div>
-        <label className="block mb-2 font-semibold text-gray-700">Isi Berita</label>
+        <label className="block mb-2 font-semibold text-gray-700">
+          Isi Berita
+        </label>
         <RichTextEditor
           value={form.isi}
           onChange={(val) => setForm((prev) => ({ ...prev, isi: val }))}
         />
       </div>
-
-      {/* Checkbox berita utama */}
       <div className="flex items-center gap-3">
         <input
           type="checkbox"

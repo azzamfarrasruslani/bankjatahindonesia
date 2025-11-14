@@ -1,14 +1,14 @@
 // src/app/(public)/page.jsx
 
-import Hero from "@/components/home/Hero";
-import TentangKami from "@/components/home/TentangKami";
-import ProgramBankJatah from "@/components/home/ProgramBankJatah";
-import ParallaxSection from "@/components/home/ParallaxSection";
-import ManfaatJelantah from "@/components/home/ManfaatJelantah";
-import Mitra from "@/components/home/Mitra";
-import TestimoniMasyarakat from "@/components/home/TestimoniMasyarakat";
-import FAQ from "@/components/home/FAQ";
-import BeritaSection from "@/components/home/BeritaSection";
+import Hero from "@/components/features/(public)/home/Hero";
+import TentangKami from "@/components/features/(public)/home/TentangKami";
+import ProgramBankJatah from "@/components/features/(public)/home/ProgramBankJatah";
+import ParallaxSection from "@/components/features/(public)/home/ParallaxSection";
+import ManfaatJelantah from "@/components/features/(public)/home/ManfaatJelantah";
+import Mitra from "@/components/features/(public)/home/Mitra";
+import TestimoniMasyarakat from "@/components/features/(public)/home/TestimoniMasyarakat";
+import FAQ from "@/components/features/(public)/home/FAQ";
+import ArtikelSection from "@/components/features/(public)/home/ArtikelSection";
 
 export default function Home() {
   return (
@@ -51,7 +51,7 @@ export default function Home() {
 
       {/* Artikel & Berita */}
       <section id="berita" className="py-20 px-6 bg-white">
-        <BeritaSection />
+        <ArtikelSection />
       </section>
     </div>
   );
