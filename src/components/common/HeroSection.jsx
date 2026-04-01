@@ -1,10 +1,31 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, Fragment } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 export default function HeroSection({ title, description, imageUrl }) {
+  const pathname = usePathname();
   const ref = useRef(null);
+
+  // Generate breadcrumbs from pathname
+  const pathSegments = pathname.split("/").filter((segment) => segment !== "");
+  const breadcrumbs = pathSegments.map((segment, index) => {
+    const href = "/" + pathSegments.slice(0, index + 1).join("/");
+    const label = segment
+      .replace(/-/g, " ")
+      .replace(/\b\w/g, (l) => l.toUpperCase());
+    return { href, label };
+  });
 
   // Parallax Setup: Start when element is in view, end when it leaves viewport
   const { scrollYProgress } = useScroll({
@@ -63,41 +84,62 @@ export default function HeroSection({ title, description, imageUrl }) {
         />
       </div>
 
-      {/* Modern Presentation Container with Parallax Text */}
       <motion.div
         style={{
           opacity: opacityText,
           y: yText,
         }}
-        className="relative z-20 flex flex-col items-center justify-center px-6 lg:px-12 text-center w-full max-w-5xl mx-auto pt-20"
+        className="relative z-20 flex flex-col items-start justify-center px-6 lg:px-12 text-left w-full max-w-7xl mx-auto pt-32 lg:pt-40"
       >
-        {/* Futuristic Badge/Pill */}
+        {/* Modern Breadcrumb */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-orange-500/20 bg-orange-500/10 backdrop-blur-md mb-8"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="mb-6 lg:mb-8"
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse shadow-[0_0_10px_rgba(249,115,22,0.8)]" />
-          <span className="text-orange-400 text-xs font-bold tracking-[0.2em] uppercase">
-            Eksplorasi Inisiatif
-          </span>
-          <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse shadow-[0_0_10px_rgba(249,115,22,0.8)]" />
+          <Breadcrumb>
+            <BreadcrumbList className="text-white/60">
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link href="/" className="hover:text-orange-400 transition-colors">Home</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              {breadcrumbs.map((crumb, index) => (
+                <Fragment key={crumb.href}>
+                  <BreadcrumbSeparator className="text-white/30" />
+                  <BreadcrumbItem>
+                    {index === breadcrumbs.length - 1 ? (
+                      <BreadcrumbPage className="text-orange-400 font-medium">
+                        {crumb.label}
+                      </BreadcrumbPage>
+                    ) : (
+                      <BreadcrumbLink asChild>
+                        <Link href={crumb.href} className="hover:text-orange-400 transition-colors">
+                          {crumb.label}
+                        </Link>
+                      </BreadcrumbLink>
+                    )}
+                  </BreadcrumbItem>
+                </Fragment>
+              ))}
+            </BreadcrumbList>
+          </Breadcrumb>
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className="space-y-6 w-full"
+          className="space-y-4 w-full"
         >
           {/* Main Title - Ultra Modern Typography */}
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-black leading-[1.05] tracking-tighter text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.8)]">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.5rem] font-bold leading-[1.1] tracking-tight text-white drop-shadow-2xl">
             {title.split(" ").map((word, i) => (
               <span
                 key={i}
                 className={
-                  i % 2 !== 0
+                  i >= title.split(" ").length - 1
                     ? "text-transparent bg-clip-text bg-gradient-to-br from-orange-400 via-amber-400 to-yellow-500"
                     : ""
                 }
@@ -112,19 +154,13 @@ export default function HeroSection({ title, description, imageUrl }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1, delay: 0.7 }}
-            className="text-lg sm:text-xl lg:text-2xl text-gray-300 leading-relaxed max-w-3xl mx-auto drop-shadow-lg font-light tracking-wide mix-blend-plus-lighter"
+            className="text-lg sm:text-xl text-gray-300 leading-relaxed max-w-2xl drop-shadow-lg font-light tracking-wide"
           >
             {description}
           </motion.p>
         </motion.div>
 
-        {/* Subtle Decorative Line Below */}
-        <motion.div
-          initial={{ opacity: 0, scaleX: 0 }}
-          animate={{ opacity: 1, scaleX: 1 }}
-          transition={{ duration: 1, delay: 0.8, ease: "easeInOut" }}
-          className="w-px h-16 bg-gradient-to-b from-orange-500/50 to-transparent mt-12"
-        />
+        {/* Removed Decorative Line */}
       </motion.div>
     </div>
   );

@@ -29,8 +29,10 @@ export default function ParallaxSection() {
       />
       
       {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900/80 via-primary/20 to-transparent z-10" />
-      <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-transparent to-transparent z-10" />
+      {/* Dark Premium Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-black/50 to-transparent z-10" />
+      <div className="absolute inset-0 bg-black/40 z-10" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent z-10" />
       
       {/* Floating Elements */}
       <div className="absolute top-1/4 left-10 w-4 h-4 bg-primary rounded-full opacity-60 animate-pulse" />

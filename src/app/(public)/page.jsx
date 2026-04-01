@@ -1,7 +1,6 @@
 // src/app/(public)/page.jsx
 
 import Hero from "@/components/features/(public)/home/Hero";
-import TentangKami from "@/components/features/(public)/home/TentangKami";
 import ProgramBankJatah from "@/components/features/(public)/home/ProgramBankJatah";
 import ParallaxSection from "@/components/features/(public)/home/ParallaxSection";
 import ManfaatJelantah from "@/components/features/(public)/home/ManfaatJelantah";
@@ -12,47 +11,32 @@ import ArtikelSection from "@/components/features/(public)/home/ArtikelSection";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white text-black font-sans flex flex-col">
+    <div>
       {/* Hero */}
       <Hero />
 
-      {/* Tentang Kami */}
-      <section id="tentangkami" className="py-20 px-6 bg-white">
-        <TentangKami />
-      </section>
+      {/* Manfaat Jelantah */}
+      <ManfaatJelantah />
 
       {/* Program Bank Jatah */}
-      <section id="program" className="py-20 px-6 bg-white">
+      <section className="w-full bg-white relative pt-0 pb-20 sm:pb-24 lg:pb-32 px-4 sm:px-6 lg:px-8 overflow-hidden">
         <ProgramBankJatah />
       </section>
 
       {/* Parallax Visual Section */}
       <ParallaxSection />
 
-      {/* Manfaat Jelantah */}
-      <section id="manfaat" className="py-20 px-6 bg-white">
-        <ManfaatJelantah />
-      </section>
-
       {/* Mitra Penampung */}
-      <section id="mitra" className="py-20 px-6 bg-white">
-        <Mitra />
-      </section>
+      <Mitra />
 
       {/* Testimoni Masyarakat */}
-      <section id="testimoni" className="py-20 px-6 bg-white">
-        <TestimoniMasyarakat />
-      </section>
+      <TestimoniMasyarakat />
 
       {/* FAQ */}
-      <section id="faq" className="py-20 px-6 bg-white">
-        <FAQ />
-      </section>
+      <FAQ />
 
       {/* Artikel & Berita */}
-      <section id="berita" className="py-20 px-6 bg-white">
-        <ArtikelSection />
-      </section>
+      <ArtikelSection />
     </div>
   );
 }

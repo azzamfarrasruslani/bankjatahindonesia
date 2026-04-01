@@ -131,44 +131,47 @@ export default function TestimoniMasyarakat() {
   }
 
   return (
-    <section className="bg-white py-24 sm:py-32 px-4 sm:px-6 lg:px-8 relative overflow-hidden border-t border-gray-50">
-      {/* Background Ornament */}
-      <div className="absolute top-1/2 right-0 -translate-y-1/2 w-1/3 h-1/2 bg-[radial-gradient(ellipse_at_right,_var(--tw-gradient-stops))] from-orange-50/80 via-transparent to-transparent opacity-70 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-1/4 h-1/3 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-orange-100/40 via-transparent to-transparent pointer-events-none" />
-
+    <section className="bg-white py-20 px-6 relative overflow-hidden border-t border-gray-50">
+      {/* Background Decoratives - Minimalist Grid */}
+      <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] pointer-events-none" 
+           style={{ backgroundImage: `radial-gradient(#f97316 1px, transparent 1px)`, backgroundSize: '40px 40px' }} />
+      
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Header Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="text-center mb-16 lg:mb-24"
-        >
-          {/* Badge */}
-          <div className="inline-flex items-center gap-3 px-5 py-2 border border-orange-200 bg-orange-50 rounded-full mb-6 mx-auto shadow-sm">
-            <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
-            <span className="text-sm font-bold text-orange-600 tracking-wider uppercase">
-              Kata Mereka
-            </span>
-          </div>
+        {/* Header Section - Modern SaaS Centered */}
+        <div className="text-center mb-16 lg:mb-24 space-y-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 border border-orange-200 bg-orange-50 rounded-full shadow-sm mx-auto"
+          >
+            <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse" />
+            <span className="text-[10px] font-black text-orange-600 tracking-[0.2em] uppercase">Suara Pengguna</span>
+          </motion.div>
 
-          {/* Title - Light Theme High Contrast */}
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 mb-6 leading-tight uppercase tracking-tight">
-            Testimoni <br className="sm:hidden" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-500">
-              Masyarakat
-            </span>
-          </h2>
+          <motion.h2
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+            viewport={{ once: true }}
+            className="text-4xl lg:text-5xl font-black text-black leading-tight uppercase tracking-tighter"
+          >
+            Testimoni <span className="text-orange-500">Masyarakat</span>
+          </motion.h2>
 
-          {/* Description */}
-          <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed font-light">
-            Pengalaman nyata inspiratif dari masyarakat yang telah merasakan
-            langsung manfaat bergabung dalam ekosistem Bank Jatah Indonesia.
-          </p>
-        </motion.div>
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 0.2 }}
+            viewport={{ once: true }}
+            className="text-gray-500 text-sm md:text-base leading-relaxed font-normal max-w-2xl mx-auto"
+          >
+            Kisah nyata dari para pengguna yang telah berkontribusi menjaga kelestarian alam dan merasakan langsung manfaat program Bank Jatah.
+          </motion.p>
+        </div>
 
-        {/* Testimonials Grid/Slider */}
+        {/* Testimonials Grid/Slider Container */}
         <div className="relative">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
@@ -176,8 +179,8 @@ export default function TestimoniMasyarakat() {
               initial={{ opacity: 0, x: direction > 0 ? 50 : -50 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: direction > 0 ? -50 : 50 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
+              transition={{ duration: 0.5, ease: "circOut" }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
             >
               {visibleTestimonies.map((testi, index) => (
                 <motion.div
@@ -185,102 +188,106 @@ export default function TestimoniMasyarakat() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  whileHover={{ y: -8 }}
-                  className="group relative bg-white rounded-[2rem] p-8 sm:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgba(249,115,22,0.1)] border border-gray-100 hover:border-orange-200 transition-all duration-500 cursor-pointer flex flex-col h-full"
+                  whileHover={{ y: -10 }}
+                  className="group relative bg-white rounded-[2.5rem] p-10 border border-gray-50 shadow-[0_10px_30px_rgba(0,0,0,0.02)] hover:shadow-[0_25px_60px_rgba(249,115,22,0.12)] hover:border-orange-100 transition-all duration-700 flex flex-col h-full overflow-hidden"
                 >
-                  {/* Subtle Accent Glow on Hover */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-orange-50 to-transparent opacity-0 group-hover:opacity-100 rounded-[2rem] transition-opacity duration-500 pointer-events-none" />
-
+                  {/* Subtle Gradient Glow */}
+                  <div className="absolute -top-20 -right-20 w-40 h-40 bg-orange-50 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                  
                   <div className="relative z-10 flex flex-col h-full">
-                    {/* Header: User Info & Quote Icon */}
+                    {/* Upper Row: Profile & Quote Icon */}
                     <div className="flex items-start justify-between mb-8">
-                      <div className="flex items-center gap-4">
-                        {/* Elegant Initial Avatar */}
-                        <div className="w-14 h-14 bg-gray-50 group-hover:bg-orange-500 rounded-full flex items-center justify-center text-gray-600 group-hover:text-white font-bold text-xl transition-colors duration-300 shadow-sm border border-gray-100 group-hover:border-orange-400">
-                          {testi.nama.charAt(0)}
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-gray-900 text-base mb-0.5 group-hover:text-orange-600 transition-colors">
-                            {testi.nama}
-                          </h4>
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                            Pengguna
-                          </span>
-                        </div>
-                      </div>
-                      <div className="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center text-orange-200 group-hover:text-orange-500 group-hover:scale-110 transition-all duration-300 flex-shrink-0">
-                        <Quote className="w-5 h-5 fill-current" />
-                      </div>
+                       <div className="flex items-center gap-4">
+                          {/* Initial Avatar - SaaS Style */}
+                          <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center text-black font-black text-xl border border-gray-100 group-hover:bg-orange-500 group-hover:text-white group-hover:scale-110 transition-all duration-500 shadow-sm">
+                            {testi.nama.charAt(0)}
+                          </div>
+                          <div>
+                            <h4 className="font-black text-black text-base leading-none tracking-tight group-hover:text-orange-600 transition-colors">
+                              {testi.nama}
+                            </h4>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1 block">
+                              Masyarakat
+                            </span>
+                          </div>
+                       </div>
+                       
+                       <div className="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center text-orange-400 group-hover:bg-orange-500 group-hover:text-white transition-all duration-500 shadow-sm">
+                          <Quote className="w-4 h-4 fill-current" />
+                       </div>
                     </div>
 
-                    {/* Rating Stars */}
+                    {/* Rating - Concise Star Bar */}
                     <div className="flex items-center gap-1 mb-6">
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          className={`w-4 h-4 ${
+                          className={`w-3.5 h-3.5 ${
                             i < testi.rating
-                              ? "text-orange-400 fill-orange-400"
-                              : "text-gray-200 fill-gray-200"
-                          } transition-colors`}
+                              ? "text-orange-500 fill-orange-500"
+                              : "text-gray-100 fill-gray-100"
+                          }`}
                         />
                       ))}
                     </div>
 
-                    {/* Testimonial Text */}
-                    <blockquote className="text-gray-600 leading-relaxed font-light text-base sm:text-lg mb-6 flex-grow">
+                    {/* Content - Elegant Blockquote */}
+                    <blockquote className="text-gray-500 font-normal leading-relaxed text-sm sm:text-base flex-grow tracking-tight italic">
                       "{testi.isi}"
                     </blockquote>
+                    
+                    {/* Bottom Detail */}
+                    <div className="mt-8 pt-6 border-t border-gray-50 flex items-center gap-3">
+                        <div className="w-1.5 h-1.5 bg-orange-200 rounded-full" />
+                        <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">
+                          Diverifikasi Oleh Admin
+                        </span>
+                    </div>
                   </div>
                 </motion.div>
               ))}
             </motion.div>
           </AnimatePresence>
 
-          {/* Premium Navigation Controls */}
+          {/* Premium Slider Controls */}
           {testimonies.length > visibleCount && (
-            <div className="flex justify-center items-center gap-6 mt-16">
+            <div className="flex justify-center items-center gap-8 mt-16 lg:mt-20">
               <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ x: -4, scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={handlePrev}
-                className="w-14 h-14 rounded-full bg-white border border-gray-100 text-gray-400 shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_25px_rgba(249,115,22,0.2)] hover:bg-orange-500 hover:border-orange-400 hover:text-white transition-all duration-300 flex items-center justify-center"
-                aria-label="Testimoni sebelumnya"
+                className="w-14 h-14 rounded-full bg-black text-white hover:bg-orange-500 shadow-xl transition-all duration-500 flex items-center justify-center group"
               >
-                <ChevronLeft className="w-6 h-6 ml-[-2px]" />
+                <ChevronLeft className="w-6 h-6 group-hover:-translate-x-0.5 transition-transform" />
               </motion.button>
 
-              {/* Minimal Dots Indicator */}
-              <div className="flex items-center gap-2.5">
+              {/* Progress Dots Indicator */}
+              <div className="flex items-center gap-3">
                 {Array.from({
                   length: Math.ceil(testimonies.length / visibleCount),
                 }).map((_, index) => (
                   <button
                     key={index}
                     onClick={() => {
-                      setDirection(
-                        index > currentIndex / visibleCount ? 1 : -1,
-                      );
+                      setDirection(index > currentIndex / visibleCount ? 1 : -1);
                       setCurrentIndex(index * visibleCount);
                     }}
-                    aria-label={`Go to set ${index + 1}`}
-                    className={`h-2 rounded-full transition-all duration-500 ease-in-out ${
+                    className={`h-1.5 rounded-full transition-all duration-700 ${
                       Math.floor(currentIndex / visibleCount) === index
-                        ? "bg-orange-500 w-8"
-                        : "bg-gray-200 hover:bg-orange-300 w-2"
+                        ? "bg-orange-500 w-10 shadow-[0_4px_10px_rgba(249,115,22,0.3)]"
+                        : "bg-gray-100 w-3 hover:bg-orange-200"
                     }`}
                   />
                 ))}
               </div>
 
               <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ x: 4, scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={handleNext}
-                className="w-14 h-14 rounded-full bg-white border border-gray-100 text-gray-400 shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_25px_rgba(249,115,22,0.2)] hover:bg-orange-500 hover:border-orange-400 hover:text-white transition-all duration-300 flex items-center justify-center"
-                aria-label="Testimoni berikutnya"
+                className="w-14 h-14 rounded-full bg-black text-white hover:bg-orange-500 shadow-xl transition-all duration-500 flex items-center justify-center group"
               >
-                <ChevronRight className="w-6 h-6 mr-[-2px]" />
+                <ChevronRight className="w-6 h-6 group-hover:translate-x-0.5 transition-transform" />
               </motion.button>
             </div>
           )}

@@ -16,12 +16,12 @@ export default function ListMenu() {
   if (!ready || !mounted) return null;
 
   const menuClass = (path) =>
-    `relative px-3 py-2 text-sm font-medium transition-all hover:text-[#FB6B00] ${
+    `relative px-3 py-2 text-[13px] font-medium transition-all hover:text-[#FB6B00] ${
       pathname === path ? "text-[#FB6B00] font-semibold" : "text-gray-700"
     }`;
 
   return (
-    <ul className="flex items-center gap-4 list-none text-sm">
+    <ul className="flex items-center gap-4 list-none text-[13px]">
       <li>
         <Link href="/" className={menuClass("/")}>
           {t("navbar.beranda")}

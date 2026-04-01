@@ -66,243 +66,206 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-black text-white relative overflow-hidden flex flex-col pt-16 mt-auto">
-      {/* Dynamic Background Effect */}
-      <div className="absolute top-0 left-0 w-full h-full opacity-30 pointer-events-none overflow-hidden">
-        <div className="absolute -top-32 -left-32 w-96 h-96 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-500/20 via-transparent to-transparent blur-[80px]" />
-        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-orange-600/10 via-transparent to-transparent blur-[100px]" />
+    <footer className="relative bg-[#0a0a0a] text-white pt-20 overflow-hidden mt-auto">
+      {/* Background Decoratives - Patterns & Glows */}
+      <div className="absolute inset-0 opacity-[0.05] pointer-events-none" 
+           style={{ backgroundImage: `radial-gradient(#f97316 0.5px, transparent 0.5px)`, backgroundSize: '32px 32px' }} />
+      
+      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_rgba(249,115,22,0.05)_0%,_transparent_40%)] pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-full h-full bg-[radial-gradient(circle_at_bottom_left,_rgba(249,115,22,0.05)_0%,_transparent_40%)] pointer-events-none" />
+
+      {/* 1. Newsletter / CTA Top Band */}
+      <div className="relative z-10 container mx-auto px-6 mb-20">
+        <div className="rounded-[2.5rem] p-10 md:p-16 shadow-[0_30px_60px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center gap-6 overflow-hidden relative min-h-[350px] text-center border border-white/5">
+          {/* Background Image with Dark Professional Overlay */}
+          <div className="absolute inset-0 z-0">
+            <Image 
+              src="/images/parallax.jpeg" 
+              alt="Background" 
+              fill 
+              className="object-cover opacity-60" 
+            />
+            {/* Sophisticated Dark Gradient instead of heavy orange */}
+            <div className="absolute inset-0 bg-gradient-to-b from-gray-950/90 via-gray-950/40 to-gray-950/90" />
+            <div className="absolute inset-0 bg-orange-600/10" />
+          </div>
+          
+          <div className="max-w-3xl space-y-6 relative z-10 px-4">
+            <h3 className="text-3xl md:text-4xl lg:text-5xl font-black text-white uppercase tracking-tighter leading-tight drop-shadow-2xl">
+              Ayo Berkontribusi <br />
+              <span className="text-orange-500">Untuk Lingkungan</span>
+            </h3>
+            <p className="text-gray-300 font-light text-base md:text-lg max-w-2xl mx-auto leading-relaxed drop-shadow-md">
+              Mulai langkah kecil Anda hari ini dengan mengelola limbah minyak jelantah secara bijak bersama <span className="text-white font-semibold">Bank Jatah Indonesia</span>.
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* Decorative Top Border */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-80" />
+      <div className="relative z-10 container mx-auto px-6">
+        {/* 2. Main Footer Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 mb-20">
+          
+          {/* Brand & Intro Column (Lg:col-span-4) */}
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="lg:col-span-4 space-y-8"
+          >
+            <Link href="/" className="inline-block group">
+              <div className="bg-white/5 backdrop-blur-xl p-4 rounded-3xl w-fit border border-white/10 shadow-xl group-hover:border-orange-500/30 transition-all duration-500">
+                <Image
+                  src="/images/logo3.png"
+                  alt="Bank Jatah Indonesia"
+                  width={160}
+                  height={50}
+                  className="object-contain brightness-0 invert opacity-90 group-hover:opacity-100 transition-opacity"
+                />
+              </div>
+            </Link>
+            <p className="text-white/50 text-sm md:text-base leading-relaxed font-normal max-w-sm">
+              Inovasi pengelolaan limbah minyak jelantah untuk menciptakan ekosistem sirkulasi ekonomi hijau yang berkelanjutan bagi masa depan Indonesia yang lebih sehat.
+            </p>
+            
+            {/* Social Media - Premium Style */}
+            <div className="flex items-center gap-4">
+              {kontak.facebook && (
+                <Link href={kontak.facebook} target="_blank" className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-orange-500 hover:border-orange-500 transition-all duration-300 group shadow-lg">
+                  <Facebook size={20} className="text-white/60 group-hover:text-white group-hover:fill-current" />
+                </Link>
+              )}
+              {kontak.instagram && (
+                <Link href={kontak.instagram} target="_blank" className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-orange-500 hover:border-orange-500 transition-all duration-300 group shadow-lg">
+                  <Instagram size={20} className="text-white/60 group-hover:text-white" />
+                </Link>
+              )}
+              {kontak.email && (
+                <Link href={`mailto:${kontak.email}`} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-orange-500 hover:border-orange-500 transition-all duration-300 group shadow-lg">
+                  <Mail size={20} className="text-white/60 group-hover:text-white" />
+                </Link>
+              )}
+            </div>
+          </motion.div>
 
-      {/* Scroll to Top Premium Button */}
+          {/* Navigation Links Columns (Lg:col-span-2 each) */}
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+            viewport={{ once: true }}
+            className="lg:col-span-2 space-y-8"
+          >
+            <h4 className="text-sm font-black text-white uppercase tracking-[0.2em] border-l-2 border-orange-500 pl-4 h-fit">
+              Navigasi
+            </h4>
+            <ul className="space-y-4">
+              {quickLinks.map((link, idx) => (
+                <li key={idx}>
+                  <Link href={link.href} className="text-white/50 hover:text-orange-500 font-normal transition-colors duration-300 text-sm block">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            viewport={{ once: true }}
+            className="lg:col-span-2 space-y-8"
+          >
+            <h4 className="text-sm font-black text-white uppercase tracking-[0.2em] border-l-2 border-orange-500 pl-4 h-fit">
+              Informasi
+            </h4>
+            <ul className="space-y-4">
+              {infoLinks.map((link, idx) => (
+                <li key={idx}>
+                  <Link href={link.href} className="text-white/50 hover:text-orange-500 font-normal transition-colors duration-300 text-sm block">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+
+          {/* Contact Glass-Panel (Lg:col-span-4) */}
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            viewport={{ once: true }}
+            className="lg:col-span-4"
+          >
+            <div className="bg-white/5 backdrop-blur-md rounded-[2.5rem] p-8 border border-white/10 shadow-2xl relative overflow-hidden group">
+              {/* Internal glow for panel */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-[40px]" />
+              
+              <h4 className="text-sm font-black text-white uppercase tracking-[0.2em] mb-8 relative z-10">
+                Kontak Kami
+              </h4>
+              
+              <ul className="space-y-6 relative z-10">
+                <li className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <MapPin size={18} className="text-orange-500" />
+                  </div>
+                  <span className="text-white/60 text-sm leading-relaxed font-normal">
+                    Jl. Flamboyan No.7, Rumbai, Pekanbaru, Riau
+                  </span>
+                </li>
+                <li className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center flex-shrink-0">
+                    <Mail size={18} className="text-orange-500" />
+                  </div>
+                  <a href={`mailto:${kontak.email}`} className="text-white/60 hover:text-orange-500 transition-colors text-sm font-normal truncate">
+                    {kontak.email}
+                  </a>
+                </li>
+                <li className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center flex-shrink-0">
+                    <Phone size={18} className="text-orange-500" />
+                  </div>
+                  <a href={kontak.whatsapp_link || `https://wa.me/${kontak.whatsapp}`} target="_blank" className="text-white/60 hover:text-orange-500 transition-colors text-sm font-normal">
+                    {kontak.telepon}
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* 3. Bottom Strip */}
+        <div className="pt-8 pb-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
+          <p className="text-white/30 text-[xs md:text-sm font-normal text-center md:text-left">
+            &copy; {new Date().getFullYear()} <span className="text-white font-bold">Bank Jatah Indonesia</span>. Hak Cipta Dilindungi.
+          </p>
+          
+          <div className="flex flex-wrap items-center justify-center gap-8 text-[11px] font-black text-white/30 uppercase tracking-[0.1em]">
+            <Link href="/privacy-policy" className="hover:text-orange-500 transition-colors">Kebijakan Privasi</Link>
+            <Link href="/terms-of-service" className="hover:text-orange-500 transition-colors">Syarat & Ketentuan</Link>
+            <Link href="/sitemap" className="hover:text-orange-500 transition-colors">Sitemap</Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Floating Scroll to Top - Premium Style */}
       <AnimatePresence>
         {showScrollTop && (
           <motion.button
-            initial={{ opacity: 0, y: 30, scale: 0.8 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 30, scale: 0.8 }}
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5 }}
             onClick={scrollToTop}
-            className="fixed bottom-8 right-8 z-50 w-14 h-14 bg-orange-500 hover:bg-white text-white hover:text-orange-500 rounded-full shadow-[0_4px_20px_rgba(249,115,22,0.4)] flex items-center justify-center transition-all duration-300 group ring-4 ring-orange-500/20"
-            aria-label="Kembali ke atas"
+            className="fixed bottom-8 right-8 z-50 w-14 h-14 bg-orange-500 rounded-full flex items-center justify-center shadow-[0_15px_30px_rgba(249,115,22,0.4)] hover:bg-white hover:text-orange-600 transition-all duration-500 group"
           >
             <ArrowUp className="w-6 h-6 transition-transform group-hover:-translate-y-1" />
           </motion.button>
         )}
       </AnimatePresence>
-
-      <div className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
-        {/* Main Footer Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-12 lg:gap-8 xl:gap-16 mb-16">
-          {/* Brand Identity Panel */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="xl:col-span-5 flex flex-col"
-          >
-            <Link href="/" className="inline-block mb-8">
-              <div className="bg-white/5 backdrop-blur-sm p-3 rounded-2xl w-fit border border-white/10">
-                <Image
-                  src="/images/logo3.png"
-                  alt="Bank Jatah Indonesia"
-                  width={180}
-                  height={60}
-                  className="object-contain brightness-0 invert drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-transform duration-300 hover:scale-105"
-                />
-              </div>
-            </Link>
-            <p className="text-gray-400 leading-relaxed mb-8 max-w-md font-light text-base/7">
-              Bank Jatah Indonesia menginovasi cara kita mengelola sisa minyak
-              dapur. Bersama-sama, kita wujudkan sirkulasi ekonomi hijau yang
-              lebih berkelanjutan.
-            </p>
-
-            {/* Social Media Links */}
-            <div className="flex items-center gap-4">
-              {kontak.facebook && (
-                <motion.a
-                  whileHover={{ scale: 1.1, y: -4 }}
-                  href={kontak.facebook}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Facebook"
-                  className="w-12 h-12 rounded-full border border-gray-800 bg-gray-900/50 flex items-center justify-center hover:bg-orange-500 hover:border-orange-400 hover:text-white transition-all duration-300 backdrop-blur-sm text-gray-400 group"
-                >
-                  <Facebook size={20} className="group-hover:fill-current" />
-                </motion.a>
-              )}
-              {kontak.instagram && (
-                <motion.a
-                  whileHover={{ scale: 1.1, y: -4 }}
-                  href={kontak.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Instagram"
-                  className="w-12 h-12 rounded-full border border-gray-800 bg-gray-900/50 flex items-center justify-center hover:bg-orange-500 hover:border-orange-400 hover:text-white transition-all duration-300 backdrop-blur-sm text-gray-400 group"
-                >
-                  <Instagram size={20} />
-                </motion.a>
-              )}
-              {kontak.email && (
-                <motion.a
-                  whileHover={{ scale: 1.1, y: -4 }}
-                  href={`mailto:${kontak.email}`}
-                  aria-label="Email"
-                  className="w-12 h-12 rounded-full border border-gray-800 bg-gray-900/50 flex items-center justify-center hover:bg-orange-500 hover:border-orange-400 hover:text-white transition-all duration-300 backdrop-blur-sm text-gray-400 group"
-                >
-                  <Mail size={20} className="group-hover:fill-current" />
-                </motion.a>
-              )}
-            </div>
-          </motion.div>
-
-          {/* Quick Links Nav */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            viewport={{ once: true }}
-            className="xl:col-span-2"
-          >
-            <h4 className="text-lg font-bold mb-6 text-white uppercase tracking-wider flex items-center gap-3">
-              <span className="w-2 h-2 rounded-full bg-orange-500" /> Navigasi
-            </h4>
-            <ul className="space-y-4">
-              {quickLinks.map((link, idx) => (
-                <li key={idx}>
-                  <Link
-                    href={link.href}
-                    className="text-gray-400 hover:text-orange-400 transition-colors duration-300 flex items-center gap-3 group font-light"
-                  >
-                    <div className="w-4 h-0.5 bg-gray-800 group-hover:bg-orange-500 group-hover:w-6 transition-all duration-300" />
-                    <span>{link.label}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-
-          {/* Info Links Nav */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            viewport={{ once: true }}
-            className="xl:col-span-2"
-          >
-            <h4 className="text-lg font-bold mb-6 text-white uppercase tracking-wider flex items-center gap-3">
-              <span className="w-2 h-2 rounded-full bg-orange-500" /> Informasi
-            </h4>
-            <ul className="space-y-4">
-              {infoLinks.map((link, idx) => (
-                <li key={idx}>
-                  <Link
-                    href={link.href}
-                    className="text-gray-400 hover:text-orange-400 transition-colors duration-300 flex items-center gap-3 group font-light"
-                  >
-                    <div className="w-4 h-0.5 bg-gray-800 group-hover:bg-orange-500 group-hover:w-6 transition-all duration-300" />
-                    <span>{link.label}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-
-          {/* Contact Details Board */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            viewport={{ once: true }}
-            className="xl:col-span-3 bg-gray-900/40 rounded-[2rem] p-8 border border-gray-800 shadow-inner"
-          >
-            <h4 className="text-lg font-bold mb-6 text-white uppercase tracking-wider">
-              Kontak Kami
-            </h4>
-            <ul className="space-y-6">
-              <li className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-orange-500/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 border border-orange-500/20">
-                  <MapPin size={18} className="text-orange-500" />
-                </div>
-                <span className="text-gray-400 text-sm leading-relaxed font-light mt-1">
-                  Jl. Flamboyan No.7, Rumbai, Pekanbaru, Riau
-                </span>
-              </li>
-              <li className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-orange-500/10 rounded-full flex items-center justify-center flex-shrink-0 border border-orange-500/20">
-                  <Mail size={18} className="text-orange-500" />
-                </div>
-                <a
-                  href={`mailto:${kontak.email}`}
-                  className="text-gray-400 hover:text-orange-400 transition-colors duration-300 text-sm font-light truncate"
-                >
-                  {kontak.email}
-                </a>
-              </li>
-              <li className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-orange-500/10 rounded-full flex items-center justify-center flex-shrink-0 border border-orange-500/20">
-                  <Phone size={18} className="text-orange-500" />
-                </div>
-                <a
-                  href={
-                    kontak.whatsapp_link || `https://wa.me/${kontak.whatsapp}`
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-orange-400 transition-colors duration-300 text-sm font-light"
-                >
-                  {kontak.telepon}
-                </a>
-              </li>
-            </ul>
-          </motion.div>
-        </div>
-
-        {/* Footer Bottom Strip */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          viewport={{ once: true }}
-          className="border-t border-gray-800/80 py-8 flex flex-col md:flex-row items-center justify-between gap-6"
-        >
-          {/* Copyright Text */}
-          <div className="text-center md:text-left">
-            <p className="text-gray-500 text-sm font-light">
-              &copy; {new Date().getFullYear()}{" "}
-              <span className="text-white font-medium">
-                Bank Jatah Indonesia
-              </span>
-              . Hak Cipta Dilindungi.
-            </p>
-          </div>
-
-          {/* Legal Links Panel */}
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm font-light">
-            <Link
-              href="/privacy-policy"
-              className="text-gray-500 hover:text-orange-400 transition-colors duration-300"
-            >
-              Kebijakan Privasi
-            </Link>
-            <Link
-              href="/terms-of-service"
-              className="text-gray-500 hover:text-orange-400 transition-colors duration-300"
-            >
-              Syarat & Ketentuan
-            </Link>
-            <Link
-              href="/sitemap"
-              className="text-gray-500 hover:text-orange-400 transition-colors duration-300"
-            >
-              Sitemap
-            </Link>
-          </div>
-        </motion.div>
-      </div>
     </footer>
   );
 }

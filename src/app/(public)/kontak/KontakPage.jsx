@@ -70,7 +70,7 @@ export default function KontakPage() {
           description="Kami siap mendengar dan membantu Anda. Silakan sampaikan pertanyaan, kritik, atau saran melalui saluran komunikasi di bawah ini."
           imageUrl="/images/kontak-banner.jpeg"
         />
-        <section className="py-24 px-6 max-w-7xl mx-auto -mt-16 relative z-20">
+        <section className="py-24 px-6 max-w-7xl mx-auto mt-8 relative z-20">
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="flex-1 bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 lg:p-12 h-[600px] animate-pulse shimmer-bg" />
             <div className="w-full lg:w-[400px] bg-gray-100 rounded-[2.5rem] p-8 h-[600px] animate-pulse shimmer-bg" />
@@ -135,7 +135,7 @@ export default function KontakPage() {
         imageUrl="/images/faq-banner.jpeg"
       />
 
-      <section className="relative -mt-16 px-4 sm:px-6 lg:px-8 z-20">
+      <section className="relative mt-8 px-4 sm:px-6 lg:px-8 z-20">
         <div className="max-w-7xl mx-auto flex flex-col-reverse lg:flex-row gap-8 lg:gap-12 pl-0">
           {/* Form Section (Left side on Desktop) */}
           <motion.div
@@ -233,7 +233,7 @@ export default function KontakPage() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="w-full lg:w-[420px] shrink-0"
           >
-            <div className="bg-gradient-to-br from-orange-500 to-amber-600 rounded-[2.5rem] sm:rounded-[3rem] p-8 sm:p-12 shadow-[0_20px_50px_rgba(249,115,22,0.25)] text-white relative overflow-hidden h-full flex flex-col h-full border-[3px] border-white/20">
+            <div className="bg-gradient-to-br from-orange-500 to-amber-600 rounded-[2.5rem] sm:rounded-[3rem] p-8 sm:p-12 shadow-[0_20px_50px_rgba(249,115,22,0.25)] text-white relative overflow-hidden flex flex-col h-full border-[3px] border-white/20">
               {/* Decorative Background Accents */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-2xl translate-y-1/3 -translate-x-1/4 pointer-events-none" />

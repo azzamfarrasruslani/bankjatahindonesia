@@ -46,7 +46,7 @@ export default function ProgramBankJatah() {
   const current = programs[activeIndex];
 
   return (
-    <section className="w-full bg-white relative py-20 sm:py-24 lg:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <section className="w-full bg-white relative py- sm:py-24 lg:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden">
       {/* Light Background Accents */}
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-orange-50/60 via-transparent to-transparent pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-orange-100/40 via-transparent to-transparent pointer-events-none" />
@@ -107,8 +107,8 @@ export default function ProgramBankJatah() {
                 sizes="(max-width: 1024px) 50vw, 33vw"
               />
 
-              {/* Refined Smooth Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300" />
+              {/* Refined Smooth Gradient Overlay - Darker for better contrast */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/70 to-black/30 opacity-100 transition-opacity duration-300" />
 
               {/* Card Content Container */}
               <div className="relative z-20 h-full flex flex-col justify-end p-8 text-white">
@@ -166,7 +166,7 @@ export default function ProgramBankJatah() {
                 sizes="100vw"
                 priority
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/70 to-black/30" />
 
               <div className="relative z-20 h-full flex flex-col justify-end p-7 text-white">
                 {/* Mobile Icon */}

@@ -72,7 +72,7 @@ export default function LokasiPage() {
         imageUrl="/images/lokasi-banner.jpeg"
       />
 
-      <section className="relative -mt-16 px-4 sm:px-6 lg:px-8 z-20">
+      <section className="relative mt-8 px-4 sm:px-6 lg:px-8 z-20">
         <div className="max-w-7xl mx-auto">
           {/* Interaktif Filter Overlaying Hero */}
           <LokasiFilter

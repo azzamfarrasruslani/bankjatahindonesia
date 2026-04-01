@@ -83,43 +83,46 @@ export default function PartnerSection() {
   return (
     <section
       id="mitra"
-      className="bg-white py-24 sm:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden relative border-t border-gray-50"
+      className="bg-white py-10 md:py-16 px-4 sm:px-6 lg:px-8 overflow-hidden relative border-t border-gray-50"
     >
       {/* Decorative Blur Ornaments */}
       <div className="absolute left-1/2 top-0 -translate-x-1/2 w-3/4 h-32 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-50 via-transparent to-transparent opacity-80 pointer-events-none" />
 
       <div className="max-w-7xl mx-auto">
-        {/* Header Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="text-center mb-16 lg:mb-24"
-        >
-          {/* Badge */}
-          <div className="inline-flex items-center gap-3 px-5 py-2 border border-orange-200 bg-orange-50 rounded-full mb-6 mx-auto shadow-sm">
+        {/* Section Header - Mimicking ManfaatJelantah style */}
+        <div className="max-w-4xl mx-auto text-center mb-12 md:mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 border border-orange-100 rounded-full mb-5 shadow-sm"
+          >
             <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
-            <span className="text-sm font-bold text-orange-600 tracking-wider uppercase">
-              Kolaborasi Kami
-            </span>
-          </div>
-
-          {/* Title */}
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 mb-6 leading-tight uppercase tracking-tight">
-            Distributor & <br className="sm:hidden" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-500">
-              Mitra Setia
-            </span>
-          </h2>
-
-          {/* Description */}
-          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed font-light">
-            Membangun jaringan bisnis yang kuat dan saling menguntungkan.
-            Bersama para mitra, kami berdedikasi menciptakan ekosistem
-            pengelolaan yang berkelanjutan di berbagai daerah.
-          </p>
-        </motion.div>
+            <span className="text-[10px] font-black text-orange-600 uppercase tracking-[0.2em] leading-none pt-0.5">Kolaborasi Kami</span>
+          </motion.div>
+          
+          <motion.h2
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            viewport={{ once: true }}
+            className="text-3xl md:text-4xl lg:text-5xl font-bold text-black mb-6 leading-tight tracking-tight uppercase"
+          >
+            Distributor & <br className="hidden md:block" />
+            <span className="text-orange-500">Mitra Setia</span>
+          </motion.h2>
+          
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 0.4 }}
+            viewport={{ once: true }}
+            className="text-gray-500 text-sm md:text-base font-normal leading-relaxed max-w-2xl mx-auto"
+          >
+            Membangun jaringan bisnis yang kuat dan saling menguntungkan untuk menciptakan ekosistem pengelolaan yang berkelanjutan di seluruh Indonesia.
+          </motion.p>
+        </div>
 
         {partners.length === 0 ? (
           <motion.div

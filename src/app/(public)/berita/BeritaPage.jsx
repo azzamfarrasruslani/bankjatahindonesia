@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import BeritaHeading from "./components/BeritaHeading";
+import HeroSection from "@/components/common/HeroSection";
 import BeritaTopCard from "./components/BeritaTopCard";
 import BeritaCard from "./components/BeritaCard";
 import { motion, AnimatePresence } from "framer-motion";
@@ -46,9 +46,13 @@ export default function BeritaPage() {
   return (
     <main className="min-h-screen bg-white pb-24">
       {/* Header Section */}
-      <BeritaHeading />
+      <HeroSection
+        title="Kabar Teraktual"
+        description="Ikuti informasi, inovasi terobosan, dan pergerakan sosial terbaru dari ekosistem Bank Jatah Indonesia."
+        imageUrl="/images/parallax.jpeg"
+      />
 
-      <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto -mt-6">
+      <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mt-[-100px] mb-20 relative z-30">
         <AnimatePresence mode="wait">
           {loading ? (
             <motion.div
