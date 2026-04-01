@@ -1,8 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import Toast from "@/components/common/Toast";
+import { 
+  fetchFAQ, 
+  fetchFAQById, 
+  insertFAQ, 
+  updateFAQ 
+} from "@/services/faqService";
+import { toast } from "sonner";
 import { 
   HelpCircle, 
   MessageSquare, 
@@ -30,21 +35,18 @@ export default function FAQFormSheet({ isOpen, onClose, onSuccess, faqId }) {
   const [kategoriOptions, setKategoriOptions] = useState([]);
   const [isNewKategori, setIsNewKategori] = useState(false);
   const [newKategori, setNewKategori] = useState("");
-  const [toast, setToast] = useState({ message: "", type: "success" });
 
   useEffect(() => {
-    const fetchKategori = async () => {
-      const { data, error } = await supabase
-        .from("faq")
-        .select("kategori")
-        .not("kategori", "is", null);
-
-      if (error) return console.error("Gagal memuat kategori:", error);
-
-      const uniqueKategori = [...new Set(data.map((item) => item.kategori))];
-      setKategoriOptions(uniqueKategori);
+    const loadKategori = async () => {
+      try {
+        const data = await fetchFAQ();
+        const uniqueKategori = [...new Set(data.map((item) => item.kategori).filter(Boolean))];
+        setKategoriOptions(uniqueKategori);
+      } catch (error) {
+        console.error("Gagal memuat kategori:", error);
+      }
     };
-    if (isOpen) fetchKategori();
+    if (isOpen) loadKategori();
   }, [isOpen]);
 
   useEffect(() => {
@@ -52,22 +54,19 @@ export default function FAQFormSheet({ isOpen, onClose, onSuccess, faqId }) {
 
     if (faqId) {
       const fetchData = async () => {
-        const { data, error } = await supabase
-          .from("faq")
-          .select("*")
-          .eq("id", faqId)
-          .single();
-
-        if (!error && data) {
-          setForm({
-            pertanyaan: data.pertanyaan || "",
-            jawaban: data.jawaban || "",
-            kategori: data.kategori || "",
-          });
-          setIsNewKategori(false);
-        } else if (error) {
+        try {
+          const data = await fetchFAQById(faqId);
+          if (data) {
+            setForm({
+              pertanyaan: data.pertanyaan || "",
+              jawaban: data.jawaban || "",
+              kategori: data.kategori || "",
+            });
+            setIsNewKategori(false);
+          }
+        } catch (error) {
           console.error("Gagal mengambil data:", error.message);
-          showToast("Gagal mengambil data FAQ", "error");
+          toast.error("Gagal mengambil data FAQ");
         }
       };
 
@@ -82,11 +81,6 @@ export default function FAQFormSheet({ isOpen, onClose, onSuccess, faqId }) {
       setNewKategori("");
     }
   }, [isOpen, faqId]);
-
-  const showToast = (message, type = "success") => {
-    setToast({ message, type });
-    setTimeout(() => setToast({ message: "", type: "success" }), 3000);
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -106,37 +100,37 @@ export default function FAQFormSheet({ isOpen, onClose, onSuccess, faqId }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isNewKategori && !newKategori.trim()) {
-      return showToast("Masukkan nama kategori baru.", "error");
+      return toast.error("Masukkan nama kategori baru.");
     }
     
     setLoading(true);
-    try {
-      const payload = {
-        pertanyaan: form.pertanyaan,
-        jawaban: form.jawaban,
-        kategori: form.kategori || "Umum",
-      };
+    const payload = {
+      pertanyaan: form.pertanyaan,
+      jawaban: form.jawaban,
+      kategori: form.kategori || "Umum",
+    };
 
-      if (faqId) {
-        const { error } = await supabase
-          .from("faq")
-          .update(payload)
-          .eq("id", faqId);
-        if (error) throw error;
-        showToast("✅ FAQ berhasil diperbarui!", "success");
-      } else {
-        const { error } = await supabase.from("faq").insert([payload]);
-        if (error) throw error;
-        showToast("✅ FAQ berhasil ditambahkan!", "success");
+    const savingPromise = faqId 
+      ? updateFAQ(faqId, payload) 
+      : insertFAQ(payload);
+
+    toast.promise(savingPromise, {
+      loading: faqId ? "Memperbarui FAQ..." : "Menyimpan FAQ baru...",
+      success: () => {
+        onSuccess?.();
+        onClose();
+        return faqId ? "FAQ berhasil diperbarui!" : "FAQ berhasil ditambahkan!";
+      },
+      error: (err) => {
+        setLoading(false);
+        return "Gagal menyimpan: " + err.message;
       }
+    });
 
-      setTimeout(() => {
-        onSuccess?.(); 
-        onClose(); 
-      }, 1000);
+    try {
+      await savingPromise;
     } catch (err) {
       console.error(err);
-      showToast("❌ " + err.message, "error");
     } finally {
       setLoading(false);
     }
@@ -155,16 +149,6 @@ export default function FAQFormSheet({ isOpen, onClose, onSuccess, faqId }) {
             </SheetDescription>
           </SheetHeader>
 
-          {toast.message && (
-            <div className="fixed z-[60] right-6 top-6">
-              <Toast
-                message={toast.message}
-                type={toast.type}
-                duration={3000}
-                onClose={() => setToast({ message: "", type: "success" })}
-              />
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-8 pb-10">
             {/* Kategori Selection */}

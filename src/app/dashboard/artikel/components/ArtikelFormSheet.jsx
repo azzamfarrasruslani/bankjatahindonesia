@@ -1,20 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import { 
-  uploadImage, 
-  insertArtikel, 
-  updateArtikel 
-} from "@/lib/services/artikelService";
+import {
+  uploadImage,
+  insertArtikel,
+  updateArtikel,
+  fetchArtikelById,
+} from "@/services/artikelService";
 import RichTextEditor from "@/components/features/(admin)/dashboard/RichTextEditor";
-import Toast from "@/components/common/Toast";
-import { 
-  Type, 
-  User, 
-  Tag, 
-  FileText, 
-  Image as ImageIcon, 
+import { toast } from "sonner";
+import {
+  Type,
+  User,
+  Tag,
+  FileText,
+  Image as ImageIcon,
   Plus,
   CheckCircle,
 } from "lucide-react";
@@ -26,7 +26,12 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 
-export default function ArtikelFormSheet({ isOpen, onClose, onSuccess, artikelId }) {
+export default function ArtikelFormSheet({
+  isOpen,
+  onClose,
+  onSuccess,
+  artikelId,
+}) {
   const [form, setForm] = useState({
     judul: "",
     penulis: "",
@@ -38,7 +43,6 @@ export default function ArtikelFormSheet({ isOpen, onClose, onSuccess, artikelId
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState({ message: "", type: "success" });
 
   // Reset & Fetch Data saat Sheet Terbuka
   useEffect(() => {
@@ -46,26 +50,23 @@ export default function ArtikelFormSheet({ isOpen, onClose, onSuccess, artikelId
 
     if (artikelId) {
       const fetchData = async () => {
-        const { data, error } = await supabase
-          .from("artikel")
-          .select("*")
-          .eq("id", artikelId)
-          .single();
-
-        if (!error && data) {
-          setForm({
-            judul: data.judul || "",
-            penulis: data.penulis || "",
-            isi: data.isi || "",
-            gambar_url: data.gambar_url || "",
-            kategori: data.kategori || "",
-            is_top: data.is_top || false,
-          });
-          setPreview(data.gambar_url || "");
-          setFile(null);
-        } else if (error) {
+        try {
+          const data = await fetchArtikelById(artikelId);
+          if (data) {
+            setForm({
+              judul: data.judul || "",
+              penulis: data.penulis || "",
+              isi: data.isi || "",
+              gambar_url: data.gambar_url || "",
+              kategori: data.kategori || "",
+              is_top: data.is_top || false,
+            });
+            setPreview(data.gambar_url || "");
+            setFile(null);
+          }
+        } catch (error) {
           console.error("Gagal mengambil data:", error.message);
-          showToast("Gagal mengambil data artikel", "error");
+          toast.error("Gagal mengambil data artikel");
         }
       };
 
@@ -82,14 +83,8 @@ export default function ArtikelFormSheet({ isOpen, onClose, onSuccess, artikelId
       });
       setPreview("");
       setFile(null);
-      setToast({ message: "", type: "success" });
     }
   }, [isOpen, artikelId]);
-
-  const showToast = (message, type = "success") => {
-    setToast({ message, type });
-    setTimeout(() => setToast({ message: "", type: "success" }), 3000);
-  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -110,26 +105,36 @@ export default function ArtikelFormSheet({ isOpen, onClose, onSuccess, artikelId
     e.preventDefault();
     setLoading(true);
 
-    try {
+    const savingPromise = (async () => {
       const imageUrl = await uploadImage(file, form.gambar_url);
       const payload = { ...form, gambar_url: imageUrl };
 
       if (artikelId) {
         await updateArtikel(artikelId, payload);
-        showToast("✅ Artikel berhasil diperbarui!", "success");
+        return "Artikel berhasil diperbarui!";
       } else {
         await insertArtikel(payload);
-        showToast("✅ Artikel berhasil diterbitkan!", "success");
+        return "Artikel berhasil diterbitkan!";
       }
+    })();
 
-      // Beri sedikit jeda agar toast dapat dilihat user
-      setTimeout(() => {
-        onSuccess?.(); 
-        onClose(); 
-      }, 1000);
+    toast.promise(savingPromise, {
+      loading: "Sedang menyimpan artikel...",
+      success: (message) => {
+        onSuccess?.();
+        onClose();
+        return message;
+      },
+      error: (err) => {
+        setLoading(false);
+        return "Gagal menyimpan: " + err.message;
+      },
+    });
+
+    try {
+      await savingPromise;
     } catch (err) {
       console.error(err);
-      showToast("❌ " + err.message, "error");
     } finally {
       setLoading(false);
     }
@@ -150,17 +155,6 @@ export default function ArtikelFormSheet({ isOpen, onClose, onSuccess, artikelId
             </SheetDescription>
           </SheetHeader>
 
-          {toast.message && (
-            <div className="fixed z-[60] right-6 top-6">
-              <Toast
-                message={toast.message}
-                type={toast.type}
-                duration={3000}
-                onClose={() => setToast({ message: "", type: "success" })}
-              />
-            </div>
-          )}
-
           <form onSubmit={handleSubmit} className="space-y-8 pb-10">
             {/* Upload Thumbnail */}
             <div className="space-y-4">
@@ -178,14 +172,20 @@ export default function ArtikelFormSheet({ isOpen, onClose, onSuccess, artikelId
                 <div className="border-2 border-dashed border-gray-200 group-hover/upload:border-[#FB6B00] rounded-[2rem] p-4 transition-all flex flex-col items-center justify-center bg-gray-50 group-hover/upload:bg-orange-50/30 overflow-hidden min-h-[220px]">
                   {preview ? (
                     <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-md">
-                      <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                      <img
+                        src={preview}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                   ) : (
                     <div className="flex flex-col items-center text-center p-4">
                       <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-[#FB6B00] mb-3">
                         <Plus className="w-6 h-6" />
                       </div>
-                      <p className="text-xs font-bold text-gray-900">Pilih Gambar</p>
+                      <p className="text-xs font-bold text-gray-900">
+                        Pilih Gambar
+                      </p>
                     </div>
                   )}
                 </div>
@@ -244,14 +244,18 @@ export default function ArtikelFormSheet({ isOpen, onClose, onSuccess, artikelId
             </div>
 
             {/* Is Top */}
-            <div 
+            <div
               className="flex items-center gap-4 bg-orange-50/50 p-5 rounded-2xl border-2 border-orange-100 hover:border-[#FB6B00]/30 transition-all cursor-pointer group"
-              onClick={() => setForm(f => ({ ...f, is_top: !f.is_top }))}
+              onClick={() => setForm((f) => ({ ...f, is_top: !f.is_top }))}
             >
-              <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${form.is_top ? 'bg-[#FB6B00] border-[#FB6B00]' : 'border-gray-200 bg-white'}`}>
+              <div
+                className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${form.is_top ? "bg-[#FB6B00] border-[#FB6B00]" : "border-gray-200 bg-white"}`}
+              >
                 {form.is_top && <CheckCircle className="w-4 h-4 text-white" />}
               </div>
-              <p className="font-bold text-gray-900 text-sm">Tampilkan sebagai Unggulan</p>
+              <p className="font-bold text-gray-900 text-sm">
+                Tampilkan sebagai Unggulan
+              </p>
             </div>
 
             {/* Isi Konten */}
@@ -282,7 +286,11 @@ export default function ArtikelFormSheet({ isOpen, onClose, onSuccess, artikelId
                 disabled={loading}
                 className="px-8 py-3 bg-[#FB6B00] text-white hover:bg-orange-600 rounded-xl font-bold shadow-lg transition-all disabled:opacity-50"
               >
-                {loading ? "Menyimpan..." : artikelId ? "Perbarui" : "Terbitkan"}
+                {loading
+                  ? "Menyimpan..."
+                  : artikelId
+                    ? "Perbarui"
+                    : "Terbitkan"}
               </button>
             </div>
           </form>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import dynamic from "next/dynamic";
-import { fetchLokasi } from "@/lib/services/lokasiService";
+import { fetchLokasi } from "@/services/lokasiService";
 import LokasiFilter from "./components/LokasiFilter";
 import LokasiList from "./components/LokasiList";
 import LokasiMap from "./components/LokasiMap";

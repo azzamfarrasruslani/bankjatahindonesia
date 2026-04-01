@@ -142,7 +142,7 @@ export default function Sidebar({ session }) {
           className="flex items-center justify-center rounded-2xl border border-orange-100 bg-gradient-to-br from-orange-50 to-white px-3 py-4 transition hover:border-orange-200 hover:shadow-sm group-data-[collapsible=icon]:p-2"
         >
           <div className="group-data-[collapsible=icon]:hidden">
-            <Logo size={116} />
+            <Logo size={116} asLink={false} />
           </div>
           <div className="hidden size-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#FB6B00] text-sm font-bold text-white group-data-[collapsible=icon]:flex">
             BJ

@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import React from "react";
 import { Plus, Edit, Trash2, ChevronDown, HelpCircle } from "lucide-react";
 import {
   Table,
@@ -14,55 +13,20 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import FAQFormSheet from "./components/FAQFormSheet";
+import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal";
+import { useFAQ } from "@/hooks/useFAQ";
 
 export default function DashboardFAQPage() {
-  const [faqList, setFaqList] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [openId, setOpenId] = useState(null);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [selectedFaqId, setSelectedFaqId] = useState(null);
-
-  const fetchFAQ = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("faq")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setFaqList(data || []);
-    } catch (err) {
-      console.error("Gagal memuat FAQ:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchFAQ();
-  }, []);
-
-  const handleOpenSheet = (id = null) => {
-    setSelectedFaqId(id);
-    setIsSheetOpen(true);
-  };
-
-  const handleCloseSheet = () => {
-    setIsSheetOpen(false);
-    setSelectedFaqId(null);
-  };
-
-  async function handleDelete(id) {
-    if (!confirm("Yakin ingin menghapus pertanyaan ini?")) return;
-    const { error } = await supabase.from("faq").delete().eq("id", id);
-    if (error) alert("❌ Gagal menghapus FAQ.");
-    else setFaqList((prev) => prev.filter((item) => item.id !== id));
-  }
-
-  const toggleAccordion = (id) => setOpenId(openId === id ? null : id);
-
-  const categories = [...new Set(faqList.map((faq) => faq.kategori || "Umum"))];
+  const { 
+    faqList, 
+    loading, 
+    isSheetOpen, 
+    selectedFaqId, 
+    openId, 
+    categories, 
+    deleteModal, 
+    actions 
+  } = useFAQ();
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -77,7 +41,7 @@ export default function DashboardFAQPage() {
           </p>
         </div>
         <button
-          onClick={() => handleOpenSheet()}
+          onClick={() => actions.handleOpenSheet()}
           className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3.5 rounded-2xl shadow-[0_10px_20px_rgba(251,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(251,107,0,0.3)] transition-all duration-300 font-bold"
         >
           <Plus className="w-4 h-4" /> Tambah FAQ Baru
@@ -98,7 +62,7 @@ export default function DashboardFAQPage() {
           </div>
           <h3 className="text-xl font-bold text-gray-900">Belum ada FAQ</h3>
           <p className="text-gray-500 mt-2">Mulai dengan menambahkan pertanyaan pertama Anda.</p>
-          <button onClick={() => handleOpenSheet()} className="inline-block mt-6 text-[#FB6B00] font-bold hover:underline">
+          <button onClick={() => actions.handleOpenSheet()} className="inline-block mt-6 text-[#FB6B00] font-bold hover:underline">
             Tambah FAQ Baru →
           </button>
         </div>
@@ -125,7 +89,7 @@ export default function DashboardFAQPage() {
                       <React.Fragment key={faq.id}>
                         <TableRow 
                           className={`group transition-colors border-b-gray-50 cursor-pointer ${openId === faq.id ? 'bg-orange-50/30' : 'hover:bg-gray-50/50'}`}
-                          onClick={() => toggleAccordion(faq.id)}
+                          onClick={() => actions.toggleAccordion(faq.id)}
                         >
                           <TableCell className="py-5 pl-8">
                             <div className="flex items-center gap-4">
@@ -166,7 +130,7 @@ export default function DashboardFAQPage() {
                                     
                                     <div className="flex items-center justify-end gap-3 pt-2">
                                       <button
-                                        onClick={() => handleOpenSheet(faq.id)}
+                                        onClick={() => actions.handleOpenSheet(faq.id)}
                                         className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-600 hover:border-[#FB6B00] hover:text-[#FB6B00] rounded-xl font-bold transition-all text-xs shadow-sm"
                                       >
                                         <Edit className="w-4 h-4" /> Edit Pertanyaan
@@ -174,7 +138,7 @@ export default function DashboardFAQPage() {
                                       <button
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          handleDelete(faq.id);
+                                          actions.handleDeleteClick(faq);
                                         }}
                                         className="flex items-center gap-2 px-5 py-2.5 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-xl font-bold transition-all text-xs"
                                       >
@@ -200,10 +164,20 @@ export default function DashboardFAQPage() {
         <p className="text-xs font-bold uppercase tracking-widest">© {new Date().getFullYear()} Pusat Pengetahuan Bank Jatah Indonesia</p>
       </div>
 
+      <ConfirmDeleteModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => {
+          actions.setIsDeleteModalOpen(false);
+          actions.setItemToDelete(null);
+        }}
+        onConfirm={actions.handleConfirmDelete}
+        itemName={deleteModal.item?.pertanyaan}
+      />
+
       <FAQFormSheet
         isOpen={isSheetOpen}
-        onClose={handleCloseSheet}
-        onSuccess={fetchFAQ}
+        onClose={actions.handleCloseSheet}
+        onSuccess={actions.loadData}
         faqId={selectedFaqId}
       />
     </div>

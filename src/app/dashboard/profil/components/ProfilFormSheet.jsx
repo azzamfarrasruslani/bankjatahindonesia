@@ -1,9 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import imageCompression from "browser-image-compression";
-import Toast from "@/components/common/Toast";
+import { 
+  fetchTimById, 
+  insertTim, 
+  updateTim, 
+  uploadImage 
+} from "@/services/timService";
+import { toast } from "sonner";
 import {
   User,
   Briefcase,
@@ -11,6 +15,7 @@ import {
   CheckCircle,
   Image as ImageIcon,
   Plus,
+  Loader2
 } from "lucide-react";
 import {
   Sheet,
@@ -31,7 +36,6 @@ export default function ProfilFormSheet({ isOpen, onClose, onSuccess, timId }) {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState({ message: "", type: "success" });
 
   // Reset & Fetch Data saat Sheet Terbuka
   useEffect(() => {
@@ -39,25 +43,22 @@ export default function ProfilFormSheet({ isOpen, onClose, onSuccess, timId }) {
 
     if (timId) {
       const fetchData = async () => {
-        const { data, error } = await supabase
-          .from("tim")
-          .select("*")
-          .eq("id", timId)
-          .single();
-
-        if (!error && data) {
-          setForm({
-            nama: data.nama || "",
-            jabatan: data.jabatan || "",
-            foto_url: data.foto_url || "",
-            kategori: data.kategori || "Tim Utama",
-            status: data.status ?? true,
-          });
-          setPreview(data.foto_url || "");
-          setFile(null); // Reset file yang dipilih saat ganti data
-        } else if (error) {
+        try {
+          const data = await fetchTimById(timId);
+          if (data) {
+            setForm({
+              nama: data.nama || "",
+              jabatan: data.jabatan || "",
+              foto_url: data.foto_url || "",
+              kategori: data.kategori || "Tim Utama",
+              status: data.status ?? true,
+            });
+            setPreview(data.foto_url || "");
+            setFile(null);
+          }
+        } catch (error) {
           console.error("Gagal mengambil data:", error.message);
-          showToast("Gagal mengambil data tim", "error");
+          toast.error("Gagal mengambil data tim");
         }
       };
 
@@ -73,14 +74,8 @@ export default function ProfilFormSheet({ isOpen, onClose, onSuccess, timId }) {
       });
       setPreview("");
       setFile(null);
-      setToast({ message: "", type: "success" });
     }
   }, [isOpen, timId]);
-
-  const showToast = (message, type = "success") => {
-    setToast({ message, type });
-    setTimeout(() => setToast({ message: "", type: "success" }), 3000);
-  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -97,71 +92,40 @@ export default function ProfilFormSheet({ isOpen, onClose, onSuccess, timId }) {
     setPreview(URL.createObjectURL(selectedFile));
   };
 
-  const uploadImage = async () => {
-    if (!file) return form.foto_url || ""; // Kalau tidak ada file baru, kembalikan base URL saat ini
-
-    try {
-      const options = {
-        maxSizeMB: 0.25,
-        maxWidthOrHeight: 1000,
-        initialQuality: 0.85,
-        useWebWorker: true,
-        fileType: "image/webp",
-      };
-
-      const compressedFile = await imageCompression(file, options);
-      const fileName = `team/${Date.now()}.webp`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("team-images")
-        .upload(fileName, compressedFile, {
-          cacheControl: "3600",
-          upsert: false,
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage
-        .from("team-images")
-        .getPublicUrl(fileName);
-      return data.publicUrl;
-    } catch (err) {
-      console.error("Kompresi atau upload gagal:", err);
-      throw new Error(
-        "Gagal mengunggah gambar, coba file lain atau periksa koneksi.",
-      );
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      const imageUrl = await uploadImage();
+    const savingPromise = (async () => {
+      const imageUrl = await uploadImage(file, form.foto_url);
       const payload = { ...form, foto_url: imageUrl };
 
       if (timId) {
-        const { error } = await supabase
-          .from("tim")
-          .update(payload)
-          .eq("id", timId);
-        if (error) throw error;
-        showToast("✅ Data berhasil diperbarui!", "success");
+        await updateTim(timId, payload);
+        return "Data anggota berhasil diperbarui!";
       } else {
-        const { error } = await supabase.from("tim").insert([payload]);
-        if (error) throw error;
-        showToast("✅ Anggota tim berhasil ditambahkan!", "success");
+        await insertTim(payload);
+        return "Anggota tim berhasil ditambahkan!";
       }
+    })();
 
-      // Beri sedikit jeda agar toast dapat dilihat user
-      setTimeout(() => {
-        onSuccess?.(); // Memperbarui state lokal table
-        onClose(); // Tutup sheet
-      }, 1000);
+    toast.promise(savingPromise, {
+      loading: "Sedang menyimpan data tim...",
+      success: (msg) => {
+        onSuccess?.();
+        onClose();
+        return msg;
+      },
+      error: (err) => {
+        setLoading(false);
+        return "Gagal menyimpan: " + err.message;
+      }
+    });
+
+    try {
+      await savingPromise;
     } catch (err) {
       console.error(err);
-      showToast("❌ " + err.message, "error");
     } finally {
       setLoading(false);
     }
@@ -181,16 +145,6 @@ export default function ProfilFormSheet({ isOpen, onClose, onSuccess, timId }) {
           </SheetDescription>
         </SheetHeader>
 
-        {toast.message && (
-          <div className="mt-4 absolute z-50 right-6 top-6">
-            <Toast
-              message={toast.message}
-              type={toast.type}
-              duration={3000}
-              onClose={() => setToast({ message: "", type: "success" })}
-            />
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-5 mt-6 pb-6 relative">
           {/* Upload Foto */}

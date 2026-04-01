@@ -1,23 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { 
-  uploadImage, 
-  insertProgram, 
-  updateProgram
-} from "@/lib/services/programService";
-import { supabase } from "@/lib/supabaseClient";
-import { 
-  Type, 
-  Info, 
-  Image as ImageIcon, 
+  fetchProgramById,
+  uploadImage,
+  insertProgram,
+  updateProgram,
+} from "@/services/programService";
+import { toast } from "sonner";
+import {
+  Type,
+  Info,
+  Image as ImageIcon,
   Plus,
   CheckCircle,
   X,
   MousePointer2,
   ListChecks,
   Trash2,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -29,7 +30,12 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet";
 
-export default function ProgramFormSheet({ isOpen, onClose, onSuccess, programId = null }) {
+export default function ProgramFormSheet({
+  isOpen,
+  onClose,
+  onSuccess,
+  programId = null,
+}) {
   const [form, setForm] = useState({
     title: "",
     status: "Program Aktif",
@@ -64,26 +70,22 @@ export default function ProgramFormSheet({ isOpen, onClose, onSuccess, programId
   const loadProgram = async () => {
     try {
       setFetching(true);
-      const { data, error } = await supabase
-        .from("program")
-        .select("*")
-        .eq("id", programId)
-        .single();
+      const data = await fetchProgramById(programId);
 
-      if (error) throw error;
-
-      setForm({
-        title: data.title || "",
-        status: data.status || "Program Aktif",
-        icon_url: data.icon_url || "",
-        description: data.description || "",
-        button_label: data.button_label || "Ikuti Program Ini",
-        details: data.details || [""],
-      });
-
-      setPreview(data.icon_url || "");
+      if (data) {
+        setForm({
+          title: data.title || "",
+          status: data.status || "Program Aktif",
+          icon_url: data.icon_url || "",
+          description: data.description || "",
+          button_label: data.button_label || "Ikuti Program Ini",
+          details: data.details || [""],
+        });
+        setPreview(data.icon_url || "");
+      }
     } catch (err) {
       console.error("Gagal mengambil data program:", err);
+      toast.error("Gagal mengambil data program");
     } finally {
       setFetching(false);
     }
@@ -105,24 +107,36 @@ export default function ProgramFormSheet({ isOpen, onClose, onSuccess, programId
     e.preventDefault();
     setLoading(true);
 
-    try {
-      let imageUrl = form.icon_url;
-      if (file) {
-        imageUrl = await uploadImage(file, form.icon_url);
-      }
-      
+    const savingPromise = (async () => {
+      const imageUrl = await uploadImage(file, form.icon_url);
       const payload = { ...form, icon_url: imageUrl };
 
       if (programId) {
-        await updateProgram({ id: programId, ...payload });
+        await updateProgram(programId, payload);
+        return "Program berhasil diperbarui!";
       } else {
         await insertProgram(payload);
+        return "Program berhasil ditambahkan!";
       }
+    })();
 
-      onSuccess?.();
-      onClose();
+    toast.promise(savingPromise, {
+      loading: "Sedang menyimpan program...",
+      success: (message) => {
+        onSuccess?.();
+        onClose();
+        return message;
+      },
+      error: (err) => {
+        setLoading(false);
+        return "Gagal menyimpan: " + err.message;
+      },
+    });
+
+    try {
+      await savingPromise;
     } catch (err) {
-      alert("Gagal simpan program: " + err.message);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -154,7 +168,8 @@ export default function ProgramFormSheet({ isOpen, onClose, onSuccess, programId
                 </div>
                 <div>
                   <SheetTitle className="text-2xl font-black text-gray-900 tracking-tight">
-                    {programId ? "Edit" : "Tambah"} <span className="text-[#FB6B00]">Program</span>
+                    {programId ? "Edit" : "Tambah"}{" "}
+                    <span className="text-[#FB6B00]">Program</span>
                   </SheetTitle>
                   <SheetDescription className="text-gray-500 font-medium text-xs uppercase tracking-widest mt-0.5">
                     Panel Manajemen Program Unggulan
@@ -168,7 +183,9 @@ export default function ProgramFormSheet({ isOpen, onClose, onSuccess, programId
             {fetching ? (
               <div className="h-64 flex flex-col items-center justify-center text-gray-400 gap-4">
                 <Loader2 className="w-8 h-8 animate-spin text-[#FB6B00]" />
-                <p className="font-bold text-sm tracking-widest uppercase">Memuat Data...</p>
+                <p className="font-bold text-sm tracking-widest uppercase">
+                  Memuat Data...
+                </p>
               </div>
             ) : (
               <>
@@ -187,9 +204,15 @@ export default function ProgramFormSheet({ isOpen, onClose, onSuccess, programId
                     <div className="border-2 border-dashed border-gray-100 group-hover/upload:border-[#FB6B00] rounded-[2.5rem] p-4 transition-all flex flex-col items-center justify-center bg-gray-50/50 group-hover/upload:bg-orange-50/30 overflow-hidden min-h-[220px] shadow-inner">
                       {preview ? (
                         <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-sm">
-                          <img src={preview} alt="Preview" className="w-full h-full object-contain bg-white min-h-[190px]" />
+                          <img
+                            src={preview}
+                            alt="Preview"
+                            className="w-full h-full object-contain bg-white min-h-[190px]"
+                          />
                           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/upload:opacity-100 transition-opacity flex items-center justify-center">
-                            <p className="text-white font-bold text-xs uppercase tracking-widest">Ganti Ikon</p>
+                            <p className="text-white font-bold text-xs uppercase tracking-widest">
+                              Ganti Ikon
+                            </p>
                           </div>
                         </div>
                       ) : (
@@ -197,8 +220,12 @@ export default function ProgramFormSheet({ isOpen, onClose, onSuccess, programId
                           <div className="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center text-[#FB6B00] mb-4 shadow-sm">
                             <Plus className="w-6 h-6" />
                           </div>
-                          <p className="text-xs font-black text-gray-900 uppercase tracking-widest">Pilih Ikon Program</p>
-                          <p className="text-[10px] text-gray-400 mt-2 font-medium">PNG, JPG, atau WebP (Max 2MB)</p>
+                          <p className="text-xs font-black text-gray-900 uppercase tracking-widest">
+                            Pilih Ikon Program
+                          </p>
+                          <p className="text-[10px] text-gray-400 mt-2 font-medium">
+                            PNG, JPG, atau WebP (Max 2MB)
+                          </p>
                         </div>
                       )}
                     </div>
@@ -210,10 +237,10 @@ export default function ProgramFormSheet({ isOpen, onClose, onSuccess, programId
                   <label className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">
                     <Type className="w-3 h-3" /> Informasi Dasar
                   </label>
-                  
+
                   <div className="space-y-5">
                     <div className="space-y-2">
-                       <input
+                      <input
                         type="text"
                         name="title"
                         value={form.title}
@@ -226,7 +253,9 @@ export default function ProgramFormSheet({ isOpen, onClose, onSuccess, programId
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <p className="text-[10px] font-bold text-gray-400 ml-2 uppercase">Status</p>
+                        <p className="text-[10px] font-bold text-gray-400 ml-2 uppercase">
+                          Status
+                        </p>
                         <select
                           name="status"
                           value={form.status}
@@ -238,7 +267,9 @@ export default function ProgramFormSheet({ isOpen, onClose, onSuccess, programId
                         </select>
                       </div>
                       <div className="space-y-2">
-                         <p className="text-[10px] font-bold text-gray-400 ml-2 uppercase">Label Tombol</p>
+                        <p className="text-[10px] font-bold text-gray-400 ml-2 uppercase">
+                          Label Tombol
+                        </p>
                         <input
                           type="text"
                           name="button_label"
@@ -251,7 +282,9 @@ export default function ProgramFormSheet({ isOpen, onClose, onSuccess, programId
                     </div>
 
                     <div className="space-y-2">
-                       <p className="text-[10px] font-bold text-gray-400 ml-2 uppercase">Deskripsi Singkat</p>
+                      <p className="text-[10px] font-bold text-gray-400 ml-2 uppercase">
+                        Deskripsi Singkat
+                      </p>
                       <textarea
                         name="description"
                         value={form.description}
@@ -278,7 +311,7 @@ export default function ProgramFormSheet({ isOpen, onClose, onSuccess, programId
                       <Plus className="w-3 h-3" /> Tambah
                     </button>
                   </div>
-                  
+
                   <div className="space-y-3">
                     <AnimatePresence initial={false}>
                       {form.details.map((step, i) => (
@@ -295,7 +328,9 @@ export default function ProgramFormSheet({ isOpen, onClose, onSuccess, programId
                           <input
                             type="text"
                             value={step}
-                            onChange={(e) => handleDetailChange(i, e.target.value)}
+                            onChange={(e) =>
+                              handleDetailChange(i, e.target.value)
+                            }
                             placeholder={`Masukkan langkah ${i + 1}...`}
                             className="flex-1 bg-transparent border-none p-2 focus:ring-0 outline-none transition-all font-bold text-gray-700 placeholder:text-gray-300 text-sm"
                           />
@@ -351,16 +386,16 @@ export default function ProgramFormSheet({ isOpen, onClose, onSuccess, programId
 }
 
 const Layers3 = ({ className }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width="24" 
-    height="24" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     className={className}
   >
     <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />

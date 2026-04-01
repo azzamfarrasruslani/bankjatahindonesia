@@ -1,8 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Plus, Edit, Trash2 } from "lucide-react";
-import { fetchProgram, deleteProgram } from "@/lib/services/programService";
+import { Plus, Edit, Trash2, Rocket } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -14,50 +12,18 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import ProgramFormSheet from "./components/ProgramFormSheet";
+import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal";
+import { useProgram } from "@/hooks/useProgram";
 
 export default function DashboardProgramPage() {
-  const [programs, setPrograms] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [selectedProgramId, setSelectedProgramId] = useState(null);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const result = await fetchProgram();
-      setPrograms(result);
-    } catch (err) {
-      console.error(err.message);
-      setPrograms([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const handleOpenSheet = (id = null) => {
-    setSelectedProgramId(id);
-    setIsSheetOpen(true);
-  };
-
-  const handleCloseSheet = () => {
-    setIsSheetOpen(false);
-    setSelectedProgramId(null);
-  };
-
-  const handleDelete = async (id, icon_url) => {
-    if (!confirm("Yakin ingin menghapus program ini?")) return;
-
-    try {
-      await deleteProgram(id, icon_url);
-      setPrograms((prev) => prev.filter((item) => item.id !== id));
-    } catch (err) {
-      alert(err.message);
-    }
-  };
+  const { 
+    programList, 
+    loading, 
+    isSheetOpen, 
+    selectedProgramId, 
+    deleteModal, 
+    actions 
+  } = useProgram();
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -68,11 +34,11 @@ export default function DashboardProgramPage() {
             Manajemen <span className="text-[#FB6B00]">Program</span>
           </h1>
           <p className="text-gray-500 mt-1 font-medium">
-            Kelola daftar program unggulan Bank Jatah Indonesia.
+            Kelola inisiatif dan program strategis Bank Jatah Indonesia.
           </p>
         </div>
         <button
-          onClick={() => handleOpenSheet()}
+          onClick={() => actions.handleOpenSheet()}
           className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3.5 rounded-2xl shadow-[0_10px_20px_rgba(251,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(251,107,0,0.3)] transition-all duration-300 font-bold"
         >
           <Plus className="w-4 h-4" /> Tambah Program Baru
@@ -84,10 +50,21 @@ export default function DashboardProgramPage() {
         <Table>
           <TableHeader className="bg-gray-50/50">
             <TableRow className="hover:bg-transparent border-b-gray-100">
-              <TableHead className="w-[350px] py-5 pl-8 font-bold text-gray-900 uppercase tracking-wider text-[11px]">Program</TableHead>
-              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px]">Status</TableHead>
-              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px]">Deskripsi</TableHead>
-              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px] text-right pr-8">Aksi</TableHead>
+              <TableHead className="w-[100px] py-5 pl-8 font-bold text-gray-900 uppercase tracking-wider text-[11px]">
+                Ikon
+              </TableHead>
+              <TableHead className="py-5 font-bold text-gray-900 uppercase tracking-wider text-[11px]">
+                Nama Program
+              </TableHead>
+              <TableHead className="py-5 font-bold text-gray-900 uppercase tracking-wider text-[11px]">
+                Deskripsi Singkat
+              </TableHead>
+              <TableHead className="py-5 font-bold text-gray-900 uppercase tracking-wider text-[11px]">
+                Status
+              </TableHead>
+              <TableHead className="py-5 font-bold text-gray-900 uppercase tracking-wider text-[11px] text-right pr-8">
+                Aksi
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -97,35 +74,41 @@ export default function DashboardProgramPage() {
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i} className="border-b-gray-50">
                     <TableCell className="py-4 pl-8">
-                      <div className="flex items-center gap-3">
-                        <Skeleton className="h-12 w-12 rounded-xl" />
-                        <div className="space-y-2">
-                          <Skeleton className="h-4 w-[200px]" />
-                          <Skeleton className="h-3 w-[100px]" />
-                        </div>
-                      </div>
+                      <Skeleton className="h-12 w-12 rounded-xl" />
                     </TableCell>
-                    <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-48" /></TableCell>
-                    <TableCell className="pr-8"><Skeleton className="h-8 w-20 ml-auto rounded-lg" /></TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-[200px]" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-[350px]" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-6 w-20 rounded-full" />
+                    </TableCell>
+                    <TableCell className="pr-8">
+                      <Skeleton className="h-8 w-20 ml-auto rounded-lg" />
+                    </TableCell>
                   </TableRow>
                 ))
-              ) : programs.length === 0 ? (
+              ) : programList.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-64 text-center">
+                  <TableCell colSpan={5} className="h-64 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-400">
                       <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                        <Plus className="w-8 h-8 opacity-20" />
+                        <Rocket className="w-8 h-8 opacity-20" />
                       </div>
-                      <p className="font-medium">Belum ada program yang tercatat.</p>
-                      <button onClick={() => handleOpenSheet()} className="text-[#FB6B00] text-sm mt-2 hover:underline">
+                      <p className="font-medium">Belum ada program yang terdaftar.</p>
+                      <button
+                        onClick={() => actions.handleOpenSheet()}
+                        className="text-[#FB6B00] text-sm mt-2 hover:underline"
+                      >
                         Mulai tambah program pertama Anda
                       </button>
                     </div>
                   </TableCell>
                 </TableRow>
               ) : (
-                programs.map((item, index) => (
+                programList.map((item, index) => (
                   <motion.tr
                     key={item.id}
                     initial={{ opacity: 0, y: 10 }}
@@ -133,56 +116,51 @@ export default function DashboardProgramPage() {
                     transition={{ delay: index * 0.05 }}
                     className="group hover:bg-gray-50/50 transition-colors border-b-gray-50 last:border-0"
                   >
-                    <TableCell className="py-5 pl-8">
-                      <div className="flex items-center gap-4">
-                        <div className="relative w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-sm flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
-                          {item.icon_url ? (
-                            <img
-                              src={item.icon_url}
-                              alt=""
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-orange-50 flex items-center justify-center text-orange-300 font-bold text-xs uppercase">
-                              ICON
-                            </div>
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-bold text-gray-900 group-hover:text-[#FB6B00] transition-colors truncate max-w-[250px]">
-                            {item.title}
-                          </p>
-                          <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wider mt-0.5">
-                            ID: {String(item.id).slice(0, 8)}
-                          </p>
-                        </div>
+                    <TableCell className="py-4 pl-8">
+                      <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-gray-100 border border-gray-100 shadow-sm">
+                        {item.icon_url ? (
+                          <img
+                            src={item.icon_url}
+                            alt={item.nama}
+                            className="object-cover w-full h-full"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-orange-50 text-orange-200">
+                            <Rocket className="w-4 h-4" />
+                          </div>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider ${
-                        item.status === "Program Aktif" 
-                        ? "bg-green-50 text-green-600" 
-                        : "bg-orange-50 text-[#FB6B00]"
-                      }`}>
-                        {item.status || "Publik"}
-                      </span>
+                      <p className="font-bold text-gray-900 group-hover:text-[#FB6B00] transition-colors truncate max-w-[200px]">
+                        {item.nama}
+                      </p>
                     </TableCell>
                     <TableCell>
-                      <p className="text-sm text-gray-600 line-clamp-2 max-w-[300px]">
-                        {item.description}
+                      <p className="text-sm text-gray-600 line-clamp-1 max-w-[400px]">
+                        {item.deskripsi}
                       </p>
+                    </TableCell>
+                    <TableCell>
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                        item.is_active 
+                          ? 'bg-green-50 text-green-600' 
+                          : 'bg-gray-100 text-gray-400'
+                      }`}>
+                        {item.is_active ? 'Aktif' : 'Non-aktif'}
+                      </span>
                     </TableCell>
                     <TableCell className="pr-8 text-right">
                       <div className="flex justify-end gap-2">
                         <button
-                          onClick={() => handleOpenSheet(item.id)}
+                          onClick={() => actions.handleOpenSheet(item.id)}
                           className="p-2.5 bg-gray-50 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all"
                           title="Edit Program"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleDelete(item.id, item.icon_url)}
+                          onClick={() => actions.handleDeleteClick(item)}
                           className="p-2.5 bg-gray-50 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
                           title="Hapus Program"
                         >
@@ -197,14 +175,25 @@ export default function DashboardProgramPage() {
           </TableBody>
         </Table>
         <div className="p-6 bg-gray-50/30 border-t border-gray-50 text-[11px] font-bold text-gray-400 uppercase tracking-widest text-center">
-          Dikelola oleh sistem Bank Jatah Indonesia • © {new Date().getFullYear()}
+          Dikelola secara aman di server Bank Jatah Indonesia • ©{" "}
+          {new Date().getFullYear()}
         </div>
       </div>
 
+      <ConfirmDeleteModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => {
+          actions.setIsDeleteModalOpen(false);
+          actions.setItemToDelete(null);
+        }}
+        onConfirm={actions.handleConfirmDelete}
+        itemName={deleteModal.item?.nama}
+      />
+
       <ProgramFormSheet
         isOpen={isSheetOpen}
-        onClose={handleCloseSheet}
-        onSuccess={loadData}
+        onClose={actions.handleCloseSheet}
+        onSuccess={actions.loadData}
         programId={selectedProgramId}
       />
     </div>

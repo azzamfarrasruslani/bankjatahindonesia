@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import imageCompression from "browser-image-compression";
+import { useState, useEffect } from "react";
+
+import { 
+  fetchBeritaById, 
+  insertBerita, 
+  updateBerita,
+  uploadImage
+} from "@/services/beritaService";
 import RichTextEditor from "@/components/features/(admin)/dashboard/RichTextEditor";
-import Toast from "@/components/common/Toast";
+import { toast } from "sonner";
 import { 
   Type, 
   User, 
@@ -34,32 +39,28 @@ export default function BeritaFormSheet({ isOpen, onClose, onSuccess, beritaId }
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState({ message: "", type: "success" });
 
   useEffect(() => {
     if (!isOpen) return;
 
     if (beritaId) {
       const fetchData = async () => {
-        const { data, error } = await supabase
-          .from("berita")
-          .select("*")
-          .eq("id", beritaId)
-          .single();
-
-        if (!error && data) {
-          setForm({
-            judul: data.judul || "",
-            penulis: data.penulis || "",
-            isi: data.isi || "",
-            is_top: data.is_top || false,
-            gambar_url: data.gambar_url || "",
-          });
-          setPreview(data.gambar_url || "");
-          setFile(null);
-        } else if (error) {
+        try {
+          const data = await fetchBeritaById(beritaId);
+          if (data) {
+            setForm({
+              judul: data.judul || "",
+              penulis: data.penulis || "",
+              isi: data.isi || "",
+              is_top: data.is_top || false,
+              gambar_url: data.gambar_url || "",
+            });
+            setPreview(data.gambar_url || "");
+            setFile(null);
+          }
+        } catch (error) {
           console.error("Gagal mengambil data:", error.message);
-          showToast("Gagal mengambil data berita", "error");
+          toast.error("Gagal mengambil data berita");
         }
       };
 
@@ -74,14 +75,8 @@ export default function BeritaFormSheet({ isOpen, onClose, onSuccess, beritaId }
       });
       setPreview("");
       setFile(null);
-      setToast({ message: "", type: "success" });
     }
   }, [isOpen, beritaId]);
-
-  const showToast = (message, type = "success") => {
-    setToast({ message, type });
-    setTimeout(() => setToast({ message: "", type: "success" }), 3000);
-  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -98,48 +93,12 @@ export default function BeritaFormSheet({ isOpen, onClose, onSuccess, beritaId }
     setPreview(URL.createObjectURL(selectedFile));
   };
 
-  const uploadImageToStorage = async () => {
-    if (!file) return form.gambar_url || "";
-
-    try {
-      const options = {
-        maxSizeMB: 0.25,
-        maxWidthOrHeight: 1000,
-        initialQuality: 0.85,
-        useWebWorker: true,
-        fileType: "image/webp",
-      };
-      const compressedFile = await imageCompression(file, options);
-      const fileName = `berita/${Date.now()}.webp`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("berita-images")
-        .upload(fileName, compressedFile, {
-          cacheControl: "3600",
-          upsert: false,
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage
-        .from("berita-images")
-        .getPublicUrl(fileName);
-
-      return data.publicUrl;
-    } catch (err) {
-      console.error("Kompresi atau upload gagal:", err);
-      throw new Error(
-        "Gagal mengunggah gambar, coba file lain atau periksa koneksi."
-      );
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      const imageUrl = await uploadImageToStorage();
+    const savingPromise = (async () => {
+      const imageUrl = await uploadImage(file, form.gambar_url);
       const payload = {
         judul: form.judul,
         penulis: form.penulis || "Admin",
@@ -149,25 +108,31 @@ export default function BeritaFormSheet({ isOpen, onClose, onSuccess, beritaId }
       };
 
       if (beritaId) {
-        const { error } = await supabase
-          .from("berita")
-          .update(payload)
-          .eq("id", beritaId);
-        if (error) throw error;
-        showToast("✅ Berita berhasil diperbarui!", "success");
+        await updateBerita(beritaId, payload);
+        return "Berita berhasil diperbarui!";
       } else {
-        const { error } = await supabase.from("berita").insert([payload]);
-        if (error) throw error;
-        showToast("✅ Berita berhasil diterbitkan!", "success");
+        await insertBerita(payload);
+        return "Berita berhasil diterbitkan!";
       }
+    })();
 
-      setTimeout(() => {
-        onSuccess?.(); 
-        onClose(); 
-      }, 1000);
+    toast.promise(savingPromise, {
+      loading: "Sedang memproses berita...",
+      success: (message) => {
+        onSuccess?.();
+        onClose();
+        return message;
+      },
+      error: (err) => {
+        setLoading(false);
+        return "Gagal menyimpan: " + err.message;
+      },
+    });
+
+    try {
+      await savingPromise;
     } catch (err) {
       console.error(err);
-      showToast("❌ " + err.message, "error");
     } finally {
       setLoading(false);
     }
@@ -187,17 +152,6 @@ export default function BeritaFormSheet({ isOpen, onClose, onSuccess, beritaId }
                 : "Masukkan detail berita baru untuk dipublikasikan ke publik."}
             </SheetDescription>
           </SheetHeader>
-
-          {toast.message && (
-            <div className="fixed z-[60] right-6 top-6">
-              <Toast
-                message={toast.message}
-                type={toast.type}
-                duration={3000}
-                onClose={() => setToast({ message: "", type: "success" })}
-              />
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-8 pb-10">
             {/* Visual Berita */}

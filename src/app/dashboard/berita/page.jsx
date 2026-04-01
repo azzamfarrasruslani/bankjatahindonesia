@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Plus, Edit, Trash2 } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
+import { Plus, Edit, Trash2, Newspaper } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -14,78 +12,18 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import BeritaFormSheet from "./components/BeritaFormSheet";
+import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal";
+import { useBerita } from "@/hooks/useBerita";
 
 export default function DashboardBeritaPage() {
-  const [berita, setBerita] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [selectedBeritaId, setSelectedBeritaId] = useState(null);
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("berita")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setBerita(data || []);
-    } catch (err) {
-      console.error("Fetch error:", err);
-      alert("Gagal memuat data berita.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleOpenSheet = (id = null) => {
-    setSelectedBeritaId(id);
-    setIsSheetOpen(true);
-  };
-
-  const handleCloseSheet = () => {
-    setIsSheetOpen(false);
-    setSelectedBeritaId(null);
-  };
-
-  const handleDelete = async (id, imageUrl) => {
-    if (!confirm("Yakin ingin menghapus berita ini beserta gambarnya?")) return;
-
-    try {
-      if (imageUrl) {
-        const filename = imageUrl.split("/").pop();
-        if (filename) {
-          const { error: storageError } = await supabase.storage
-            .from("berita-images")
-            .remove([filename]);
-
-          if (storageError) {
-            console.error("Gagal hapus gambar di storage:", storageError.message);
-            alert("❌ Gagal menghapus gambar. Periksa storage permission.");
-            return;
-          }
-        }
-      }
-
-      const { error: deleteError } = await supabase.from("berita").delete().eq("id", id);
-      if (deleteError) {
-        console.error("Delete error:", deleteError.message);
-        alert("❌ Gagal menghapus berita. Periksa RLS/permission user.");
-        return;
-      }
-
-      setBerita((prev) => prev.filter((item) => item.id !== id));
-      alert("✅ Berita dan gambar berhasil dihapus");
-    } catch (err) {
-      console.error("Unexpected error:", err);
-      alert("❌ Terjadi kesalahan. Cek console.");
-    }
-  };
+  const { 
+    beritaList, 
+    loading, 
+    isSheetOpen, 
+    selectedBeritaId, 
+    deleteModal, 
+    actions 
+  } = useBerita();
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -96,11 +34,11 @@ export default function DashboardBeritaPage() {
             Manajemen <span className="text-[#FB6B00]">Berita</span>
           </h1>
           <p className="text-gray-500 mt-1 font-medium">
-            Publikasikan kabar terbaru dan update penting perusahaan ke publik.
+            Kelola liputan kegiatan dan informasi terbaru Bank Jatah Indonesia.
           </p>
         </div>
         <button
-          onClick={() => handleOpenSheet()}
+          onClick={() => actions.handleOpenSheet()}
           className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3.5 rounded-2xl shadow-[0_10px_20px_rgba(251,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(251,107,0,0.3)] transition-all duration-300 font-bold"
         >
           <Plus className="w-4 h-4" /> Tambah Berita Baru
@@ -139,7 +77,7 @@ export default function DashboardBeritaPage() {
                     <TableCell className="pr-8"><Skeleton className="h-8 w-20 ml-auto rounded-lg" /></TableCell>
                   </TableRow>
                 ))
-              ) : berita.length === 0 ? (
+              ) : beritaList.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="h-64 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-400">
@@ -147,14 +85,14 @@ export default function DashboardBeritaPage() {
                         <Plus className="w-8 h-8 opacity-20" />
                       </div>
                       <p className="font-medium">Belum ada berita yang tercatat.</p>
-                      <button onClick={() => handleOpenSheet()} className="text-[#FB6B00] text-sm mt-2 hover:underline">
+                      <button onClick={() => actions.handleOpenSheet()} className="text-[#FB6B00] text-sm mt-2 hover:underline font-bold">
                         Buat berita pertama Anda
                       </button>
                     </div>
                   </TableCell>
                 </TableRow>
               ) : (
-                berita.map((item, index) => (
+                beritaList.map((item, index) => (
                   <motion.tr
                     key={item.id}
                     initial={{ opacity: 0, y: 10 }}
@@ -211,14 +149,14 @@ export default function DashboardBeritaPage() {
                     <TableCell className="pr-8 text-right">
                       <div className="flex justify-end gap-2">
                         <button
-                          onClick={() => handleOpenSheet(item.id)}
+                          onClick={() => actions.handleOpenSheet(item.id)}
                           className="p-2.5 bg-gray-50 text-gray-400 hover:text-[#FB6B00] hover:bg-orange-50 rounded-xl transition-all"
                           title="Edit Berita"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleDelete(item.id, item.gambar_url)}
+                          onClick={() => actions.handleDeleteClick(item)}
                           className="p-2.5 bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
                           title="Hapus Berita"
                         >
@@ -237,10 +175,20 @@ export default function DashboardBeritaPage() {
         </div>
       </div>
 
+      <ConfirmDeleteModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => {
+          actions.setIsDeleteModalOpen(false);
+          actions.setItemToDelete(null);
+        }}
+        onConfirm={actions.handleConfirmDelete}
+        itemName={deleteModal.item?.judul}
+      />
+
       <BeritaFormSheet
         isOpen={isSheetOpen}
-        onClose={handleCloseSheet}
-        onSuccess={fetchData}
+        onClose={actions.handleCloseSheet}
+        onSuccess={actions.loadData}
         beritaId={selectedBeritaId}
       />
     </div>

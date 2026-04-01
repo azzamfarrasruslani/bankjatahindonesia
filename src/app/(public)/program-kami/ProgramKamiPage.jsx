@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchProgram } from "@/lib/services/programService";
+import { fetchProgram } from "@/services/programService";
 import HeroSection from "@/components/common/HeroSection";
 import ProgramSection from "./components/ProgramSection";
 import { motion, AnimatePresence } from "framer-motion";

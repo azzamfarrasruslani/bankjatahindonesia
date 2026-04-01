@@ -6,17 +6,17 @@ import {
   uploadImage,
   insertArtikel,
   updateArtikel,
-} from "@/lib/services/artikelService";
+} from "@/services/artikelService";
 import RichTextEditor from "@/components/features/(admin)/dashboard/RichTextEditor";
-import { 
-  Type, 
-  User, 
-  Tag, 
-  FileText, 
-  Image as ImageIcon, 
+import {
+  Type,
+  User,
+  Tag,
+  FileText,
+  Image as ImageIcon,
   Plus,
   CheckCircle,
-  X
+  X,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -96,9 +96,15 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
               <div className="border-2 border-dashed border-gray-200 group-hover/upload:border-[#FB6B00] rounded-[2rem] p-4 transition-all flex flex-col items-center justify-center bg-gray-50 group-hover/upload:bg-orange-50/30 overflow-hidden min-h-[300px]">
                 {preview ? (
                   <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-md">
-                    <img src={preview} alt="Preview" className="w-full h-full object-cover min-h-[260px]" />
+                    <img
+                      src={preview}
+                      alt="Preview"
+                      className="w-full h-full object-cover min-h-[260px]"
+                    />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/upload:opacity-100 transition-opacity flex items-center justify-center">
-                      <p className="text-white font-bold text-sm">Ganti Gambar</p>
+                      <p className="text-white font-bold text-sm">
+                        Ganti Gambar
+                      </p>
                     </div>
                   </div>
                 ) : (
@@ -106,8 +112,12 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
                     <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-[#FB6B00] mb-4">
                       <Plus className="w-8 h-8" />
                     </div>
-                    <p className="text-sm font-bold text-gray-900">Pilih Gambar Utama</p>
-                    <p className="text-xs text-gray-400 mt-1">Rekomendasi 1200x630 (16:9)</p>
+                    <p className="text-sm font-bold text-gray-900">
+                      Pilih Gambar Utama
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Rekomendasi 1200x630 (16:9)
+                    </p>
                   </div>
                 )}
               </div>
@@ -165,14 +175,24 @@ export default function ArtikelForm({ artikel = null, onSuccess }) {
             </div>
 
             {/* Status Utama */}
-            <div className="flex items-center gap-4 bg-orange-50/50 p-5 rounded-[1.5rem] border-2 border-orange-100/50 hover:border-[#FB6B00]/30 transition-all cursor-pointer group/check" 
-                 onClick={() => setForm(prev => ({ ...prev, is_top: !prev.is_top }))}>
-              <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${form.is_top ? 'bg-[#FB6B00] border-[#FB6B00]' : 'border-gray-200 bg-white'}`}>
+            <div
+              className="flex items-center gap-4 bg-orange-50/50 p-5 rounded-[1.5rem] border-2 border-orange-100/50 hover:border-[#FB6B00]/30 transition-all cursor-pointer group/check"
+              onClick={() =>
+                setForm((prev) => ({ ...prev, is_top: !prev.is_top }))
+              }
+            >
+              <div
+                className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${form.is_top ? "bg-[#FB6B00] border-[#FB6B00]" : "border-gray-200 bg-white"}`}
+              >
                 {form.is_top && <CheckCircle className="w-4 h-4 text-white" />}
               </div>
               <div className="select-none">
-                <p className="font-bold text-gray-900 text-sm tracking-wide">Tampilkan sebagai Unggulan</p>
-                <p className="text-[10px] text-orange-600 font-bold uppercase tracking-widest mt-0.5 opacity-70">Akan muncul di bagian utama beranda</p>
+                <p className="font-bold text-gray-900 text-sm tracking-wide">
+                  Tampilkan sebagai Unggulan
+                </p>
+                <p className="text-[10px] text-orange-600 font-bold uppercase tracking-widest mt-0.5 opacity-70">
+                  Akan muncul di bagian utama beranda
+                </p>
               </div>
             </div>
           </div>

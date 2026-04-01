@@ -1,9 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { useState, useEffect } from "react";
+
+import { 
+  fetchLokasiById, 
+  insertLokasi, 
+  updateLokasi,
+  uploadImage
+} from "@/services/lokasiService";
 import dynamic from "next/dynamic";
-import imageCompression from "browser-image-compression";
+import { toast } from "sonner";
 import { 
   Building2, 
   MapPin, 
@@ -17,13 +23,6 @@ import {
   Loader2,
   Navigation
 } from "lucide-react";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
 
 const MapPicker = dynamic(() => import("./MapPicker"), { ssr: false });
 
@@ -67,13 +66,7 @@ export default function LokasiFormSheet({ isOpen, onClose, onSuccess, lokasiId =
   const loadLokasi = async () => {
     try {
       setLoadingData(true);
-      const { data, error } = await supabase
-        .from("lokasi")
-        .select("*")
-        .eq("id", lokasiId)
-        .single();
-
-      if (error) throw error;
+      const data = await fetchLokasiById(lokasiId);
 
       if (data) {
         setForm({
@@ -91,6 +84,7 @@ export default function LokasiFormSheet({ isOpen, onClose, onSuccess, lokasiId =
       }
     } catch (err) {
       console.error("Gagal mengambil data lokasi:", err);
+      toast.error("Gagal mengambil data lokasi");
     } finally {
       setLoadingData(false);
     }
@@ -108,44 +102,12 @@ export default function LokasiFormSheet({ isOpen, onClose, onSuccess, lokasiId =
     setPreview(URL.createObjectURL(selectedFile));
   };
 
-  const uploadImage = async () => {
-    if (!file) return form.gambar_url || "";
-
-    try {
-      const options = {
-        maxSizeMB: 0.25,
-        maxWidthOrHeight: 1000,
-        initialQuality: 0.85,
-        useWebWorker: true,
-        fileType: "image/webp",
-      };
-
-      const compressedFile = await imageCompression(file, options);
-      const fileName = `lokasi/${Date.now()}.webp`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("lokasi-images")
-        .upload(fileName, compressedFile, { cacheControl: "3600", upsert: false });
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage
-        .from("lokasi-images")
-        .getPublicUrl(fileName);
-
-      return data.publicUrl;
-    } catch (err) {
-      console.error("Kompresi atau upload gagal:", err);
-      throw new Error("Gagal mengunggah gambar.");
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoadingSubmit(true);
 
-    try {
-      const imageUrl = await uploadImage();
+    const savingPromise = (async () => {
+      const imageUrl = await uploadImage(file, form.gambar_url);
       const payload = {
         nama: form.nama,
         jenis: form.jenis,
@@ -160,19 +122,32 @@ export default function LokasiFormSheet({ isOpen, onClose, onSuccess, lokasiId =
       };
 
       if (lokasiId) {
-        const { error } = await supabase.from("lokasi").update(payload).eq("id", lokasiId);
-        if (error) throw error;
+        await updateLokasi(lokasiId, payload);
+        return "Lokasi berhasil diperbarui!";
       } else {
         payload.created_at = new Date().toISOString();
-        const { error } = await supabase.from("lokasi").insert([payload]);
-        if (error) throw error;
+        await insertLokasi(payload);
+        return "Lokasi berhasil ditambahkan!";
       }
+    })();
 
-      onSuccess?.();
-      onClose();
+    toast.promise(savingPromise, {
+      loading: "Sedang menyimpan lokasi...",
+      success: (message) => {
+        onSuccess?.();
+        onClose();
+        return message;
+      },
+      error: (err) => {
+        setLoadingSubmit(false);
+        return "Gagal menyimpan: " + err.message;
+      },
+    });
+
+    try {
+      await savingPromise;
     } catch (err) {
       console.error(err);
-      alert("Gagal menyimpan: " + err.message);
     } finally {
       setLoadingSubmit(false);
     }

@@ -1,7 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { useState, useEffect } from "react";
+import { 
+  fetchUserById, 
+  insertUser, 
+  updateUser 
+} from "@/services/userService";
+import { toast } from "sonner";
 import { 
   User, 
   Mail, 
@@ -53,13 +58,7 @@ export default function UserFormSheet({ isOpen, onClose, onSuccess, userId = nul
   const loadUser = async () => {
     try {
       setLoadingData(true);
-      const { data, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", userId)
-        .single();
-
-      if (error) throw error;
+      const data = await fetchUserById(userId);
 
       if (data) {
         setForm({
@@ -73,6 +72,7 @@ export default function UserFormSheet({ isOpen, onClose, onSuccess, userId = nul
       }
     } catch (err) {
       console.error("Gagal mengambil data user:", err);
+      toast.error("Gagal mengambil data pengguna");
     } finally {
       setLoadingData(false);
     }
@@ -90,7 +90,7 @@ export default function UserFormSheet({ isOpen, onClose, onSuccess, userId = nul
     e.preventDefault();
     setLoadingSubmit(true);
 
-    try {
+    const savingPromise = (async () => {
       const payload = {
         nama_lengkap: form.nama_lengkap,
         email: form.email,
@@ -101,23 +101,36 @@ export default function UserFormSheet({ isOpen, onClose, onSuccess, userId = nul
 
       // Hanya update password jika diisi (untuk edit) atau wajib jika tambah
       if (form.password) {
-        payload.password = form.password; // Catatan: Seharusnya sudah di-hash di backend/lib
+        payload.password = form.password; 
       }
 
       if (userId) {
-        const { error } = await supabase.from("users").update(payload).eq("id", userId);
-        if (error) throw error;
+        await updateUser(userId, payload);
+        return "Pengguna berhasil diperbarui!";
       } else {
         if (!form.password) throw new Error("Password wajib diisi untuk pengguna baru.");
-        const { error } = await supabase.from("users").insert([payload]);
-        if (error) throw error;
+        await insertUser(payload);
+        return "Pengguna berhasil ditambahkan!";
       }
+    })();
 
-      onSuccess?.();
-      onClose();
+    toast.promise(savingPromise, {
+      loading: "Sedang menyimpan data pengguna...",
+      success: (message) => {
+        onSuccess?.();
+        onClose();
+        return message;
+      },
+      error: (err) => {
+        setLoadingSubmit(false);
+        return "Gagal menyimpan: " + err.message;
+      },
+    });
+
+    try {
+      await savingPromise;
     } catch (err) {
       console.error(err);
-      alert("Gagal menyimpan: " + err.message);
     } finally {
       setLoadingSubmit(false);
     }

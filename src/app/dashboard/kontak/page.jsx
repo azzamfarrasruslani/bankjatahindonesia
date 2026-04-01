@@ -11,7 +11,7 @@ import {
   X,
   Save,
 } from "lucide-react";
-import { fetchKontak, updateKontak } from "@/lib/services/kontakService";
+import { fetchKontak, updateKontak } from "@/services/kontakService";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -101,7 +101,8 @@ export default function ManajemenKontakPage() {
                 disabled={saving}
                 className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3.5 rounded-2xl shadow-[0_10px_20px_rgba(251,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(251,107,0,0.3)] transition-all duration-300 font-bold disabled:opacity-50"
               >
-                <Save className="w-4 h-4" /> {saving ? "Menyimpan..." : "Simpan Perubahan"}
+                <Save className="w-4 h-4" />{" "}
+                {saving ? "Menyimpan..." : "Simpan Perubahan"}
               </button>
             </>
           ) : (
@@ -119,23 +120,58 @@ export default function ManajemenKontakPage() {
       <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
         <div className="grid md:grid-cols-2 gap-8">
           <AnimatePresence mode="wait">
-            <motion.div 
-              layout
-              className="grid gap-6"
-            >
+            <motion.div layout className="grid gap-6">
               {[
-                { name: "whatsapp", label: "WhatsApp", icon: MessageCircle, color: "text-green-500", bg: "bg-green-50" },
-                { name: "email", label: "Email", icon: Mail, color: "text-[#FB6B00]", bg: "bg-orange-50" },
-                { name: "telepon", label: "Nomor Telepon", icon: Phone, color: "text-blue-500", bg: "bg-blue-50" },
-                { name: "facebook", label: "Facebook", icon: Facebook, color: "text-blue-600", bg: "bg-blue-50/50" },
-                { name: "instagram", label: "Instagram", icon: Instagram, color: "text-pink-500", bg: "bg-pink-50" },
-                { name: "whatsapp_link", label: "Link WhatsApp", icon: MessageCircle, color: "text-green-600", bg: "bg-emerald-50" },
+                {
+                  name: "whatsapp",
+                  label: "WhatsApp",
+                  icon: MessageCircle,
+                  color: "text-green-500",
+                  bg: "bg-green-50",
+                },
+                {
+                  name: "email",
+                  label: "Email",
+                  icon: Mail,
+                  color: "text-[#FB6B00]",
+                  bg: "bg-orange-50",
+                },
+                {
+                  name: "telepon",
+                  label: "Nomor Telepon",
+                  icon: Phone,
+                  color: "text-blue-500",
+                  bg: "bg-blue-50",
+                },
+                {
+                  name: "facebook",
+                  label: "Facebook",
+                  icon: Facebook,
+                  color: "text-blue-600",
+                  bg: "bg-blue-50/50",
+                },
+                {
+                  name: "instagram",
+                  label: "Instagram",
+                  icon: Instagram,
+                  color: "text-pink-500",
+                  bg: "bg-pink-50",
+                },
+                {
+                  name: "whatsapp_link",
+                  label: "Link WhatsApp",
+                  icon: MessageCircle,
+                  color: "text-green-600",
+                  bg: "bg-emerald-50",
+                },
               ].map((item) => (
-                <div 
+                <div
                   key={item.name}
-                  className={`flex items-center gap-5 p-6 rounded-[1.5rem] border border-gray-50 transition-all duration-300 ${isEditing ? 'bg-gray-50 ring-2 ring-transparent focus-within:ring-[#FB6B00]/20 focus-within:border-[#FB6B00]/30' : 'hover:bg-gray-50/50'}`}
+                  className={`flex items-center gap-5 p-6 rounded-[1.5rem] border border-gray-50 transition-all duration-300 ${isEditing ? "bg-gray-50 ring-2 ring-transparent focus-within:ring-[#FB6B00]/20 focus-within:border-[#FB6B00]/30" : "hover:bg-gray-50/50"}`}
                 >
-                  <div className={`w-14 h-14 ${item.bg} ${item.color} rounded-2xl flex items-center justify-center shadow-sm`}>
+                  <div
+                    className={`w-14 h-14 ${item.bg} ${item.color} rounded-2xl flex items-center justify-center shadow-sm`}
+                  >
                     <item.icon className="w-6 h-6" />
                   </div>
                   <div className="flex-1">
@@ -153,7 +189,11 @@ export default function ManajemenKontakPage() {
                       />
                     ) : (
                       <p className="text-gray-900 font-bold truncate">
-                        {kontak?.[item.name] || <span className="text-gray-300 italic font-medium">Belum diisi</span>}
+                        {kontak?.[item.name] || (
+                          <span className="text-gray-300 italic font-medium">
+                            Belum diisi
+                          </span>
+                        )}
                       </p>
                     )}
                   </div>
@@ -168,9 +208,13 @@ export default function ManajemenKontakPage() {
               <Phone className="w-10 h-10 text-[#FB6B00]" />
             </div>
             <div>
-              <h3 className="text-2xl font-black text-gray-900">Pusat Informasi</h3>
+              <h3 className="text-2xl font-black text-gray-900">
+                Pusat Informasi
+              </h3>
               <p className="text-gray-500 mt-2 font-medium leading-relaxed">
-                Informasi kontak ini akan ditampilkan secara publik di website utama Bank Jatah Indonesia. Pastikan data yang dimasukkan sudah benar dan valid.
+                Informasi kontak ini akan ditampilkan secara publik di website
+                utama Bank Jatah Indonesia. Pastikan data yang dimasukkan sudah
+                benar dan valid.
               </p>
             </div>
             <div className="pt-6">
@@ -183,7 +227,10 @@ export default function ManajemenKontakPage() {
         </div>
 
         <div className="mt-8 p-6 bg-gray-50/30 border-t border-gray-50 text-[11px] font-bold text-gray-400 uppercase tracking-widest text-center">
-          Terakhir diperbarui: {kontak?.updated_at ? new Date(kontak.updated_at).toLocaleString("id-ID") : "-"}
+          Terakhir diperbarui:{" "}
+          {kontak?.updated_at
+            ? new Date(kontak.updated_at).toLocaleString("id-ID")
+            : "-"}
         </div>
       </div>
     </div>

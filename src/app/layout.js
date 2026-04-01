@@ -1,6 +1,7 @@
 import { Poppins } from "next/font/google";
 import "../lib/i18n";
 import "./globals.css";
+import { Toaster } from "@/components/ui/sonner";
 import Script from "next/script"; // <- import Script
 
 const poppins = Poppins({
@@ -39,6 +40,7 @@ export default function RootLayout({ children }) {
       </head>
       <body className={`${poppins.variable} antialiased`}>
         {children}
+        <Toaster />
       </body>
     </html>
   );

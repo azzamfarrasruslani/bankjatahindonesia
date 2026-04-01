@@ -1,11 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Edit, Trash2, Plus, Users } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
-import Toast from "@/components/common/Toast";
-import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal";
 import ProfilFormSheet from "./components/ProfilFormSheet";
+import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal";
 import {
   Table,
   TableBody,
@@ -16,116 +13,37 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTim } from "@/hooks/useTim";
 
 export default function ProfilPage() {
-  const [tim, setTim] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filterKategori, setFilterKategori] = useState("Semua");
-  const [kategoriOptions, setKategoriOptions] = useState([]);
-  const [toast, setToast] = useState({ message: "", type: "success" });
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
-
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-
-  useEffect(() => {
-    fetchTim();
-  }, []);
-
-  async function fetchTim() {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("tim")
-        .select("*")
-        .order("created_at", { ascending: true });
-      if (error) throw error;
-      
-      setTim(data || []);
-      const uniqueKategori = [
-        "Semua",
-        ...new Set(data.map((item) => item.kategori).filter(Boolean)),
-      ];
-      setKategoriOptions(uniqueKategori);
-    } catch (err) {
-      console.error("Gagal memuat data tim:", err.message);
-      showToast("Gagal memuat data tim", "error");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const showToast = (message, type = "success") => {
-    setToast({ message, type });
-  };
-
-  const handleDelete = async () => {
-    if (!selectedItem) return;
-
-    try {
-      const res = await fetch("/api/team", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: selectedItem.id,
-          foto_url: selectedItem.foto_url,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Gagal menghapus");
-
-      setTim((prev) => prev.filter((item) => item.id !== selectedItem.id));
-      showToast("✅ Anggota dan gambarnya berhasil dihapus", "success");
-    } catch (err) {
-      console.error(err);
-      showToast("❌ Gagal menghapus anggota", "error");
-    } finally {
-      setIsModalOpen(false);
-      setSelectedItem(null);
-    }
-  };
-
-  const handleOpenAddSheet = () => {
-    setEditingId(null);
-    setIsSheetOpen(true);
-  };
-
-  const handleOpenEditSheet = (id) => {
-    setEditingId(id);
-    setIsSheetOpen(true);
-  };
-
-  const filteredTim =
-    filterKategori === "Semua"
-      ? tim
-      : tim.filter((p) => p.kategori === filterKategori);
+  const { 
+    tim, 
+    loading, 
+    filterKategori, 
+    kategoriOptions, 
+    isSheetOpen, 
+    editingId, 
+    deleteModal, 
+    actions 
+  } = useTim();
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
-      {toast.message && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          duration={3000}
-          onClose={() => setToast({ message: "", type: "success" })}
-        />
-      )}
-
       <ProfilFormSheet
         isOpen={isSheetOpen}
-        onClose={() => setIsSheetOpen(false)}
-        onSuccess={fetchTim}
+        onClose={() => actions.setIsSheetOpen(false)}
+        onSuccess={actions.loadData}
         timId={editingId}
       />
 
       <ConfirmDeleteModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onConfirm={handleDelete}
-        itemName={selectedItem?.nama || "anggota ini"}
+        isOpen={deleteModal.isOpen}
+        onClose={() => {
+          actions.setIsDeleteModalOpen(false);
+          actions.setItemToDelete(null);
+        }}
+        onConfirm={actions.handleConfirmDelete}
+        itemName={deleteModal.item?.nama || "anggota ini"}
       />
 
       {/* Header Section */}
@@ -139,7 +57,7 @@ export default function ProfilPage() {
           </p>
         </div>
         <button
-          onClick={handleOpenAddSheet}
+          onClick={actions.handleOpenAddSheet}
           className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3.5 rounded-2xl shadow-[0_10px_20px_rgba(251,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(251,107,0,0.3)] transition-all duration-300 font-bold"
         >
           <Plus className="w-4 h-4" /> Tambah Anggota Tim
@@ -151,7 +69,7 @@ export default function ProfilPage() {
         {kategoriOptions.map((k) => (
           <button
             key={k}
-            onClick={() => setFilterKategori(k)}
+            onClick={() => actions.setFilterKategori(k)}
             className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all duration-300 border-2 ${
               filterKategori === k
                 ? "bg-[#FB6B00] text-white border-[#FB6B00] shadow-md shadow-orange-100"
@@ -192,7 +110,7 @@ export default function ProfilPage() {
                     <TableCell className="pr-8"><Skeleton className="h-8 w-20 ml-auto rounded-lg" /></TableCell>
                   </TableRow>
                 ))
-              ) : filteredTim.length === 0 ? (
+              ) : tim.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="h-64 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-400">
@@ -200,14 +118,14 @@ export default function ProfilPage() {
                         <Users className="w-8 h-8 opacity-20" />
                       </div>
                       <p className="font-medium">Tidak ada anggota tim ditemukan.</p>
-                      <button onClick={handleOpenAddSheet} className="text-[#FB6B00] text-sm mt-2 hover:underline font-bold">
+                      <button onClick={actions.handleOpenAddSheet} className="text-[#FB6B00] text-sm mt-2 hover:underline font-bold">
                         Daftarkan anggota tim pertama
                       </button>
                     </div>
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredTim.map((person, index) => (
+                tim.map((person, index) => (
                   <motion.tr
                     key={person.id}
                     initial={{ opacity: 0, y: 10 }}
@@ -242,17 +160,14 @@ export default function ProfilPage() {
                     <TableCell className="pr-8 text-right">
                       <div className="flex justify-end gap-2">
                         <button
-                          onClick={() => handleOpenEditSheet(person.id)}
+                          onClick={() => actions.handleOpenEditSheet(person.id)}
                           className="p-2.5 bg-gray-50 text-gray-400 hover:text-[#FB6B00] hover:bg-orange-50 rounded-xl transition-all"
                           title="Edit Anggota"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => {
-                            setSelectedItem(person);
-                            setIsModalOpen(true);
-                          }}
+                          onClick={() => actions.handleDeleteClick(person)}
                           className="p-2.5 bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
                           title="Hapus Anggota"
                         >

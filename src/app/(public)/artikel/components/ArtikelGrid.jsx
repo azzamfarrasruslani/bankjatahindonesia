@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchArtikel } from "@/lib/services/artikelService";
+import { fetchArtikel } from "@/services/artikelService";
 import ArtikelHighlight from "./ArtikelHighlight";
 import ArtikelCard from "./ArtikelCard";
 import { motion, AnimatePresence } from "framer-motion";

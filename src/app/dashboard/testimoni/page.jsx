@@ -1,8 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Plus, Edit, Trash2, Star } from "lucide-react";
-import { fetchTestimoni, deleteTestimoni } from "@/lib/services/testimoniService";
 import {
   Table,
   TableBody,
@@ -14,50 +12,18 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import TestimoniFormSheet from "./components/TestimoniFormSheet";
+import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal";
+import { useTestimoni } from "@/hooks/useTestimoni";
 
 export default function DashboardTestimoniPage() {
-  const [testimoniList, setTestimoniList] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [selectedTestimoniId, setSelectedTestimoniId] = useState(null);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const result = await fetchTestimoni();
-      setTestimoniList(result);
-    } catch (err) {
-      console.error(err.message);
-      setTestimoniList([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const handleOpenSheet = (id = null) => {
-    setSelectedTestimoniId(id);
-    setIsSheetOpen(true);
-  };
-
-  const handleCloseSheet = () => {
-    setIsSheetOpen(false);
-    setSelectedTestimoniId(null);
-  };
-
-  const handleDelete = async (id) => {
-    if (!confirm("Yakin ingin menghapus testimoni ini?")) return;
-
-    try {
-      await deleteTestimoni(id);
-      setTestimoniList((prev) => prev.filter((item) => item.id !== id));
-    } catch (err) {
-      alert(err.message);
-    }
-  };
+  const { 
+    testimoniList, 
+    loading, 
+    isSheetOpen, 
+    selectedTestimoniId, 
+    deleteModal, 
+    actions 
+  } = useTestimoni();
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -72,7 +38,7 @@ export default function DashboardTestimoniPage() {
           </p>
         </div>
         <button
-          onClick={() => handleOpenSheet()}
+          onClick={() => actions.handleOpenSheet()}
           className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3.5 rounded-2xl shadow-[0_10px_20px_rgba(251,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(251,107,0,0.3)] transition-all duration-300 font-bold"
         >
           <Plus className="w-4 h-4" /> Tambah Testimoni Baru
@@ -84,11 +50,21 @@ export default function DashboardTestimoniPage() {
         <Table>
           <TableHeader className="bg-gray-50/50">
             <TableRow className="hover:bg-transparent border-b-gray-100">
-              <TableHead className="w-[250px] py-5 pl-8 font-bold text-gray-900 uppercase tracking-wider text-[11px]">Pengguna</TableHead>
-              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px] text-center">Rating</TableHead>
-              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px]">Isi Testimoni</TableHead>
-              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px]">Tanggal</TableHead>
-              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px] text-right pr-8">Aksi</TableHead>
+              <TableHead className="w-[250px] py-5 pl-8 font-bold text-gray-900 uppercase tracking-wider text-[11px]">
+                Pengguna
+              </TableHead>
+              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px]">
+                Profesi
+              </TableHead>
+              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px] text-center">
+                Rating
+              </TableHead>
+              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px]">
+                Isi Testimoni
+              </TableHead>
+              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px] text-right pr-8">
+                Aksi
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -98,15 +74,23 @@ export default function DashboardTestimoniPage() {
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i} className="border-b-gray-50">
                     <TableCell className="py-4 pl-8">
-                      <div className="flex items-center gap-3">
-                        <Skeleton className="h-10 w-10 rounded-full" />
+                      <div className="flex flex-col gap-1">
                         <Skeleton className="h-4 w-[120px]" />
+                        <Skeleton className="h-3 w-[80px]" />
                       </div>
                     </TableCell>
-                    <TableCell className="text-center"><Skeleton className="h-4 w-16 mx-auto" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-[300px]" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                    <TableCell className="pr-8"><Skeleton className="h-8 w-20 ml-auto rounded-lg" /></TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Skeleton className="h-4 w-16 mx-auto" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-[300px]" />
+                    </TableCell>
+                    <TableCell className="pr-8">
+                      <Skeleton className="h-8 w-20 ml-auto rounded-lg" />
+                    </TableCell>
                   </TableRow>
                 ))
               ) : testimoniList.length === 0 ? (
@@ -116,8 +100,13 @@ export default function DashboardTestimoniPage() {
                       <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
                         <Plus className="w-8 h-8 opacity-20" />
                       </div>
-                      <p className="font-medium">Belum ada testimoni yang tercatat.</p>
-                      <button onClick={() => handleOpenSheet()} className="text-[#FB6B00] text-sm mt-2 hover:underline">
+                      <p className="font-medium">
+                        Belum ada testimoni yang tercatat.
+                      </p>
+                      <button
+                        onClick={() => actions.handleOpenSheet()}
+                        className="text-[#FB6B00] text-sm mt-2 hover:underline"
+                      >
                         Mulai tambah testimoni pertama Anda
                       </button>
                     </div>
@@ -133,9 +122,19 @@ export default function DashboardTestimoniPage() {
                     className="group hover:bg-gray-50/50 transition-colors border-b-gray-50 last:border-0"
                   >
                     <TableCell className="py-5 pl-8">
-                      <p className="font-bold text-gray-900 group-hover:text-[#FB6B00] transition-colors truncate max-w-[180px]">
-                        {item.nama}
-                      </p>
+                      <div>
+                        <p className="font-bold text-gray-900 group-hover:text-[#FB6B00] transition-colors truncate max-w-[180px]">
+                          {item.nama_pengguna}
+                        </p>
+                        {item.profesi && (
+                          <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mt-0.5">
+                            {item.profesi}
+                          </p>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <p className="text-xs text-gray-500 font-medium">{item.profesi || "-"}</p>
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex justify-center gap-0.5 text-yellow-400 drop-shadow-sm">
@@ -146,29 +145,20 @@ export default function DashboardTestimoniPage() {
                     </TableCell>
                     <TableCell>
                       <p className="text-sm text-gray-600 line-clamp-2 max-w-[400px] italic">
-                        "{item.isi}"
-                      </p>
-                    </TableCell>
-                    <TableCell>
-                      <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wider">
-                        {new Date(item.tanggal).toLocaleDateString("id-ID", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
+                        "{item.isi_testimoni}"
                       </p>
                     </TableCell>
                     <TableCell className="pr-8 text-right">
                       <div className="flex justify-end gap-2">
                         <button
-                          onClick={() => handleOpenSheet(item.id)}
+                          onClick={() => actions.handleOpenSheet(item.id)}
                           className="p-2.5 bg-gray-50 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all"
                           title="Edit Testimoni"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleDelete(item.id)}
+                          onClick={() => actions.handleDeleteClick(item)}
                           className="p-2.5 bg-gray-50 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
                           title="Hapus Testimoni"
                         >
@@ -183,14 +173,25 @@ export default function DashboardTestimoniPage() {
           </TableBody>
         </Table>
         <div className="p-6 bg-gray-50/30 border-t border-gray-50 text-[11px] font-bold text-gray-400 uppercase tracking-widest text-center">
-          Dikelola oleh sistem Bank Jatah Indonesia • © {new Date().getFullYear()}
+          Dikelola oleh sistem Bank Jatah Indonesia • ©{" "}
+          {new Date().getFullYear()}
         </div>
       </div>
 
+      <ConfirmDeleteModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => {
+          actions.setIsDeleteModalOpen(false);
+          actions.setItemToDelete(null);
+        }}
+        onConfirm={actions.handleConfirmDelete}
+        itemName={deleteModal.item?.nama_pengguna}
+      />
+
       <TestimoniFormSheet
         isOpen={isSheetOpen}
-        onClose={handleCloseSheet}
-        onSuccess={loadData}
+        onClose={actions.handleCloseSheet}
+        onSuccess={actions.loadData}
         testimoniId={selectedTestimoniId}
       />
     </div>

@@ -1,7 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { useState, useEffect } from "react";
+import { 
+  fetchTestimoniById, 
+  insertTestimoni, 
+  updateTestimoni 
+} from "@/services/testimoniService";
+import { toast } from "sonner";
 import { 
   User, 
   Star, 
@@ -23,10 +28,10 @@ import {
 
 export default function TestimoniFormSheet({ isOpen, onClose, onSuccess, testimoniId = null }) {
   const [form, setForm] = useState({
-    nama: "",
+    nama_pengguna: "",
+    profesi: "",
     rating: 5,
-    isi: "",
-    tanggal: new Date().toISOString().split('T')[0],
+    isi_testimoni: "",
   });
   const [loadingData, setLoadingData] = useState(false);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
@@ -36,10 +41,10 @@ export default function TestimoniFormSheet({ isOpen, onClose, onSuccess, testimo
       loadTestimoni();
     } else if (isOpen) {
       setForm({
-        nama: "",
+        nama_pengguna: "",
+        profesi: "",
         rating: 5,
-        isi: "",
-        tanggal: new Date().toISOString().split('T')[0],
+        isi_testimoni: "",
       });
     }
   }, [isOpen, testimoniId]);
@@ -47,24 +52,19 @@ export default function TestimoniFormSheet({ isOpen, onClose, onSuccess, testimo
   const loadTestimoni = async () => {
     try {
       setLoadingData(true);
-      const { data, error } = await supabase
-        .from("testimoni")
-        .select("*")
-        .eq("id", testimoniId)
-        .single();
-
-      if (error) throw error;
+      const data = await fetchTestimoniById(testimoniId);
 
       if (data) {
         setForm({
-          nama: data.nama || "",
+          nama_pengguna: data.nama_pengguna || "",
+          profesi: data.profesi || "",
           rating: data.rating || 5,
-          isi: data.isi || "",
-          tanggal: data.tanggal || new Date().toISOString().split('T')[0],
+          isi_testimoni: data.isi_testimoni || "",
         });
       }
     } catch (err) {
       console.error("Gagal mengambil data testimoni:", err);
+      toast.error("Gagal mengambil data testimoni");
     } finally {
       setLoadingData(false);
     }
@@ -83,27 +83,40 @@ export default function TestimoniFormSheet({ isOpen, onClose, onSuccess, testimo
     e.preventDefault();
     setLoadingSubmit(true);
 
-    try {
+    const savingPromise = (async () => {
       const payload = {
-        nama: form.nama,
+        nama_pengguna: form.nama_pengguna,
+        profesi: form.profesi || null,
         rating: parseInt(form.rating),
-        isi: form.isi,
-        tanggal: form.tanggal,
+        isi_testimoni: form.isi_testimoni,
       };
 
       if (testimoniId) {
-        const { error } = await supabase.from("testimoni").update(payload).eq("id", testimoniId);
-        if (error) throw error;
+        await updateTestimoni(testimoniId, payload);
+        return "Testimoni berhasil diperbarui!";
       } else {
-        const { error } = await supabase.from("testimoni").insert([payload]);
-        if (error) throw error;
+        await insertTestimoni(payload);
+        return "Testimoni berhasil ditambahkan!";
       }
+    })();
 
-      onSuccess?.();
-      onClose();
+    toast.promise(savingPromise, {
+      loading: "Sedang menyimpan testimoni...",
+      success: (message) => {
+        onSuccess?.();
+        onClose();
+        return message;
+      },
+      error: (err) => {
+        setLoadingSubmit(false);
+        return "Gagal menyimpan: " + err.message;
+      },
+    });
+
+    try {
+      await savingPromise;
     } catch (err) {
       console.error(err);
-      alert("Gagal menyimpan: " + err.message);
     } finally {
       setLoadingSubmit(false);
     }
@@ -147,11 +160,26 @@ export default function TestimoniFormSheet({ isOpen, onClose, onSuccess, testimo
                   </label>
                   <input
                     type="text"
-                    name="nama"
-                    value={form.nama}
+                    name="nama_pengguna"
+                    value={form.nama_pengguna}
                     onChange={handleChange}
                     required
                     placeholder="Masukkan nama lengkap..."
+                    className="w-full border-none bg-gray-50/50 rounded-2xl px-6 py-4 focus:ring-2 focus:ring-[#FB6B00]/20 outline-none transition-all font-bold text-gray-900 placeholder:text-gray-300"
+                  />
+                </div>
+
+                {/* Profesi */}
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">
+                    <MessageSquare className="w-3 h-3 text-[#FB6B00]" /> Profesi / Jabatan
+                  </label>
+                  <input
+                    type="text"
+                    name="profesi"
+                    value={form.profesi}
+                    onChange={handleChange}
+                    placeholder="Contoh: Ibu Rumah Tangga, Pedagang..."
                     className="w-full border-none bg-gray-50/50 rounded-2xl px-6 py-4 focus:ring-2 focus:ring-[#FB6B00]/20 outline-none transition-all font-bold text-gray-900 placeholder:text-gray-300"
                   />
                 </div>
@@ -181,29 +209,14 @@ export default function TestimoniFormSheet({ isOpen, onClose, onSuccess, testimo
                   </div>
                 </div>
 
-                {/* Tanggal */}
-                <div className="space-y-3">
-                  <label className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">
-                    <Calendar className="w-3 h-3 text-[#FB6B00]" /> Tanggal Ulasan
-                  </label>
-                  <input
-                    type="date"
-                    name="tanggal"
-                    value={form.tanggal}
-                    onChange={handleChange}
-                    required
-                    className="w-full border-none bg-gray-50/50 rounded-2xl px-6 py-4 focus:ring-2 focus:ring-[#FB6B00]/20 outline-none transition-all font-bold text-gray-900 cursor-pointer"
-                  />
-                </div>
-
                 {/* Isi Testimoni */}
                 <div className="space-y-3">
                   <label className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">
                     <MessageSquare className="w-3 h-3 text-[#FB6B00]" /> Pesan Testimoni
                   </label>
                   <textarea
-                    name="isi"
-                    value={form.isi}
+                    name="isi_testimoni"
+                    value={form.isi_testimoni}
                     onChange={handleChange}
                     rows="5"
                     required
