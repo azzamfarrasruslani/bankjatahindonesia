@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
-import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import Toast from "@/components/common/Toast";
-import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal"; // ← import modal konfirmasi
+import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal";
+// Import form berupa Sheet
+import ProfilFormSheet from "./ProfilFormSheet";
 
 export default function ProfilPage() {
   const [tim, setTim] = useState([]);
@@ -17,12 +18,19 @@ export default function ProfilPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
 
+  // State untuk Sheet Form (Tambah / Edit)
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+
   useEffect(() => {
     fetchTim();
   }, []);
 
   async function fetchTim() {
-    const { data, error } = await supabase.from("tim").select("*");
+    const { data, error } = await supabase
+      .from("tim")
+      .select("*")
+      .order("created_at", { ascending: true });
     if (error) {
       console.error("Gagal memuat data tim:", error.message);
       showToast("Gagal memuat data tim", "error");
@@ -62,11 +70,28 @@ export default function ProfilPage() {
       showToast("✅ Anggota dan gambarnya berhasil dihapus", "success");
     } catch (err) {
       console.error(err);
-      showToast("❌ Gagal menghapus anggota. Cek console untuk detail", "error");
+      showToast(
+        "❌ Gagal menghapus anggota. Cek console untuk detail",
+        "error",
+      );
     } finally {
       setIsModalOpen(false);
       setSelectedItem(null);
     }
+  };
+
+  const handleOpenAddSheet = () => {
+    setEditingId(null);
+    setIsSheetOpen(true);
+  };
+
+  const handleOpenEditSheet = (id) => {
+    setEditingId(id);
+    setIsSheetOpen(true);
+  };
+
+  const handleSheetSuccess = () => {
+    fetchTim(); // Refresh data table
   };
 
   const filteredTim =
@@ -76,6 +101,7 @@ export default function ProfilPage() {
 
   return (
     <section className="min-h-screen bg-gradient-to-b from-orange-50 to-white p-6 md:p-10 space-y-6 relative">
+      {/* Toast Notifikasi dari halaman profil */}
       {toast.message && (
         <Toast
           message={toast.message}
@@ -84,6 +110,14 @@ export default function ProfilPage() {
           onClose={() => setToast({ message: "", type: "success" })}
         />
       )}
+
+      {/* Komponen Sheet (Untuk Tambah & Edit) */}
+      <ProfilFormSheet
+        isOpen={isSheetOpen}
+        onClose={() => setIsSheetOpen(false)}
+        onSuccess={handleSheetSuccess}
+        timId={editingId}
+      />
 
       {/* Modal Konfirmasi Hapus */}
       <ConfirmDeleteModal
@@ -100,12 +134,12 @@ export default function ProfilPage() {
             Kelola anggota tim Bank Jatah Indonesia.
           </p>
         </div>
-        <Link
-          href="/dashboard/profil/tambah"
-          className="bg-[#FB6B00] text-white px-4 py-2 rounded-lg hover:bg-orange-600 flex items-center gap-2"
+        <button
+          onClick={handleOpenAddSheet}
+          className="bg-[#FB6B00] text-white px-4 py-2 rounded-lg hover:bg-orange-600 flex items-center justify-center gap-2 shadow-sm transition-colors"
         >
           <FaPlus /> Tambah Anggota
-        </Link>
+        </button>
       </div>
 
       {/* Filter Kategori */}
@@ -126,31 +160,36 @@ export default function ProfilPage() {
       </div>
 
       {/* Grid Tim */}
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredTim.map((person) => (
           <div
             key={person.id}
-            className="bg-white rounded-xl border border-orange-100 shadow-sm hover:shadow-md overflow-hidden relative"
+            className="bg-white rounded-xl border border-orange-100 shadow-sm hover:shadow-md overflow-hidden relative group"
           >
-            <div className="relative w-full h-48">
+            <div className="relative w-full h-48 sm:h-56 bg-gray-50">
               <img
                 src={person.foto_url || "/no-avatar.png"}
                 alt={person.nama}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
               />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/5 to-transparent pointer-events-none" />
               <div className="absolute top-3 right-3 flex gap-2">
-                <Link
-                  href={`/dashboard/profil/${person.id}`}
-                  className="p-2 bg-white/90 rounded-full text-[#FB6B00] hover:text-orange-700 shadow-sm"
+                <button
+                  type="button"
+                  onClick={() => handleOpenEditSheet(person.id)}
+                  className="p-2 bg-white/90 backdrop-blur-sm rounded-full text-[#FB6B00] hover:text-white hover:bg-[#FB6B00] shadow-sm transition-colors"
+                  title="Edit Anggota"
                 >
                   <FaEdit />
-                </Link>
+                </button>
                 <button
+                  type="button"
                   onClick={() => {
                     setSelectedItem(person);
                     setIsModalOpen(true);
                   }}
-                  className="p-2 bg-white/90 rounded-full text-red-500 hover:text-red-700 shadow-sm"
+                  className="p-2 bg-white/90 backdrop-blur-sm rounded-full text-red-500 hover:text-white hover:bg-red-500 shadow-sm transition-colors"
+                  title="Hapus Anggota"
                 >
                   <FaTrash />
                 </button>
@@ -158,14 +197,31 @@ export default function ProfilPage() {
             </div>
 
             <div className="p-5 text-center">
-              <h3 className="font-semibold text-lg text-[#FB6B00] mb-1">
+              <h3 className="font-semibold text-lg text-[#FB6B00] mb-1 line-clamp-1">
                 {person.nama}
               </h3>
-              <p className="text-gray-600 text-sm">{person.jabatan}</p>
-              <p className="text-gray-500 text-xs mt-1">{person.kategori}</p>
+              <p className="text-gray-600 text-sm line-clamp-1">
+                {person.jabatan}
+              </p>
+              <div className="mt-3 inline-flex items-center gap-1.5 bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
+                <span
+                  className={`w-2 h-2 rounded-full ${person.status ? "bg-green-500" : "bg-gray-400"}`}
+                ></span>
+                <p className="text-gray-500 text-xs font-medium">
+                  {person.kategori}
+                </p>
+              </div>
             </div>
           </div>
         ))}
+
+        {filteredTim.length === 0 && (
+          <div className="col-span-full py-12 text-center bg-white rounded-xl border border-dashed border-gray-200">
+            <p className="text-gray-500">
+              Tidak ada anggota tim yang ditemukan.
+            </p>
+          </div>
+        )}
       </div>
     </section>
   );

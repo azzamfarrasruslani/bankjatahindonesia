@@ -1,82 +1,66 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BarChart3, Users, Globe, Settings } from "lucide-react";
+import { Users, FileText, Newspaper, MapPin, LayoutGrid } from "lucide-react";
 
 export default function DashboardPage() {
-  const [totalVisits, setTotalVisits] = useState(0);
-  const [todayVisits, setTodayVisits] = useState(0);
-  const [activeNow, setActiveNow] = useState(0);
+  const [statsData, setStatsData] = useState({
+    artikel: 0,
+    berita: 0,
+    program: 0,
+    lokasi: 0,
+    users: 0,
+  });
 
   useEffect(() => {
-    const fetchGAData = async () => {
+    const fetchStats = async () => {
       try {
-        const res = await fetch("/api/ga-dashboard");
+        const res = await fetch("/api/dashboard-stats");
+        if (!res.ok) throw new Error("Failed to fetch");
         const data = await res.json();
-
-        const rows = data.historical?.rows || [];
-
-        // Total kunjungan seluruh waktu
-        const totalGA = rows.reduce(
-          (sum, row) => sum + parseInt(row.metricValues?.[0]?.value || 0),
-          0
-        );
-
-        // Kunjungan hari ini
-        const todayString = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-        const todayRow = rows.find(
-          (row) => row.dimensionValues?.[0]?.value === todayString
-        );
-        const todayGA = todayRow ? parseInt(todayRow.metricValues[0].value || 0) : 0;
-
-        // Active users realtime
-        const activeUsers = data.realtime?.activeUsers || 0;
-
-        setTotalVisits(totalGA);
-        setTodayVisits(todayGA);
-        setActiveNow(activeUsers);
+        setStatsData(data);
       } catch (err) {
-        console.error("GA fetch failed:", err);
+        console.error("Dashboard stats fetch failed:", err);
       }
     };
 
-    fetchGAData();
+    fetchStats();
   }, []);
 
   const stats = [
     {
-      label: "Total Kunjungan",
-      value: totalVisits,
-      icon: BarChart3,
+      label: "Total Pengguna",
+      value: statsData.users,
+      icon: Users,
       color: "text-white",
       bg: "bg-gradient-to-br from-[#FB6B00]/90 to-orange-500",
     },
     {
-      label: "Kunjungan Hari Ini",
-      value: todayVisits,
-      icon: Users,
+      label: "Total Artikel",
+      value: statsData.artikel,
+      icon: FileText,
       color: "text-gray-900",
       bg: "bg-white border border-gray-200",
     },
     {
-      label: "Pengguna Aktif Saat Ini",
-      value: activeNow,
-      icon: Users,
+      label: "Total Berita",
+      value: statsData.berita,
+      icon: Newspaper,
       color: "text-green-600",
       bg: "bg-white border border-gray-200",
     },
     {
-      label: "Halaman Dikelola",
-      value: 9,
-      icon: Globe,
+      label: "Total Program",
+      value: statsData.program,
+      icon: LayoutGrid,
       color: "text-gray-900",
       bg: "bg-white border border-gray-200",
     },
     {
-      label: "Status Sistem",
-      value: "Aktif",
-      icon: Settings,
-      color: "text-green-600",
+      label: "Total Lokasi",
+      value: statsData.lokasi,
+      icon: MapPin,
+      color: "text-blue-600",
       bg: "bg-white border border-gray-200",
     },
   ];
@@ -87,7 +71,7 @@ export default function DashboardPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gray-200 pb-4 mb-6">
           <h1 className="text-3xl font-bold text-[#FB6B00]">Selamat Datang!</h1>
           <span className="text-sm text-gray-500 mt-2 sm:mt-0">
-            Dashboard Pengelolaan Kunjungan Web
+            Dashboard Pengelolaan Website
           </span>
         </div>
 

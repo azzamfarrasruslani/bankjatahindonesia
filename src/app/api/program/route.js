@@ -2,8 +2,32 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
+
+/* ============================================================
+   🔹 READ (GET) - Ambil semua program
+============================================================ */
+export async function GET(req) {
+  try {
+    const { data: programs, error } = await supabase
+      .from("program")
+      .select("*")
+      .order("id", { ascending: true });
+
+    if (error) throw error;
+
+    return new Response(JSON.stringify(programs), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    console.error("[ERROR] Ambil program gagal:", err);
+    return new Response(JSON.stringify({ error: "Gagal mengambil program" }), {
+      status: 500,
+    });
+  }
+}
 
 /* ============================================================
    🔹 CREATE (POST) - Tambah program baru
@@ -35,7 +59,7 @@ export async function POST(req) {
 
     return new Response(
       JSON.stringify({ message: "Program berhasil ditambahkan" }),
-      { status: 201 }
+      { status: 201 },
     );
   } catch (err) {
     console.error("[ERROR] Tambah program gagal:", err);
@@ -55,7 +79,7 @@ export async function DELETE(req) {
     if (!id)
       return new Response(
         JSON.stringify({ error: "ID program tidak ditemukan" }),
-        { status: 400 }
+        { status: 400 },
       );
 
     // Hapus file icon jika ada
@@ -84,7 +108,7 @@ export async function DELETE(req) {
 
     return new Response(
       JSON.stringify({ message: "Program dan icon berhasil dihapus" }),
-      { status: 200 }
+      { status: 200 },
     );
   } catch (err) {
     console.error("[ERROR] Hapus program gagal:", err);
@@ -113,7 +137,7 @@ export async function PUT(req) {
     if (!id)
       return new Response(
         JSON.stringify({ error: "ID program tidak ditemukan" }),
-        { status: 400 }
+        { status: 400 },
       );
 
     // Jika icon baru diunggah, hapus icon lama
@@ -148,12 +172,15 @@ export async function PUT(req) {
 
     return new Response(
       JSON.stringify({ message: "Program berhasil diperbarui" }),
-      { status: 200 }
+      { status: 200 },
     );
   } catch (err) {
     console.error("[ERROR] Update program gagal:", err);
-    return new Response(JSON.stringify({ error: "Gagal memperbarui program" }), {
-      status: 500,
-    });
+    return new Response(
+      JSON.stringify({ error: "Gagal memperbarui program" }),
+      {
+        status: 500,
+      },
+    );
   }
 }

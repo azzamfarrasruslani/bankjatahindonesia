@@ -16,9 +16,9 @@ export default function FloatingWAButton() {
         .select("whatsapp_link")
         .order("id", { ascending: true })
         .limit(1)
-        .single(); // Ambil satu data kontak terbaru
+        .maybeSingle(); // Hindari error jika tabel kosong
 
-      if (error) {
+      if (error && error.code !== "PGRST116") {
         console.error("Gagal memuat data kontak:", error);
       } else {
         setWhatsappLink(data?.whatsapp_link || "");
@@ -30,24 +30,10 @@ export default function FloatingWAButton() {
 
   return (
     <motion.div
-      className="fixed bottom-6 right-6 z-50 flex items-center space-x-2"
+      className="fixed bottom-6 left-6 z-50 flex items-center space-x-2"
       onHoverStart={() => setIsHover(true)}
       onHoverEnd={() => setIsHover(false)}
     >
-      <AnimatePresence>
-        {isHover && (
-          <motion.div
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 10 }}
-            transition={{ type: "spring", stiffness: 300 }}
-            className="bg-white text-[#25D366] px-4 py-2 rounded-full shadow-md text-sm font-semibold"
-          >
-            Chat Kami
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <motion.a
         href={whatsappLink || "#"}
         target="_blank"
@@ -63,6 +49,20 @@ export default function FloatingWAButton() {
       >
         <FaWhatsapp size={24} />
       </motion.a>
+
+      <AnimatePresence>
+        {isHover && (
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            transition={{ type: "spring", stiffness: 300 }}
+            className="bg-white text-[#25D366] px-4 py-2 rounded-full shadow-md text-sm font-semibold"
+          >
+            Chat Kami
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

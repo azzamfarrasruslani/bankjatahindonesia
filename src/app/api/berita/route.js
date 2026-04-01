@@ -2,8 +2,39 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY // pakai role key agar bisa delete storage
+  process.env.SUPABASE_SERVICE_ROLE_KEY, // pakai role key agar bisa delete storage
 );
+
+// ✅ Ambil Data Berita
+export async function GET(req) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    const slug = searchParams.get("slug");
+
+    let query = supabase
+      .from("berita")
+      .select("*")
+      .order("tanggal", { ascending: false });
+
+    if (id) query = query.eq("id", id).single();
+    if (slug) query = query.eq("slug", slug).single();
+
+    const { data: berita, error } = await query;
+
+    if (error) throw error;
+
+    return new Response(JSON.stringify(berita || []), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    console.error("[ERROR] Ambil berita gagal:", err);
+    return new Response(JSON.stringify({ error: "Gagal mengambil berita" }), {
+      status: 500,
+    });
+  }
+}
 
 export async function POST(req) {
   try {
@@ -20,7 +51,7 @@ export async function POST(req) {
       JSON.stringify({ message: "Berita berhasil ditambahkan" }),
       {
         status: 201,
-      }
+      },
     );
   } catch (err) {
     return new Response(JSON.stringify({ error: err.message }), {
@@ -38,7 +69,7 @@ export async function PUT(req) {
     if (!id) {
       return new Response(
         JSON.stringify({ error: "ID berita tidak ditemukan" }),
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -68,7 +99,7 @@ export async function PUT(req) {
 
     return new Response(
       JSON.stringify({ message: "✅ Berita berhasil diperbarui" }),
-      { status: 200 }
+      { status: 200 },
     );
   } catch (err) {
     console.error("[ERROR] Update berita gagal:", err);
@@ -110,7 +141,7 @@ export async function DELETE(req) {
       JSON.stringify({ message: "Berita berhasil dihapus" }),
       {
         status: 200,
-      }
+      },
     );
   } catch (err) {
     return new Response(JSON.stringify({ error: err.message }), {

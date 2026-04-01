@@ -6,7 +6,7 @@ export async function GET() {
     const auth = new google.auth.GoogleAuth({
       credentials: {
         client_email: process.env.GA_CLIENT_EMAIL,
-        private_key: process.env.GA_PRIVATE_KEY.replace(/\\n/g, "\n"),
+        private_key: process.env.GA_PRIVATE_KEY?.replace(/\\n/g, "\n"),
       },
       scopes: ["https://www.googleapis.com/auth/analytics.readonly"],
     });
@@ -40,7 +40,7 @@ export async function GET() {
       historical: { rows },
       realtime: {
         activeUsers: parseInt(
-          realtimeRes.data.totals?.[0]?.metricValues?.[0]?.value || 0
+          realtimeRes.data.totals?.[0]?.metricValues?.[0]?.value || 0,
         ),
       },
     });
@@ -48,7 +48,7 @@ export async function GET() {
     console.error(err);
     return NextResponse.json(
       { error: "GA fetch failed", message: err.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

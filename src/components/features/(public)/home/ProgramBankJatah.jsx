@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence, useInView } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 
 const programs = [
   {
@@ -35,176 +36,127 @@ const programs = [
 export default function ProgramBankJatah() {
   const [activeIndex, setActiveIndex] = useState(0);
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
 
-  const nextSlide = () => setActiveIndex((prev) => (prev + 1) % programs.length);
-  const prevSlide = () => setActiveIndex((prev) => (prev - 1 + programs.length) % programs.length);
+  const nextSlide = () =>
+    setActiveIndex((prev) => (prev + 1) % programs.length);
+  const prevSlide = () =>
+    setActiveIndex((prev) => (prev - 1 + programs.length) % programs.length);
 
   const current = programs[activeIndex];
 
   return (
-    <section className="w-full bg-gradient-to-b from-white to-gray-50/50 py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+    <section className="w-full bg-white relative py-20 sm:py-24 lg:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      {/* Light Background Accents */}
+      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-orange-50/60 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-orange-100/40 via-transparent to-transparent pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto relative z-10">
         {/* Header Section */}
         <motion.div
           ref={ref}
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12 lg:mb-16"
+          className="text-center mb-16 lg:mb-20"
         >
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
-            <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-            <span className="text-sm font-semibold text-primary uppercase tracking-wide">
+          {/* Subtle Accent Badge */}
+          <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-orange-50 border border-orange-100 mb-6 shadow-sm">
+            <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
+            <span className="text-sm font-bold text-orange-600 uppercase tracking-widest">
               Program Unggulan
             </span>
           </div>
 
-          {/* Title */}
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight">
-            Program{" "}
-            <span className="bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-primary">
+          {/* Title - Bold & High Contrast */}
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 mb-6 leading-[1.15] tracking-tight uppercase">
+            Program <br className="sm:hidden" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-500">
               Bank Jatah
             </span>
           </h2>
 
-          {/* Description */}
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Solusi inovatif dan berkelanjutan untuk mengelola minyak jelantah 
-            melalui berbagai program yang menguntungkan
+          {/* Clean Description */}
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed font-light">
+            Solusi inovatif dan berkelanjutan untuk mengelola minyak jelantah
+            melalui ekosistem program yang saling menguntungkan.
           </p>
         </motion.div>
 
-        {/* Desktop Grid View */}
-        <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        {/* Desktop & Tablet Grid View */}
+        <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-10">
           {programs.map((program, index) => (
             <motion.div
               key={program.id}
-              initial={{ opacity: 0, y: 50 }}
+              initial={{ opacity: 0, y: 40 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: index * 0.1, duration: 0.6 }}
-              whileHover={{ y: -8, scale: 1.02 }}
-              className="group relative h-[420px] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer"
+              transition={{
+                delay: index * 0.15,
+                duration: 0.6,
+                ease: "easeOut",
+              }}
+              whileHover={{ y: -10 }}
+              className="group relative h-[480px] rounded-[2rem] overflow-hidden bg-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_20px_40px_rgba(249,115,22,0.15)] transition-all duration-500 cursor-pointer border border-transparent hover:border-orange-200"
             >
-              {/* Background Image */}
+              {/* Premium Background Image Handling */}
               <Image
                 src={program.image}
                 alt={program.title}
                 fill
-                className="object-cover transition-transform duration-700 group-hover:scale-110"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                sizes="(max-width: 1024px) 50vw, 33vw"
               />
-              
-              {/* Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/40 to-transparent" />
-              
-              {/* Content */}
-              <div className="relative z-20 h-full flex flex-col justify-end p-6 text-white">
-                {/* Icon */}
-                <div className="mb-4 transform group-hover:scale-110 transition-transform duration-300">
-                  <div className="w-16 h-16 rounded-2xl bg-primary/20 backdrop-blur-sm border border-primary/30 flex items-center justify-center">
+
+              {/* Refined Smooth Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300" />
+
+              {/* Card Content Container */}
+              <div className="relative z-20 h-full flex flex-col justify-end p-8 text-white">
+                {/* Icon Wrapper with Glassmorphism */}
+                <div className="mb-6 transform group-hover:-translate-y-2 transition-transform duration-500">
+                  <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center p-3 group-hover:bg-orange-500 group-hover:border-orange-400 transition-colors shadow-lg">
                     <Image
                       src={program.icon}
                       alt="icon"
                       width={32}
                       height={32}
-                      className="object-contain"
+                      className="object-contain filter brightness-0 invert"
+                      // Note: Depending on actual icons, they might not need inversion if already white
                     />
                   </div>
                 </div>
 
-                {/* Title */}
-                <h3 className="text-2xl font-bold text-primary mb-3">
+                {/* Typography hierarchy */}
+                <h3 className="text-3xl font-bold text-white mb-3 tracking-tight group-hover:text-orange-400 transition-colors duration-300">
                   {program.title}
                 </h3>
 
-                {/* Description */}
-                <p className="text-gray-200 text-sm leading-relaxed mb-6">
+                <p className="text-gray-300 text-base leading-relaxed mb-8 font-light line-clamp-3 group-hover:text-gray-200 transition-colors">
                   {program.desc}
                 </p>
 
-                {/* CTA Button */}
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="inline-flex items-center gap-2 text-white font-semibold text-sm group/btn"
-                >
-                  <span>Selengkapnya</span>
-                  <svg 
-                    className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </motion.div>
-              </div>
-
-              {/* Hover Effect */}
-              <div className="absolute inset-0 border-2 border-transparent group-hover:border-primary/50 rounded-2xl transition-all duration-500" />
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Tablet Grid View (2 columns) */}
-        <div className="hidden md:grid lg:hidden grid-cols-2 gap-6">
-          {programs.map((program, index) => (
-            <motion.div
-              key={program.id}
-              initial={{ opacity: 0, y: 50 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: index * 0.1, duration: 0.6 }}
-              className="group relative h-[380px] rounded-2xl overflow-hidden shadow-lg"
-            >
-              <Image
-                src={program.image}
-                alt={program.title}
-                fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 50vw, 33vw"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/40 to-transparent" />
-              <div className="relative z-20 h-full flex flex-col justify-end p-5 text-white">
-                <div className="mb-3">
-                  <div className="w-12 h-12 rounded-xl bg-primary/20 backdrop-blur-sm border border-primary/30 flex items-center justify-center">
-                    <Image
-                      src={program.icon}
-                      alt="icon"
-                      width={24}
-                      height={24}
-                      className="object-contain"
-                    />
-                  </div>
-                </div>
-                <h3 className="text-xl font-bold text-primary mb-2">
-                  {program.title}
-                </h3>
-                <p className="text-gray-200 text-xs leading-relaxed mb-4">
-                  {program.desc}
-                </p>
-                <div className="inline-flex items-center gap-1 text-white font-semibold text-xs">
-                  <span>Selengkapnya</span>
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </div>
+                {/* Styled View Details Link */}
+                <Link href={program.href} className="inline-block mt-auto">
+                  <motion.div className="inline-flex items-center gap-3 bg-white text-gray-900 font-bold py-3.5 px-6 rounded-full text-sm uppercase tracking-wider group-hover:bg-orange-500 group-hover:text-white transition-colors duration-300">
+                    <span>Selengkapnya</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </motion.div>
+                </Link>
               </div>
             </motion.div>
           ))}
         </div>
 
-        {/* Mobile Slider View */}
-        <div className="md:hidden relative">
+        {/* Mobile View with Smooth Interactive Slider */}
+        <div className="md:hidden relative px-2">
           <AnimatePresence mode="wait">
             <motion.div
               key={current.id}
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -100 }}
-              transition={{ duration: 0.4 }}
-              className="relative h-[400px] rounded-2xl overflow-hidden shadow-xl"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              className="relative h-[500px] rounded-[2rem] overflow-hidden shadow-2xl border border-gray-100"
             >
               <Image
                 src={current.image}
@@ -212,80 +164,98 @@ export default function ProgramBankJatah() {
                 fill
                 className="object-cover"
                 sizes="100vw"
+                priority
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/50 to-transparent" />
-              
-              <div className="relative z-20 h-full flex flex-col justify-end p-6 text-white">
-                {/* Icon */}
-                <div className="mb-4">
-                  <div className="w-14 h-14 rounded-xl bg-primary/20 backdrop-blur-sm border border-primary/30 flex items-center justify-center">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10" />
+
+              <div className="relative z-20 h-full flex flex-col justify-end p-7 text-white">
+                {/* Mobile Icon */}
+                <div className="mb-5">
+                  <div className="w-14 h-14 rounded-full bg-orange-500/90 backdrop-blur-md border border-orange-400 flex items-center justify-center p-2.5 shadow-lg">
                     <Image
                       src={current.icon}
                       alt="icon"
                       width={28}
                       height={28}
-                      className="object-contain"
+                      className="object-contain filter brightness-0 invert"
                     />
                   </div>
                 </div>
 
-                {/* Content */}
-                <h3 className="text-2xl font-bold text-primary mb-3">
+                <h3 className="text-3xl font-bold text-white mb-3 leading-tight tracking-tight">
                   {current.title}
                 </h3>
-                <p className="text-gray-200 text-sm leading-relaxed mb-6">
+                <p className="text-gray-300 text-base leading-relaxed mb-8 font-light">
                   {current.desc}
                 </p>
 
-                {/* CTA */}
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="inline-flex items-center gap-2 text-white font-semibold text-sm"
-                >
-                  <span>Selengkapnya</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </motion.div>
+                <Link href={current.href}>
+                  <div className="inline-flex w-full items-center justify-center gap-2 bg-orange-500 text-white font-bold py-4 rounded-full text-sm uppercase tracking-widest shadow-lg active:scale-95 transition-transform">
+                    <span>Pelajari Program</span>
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </div>
+                </Link>
               </div>
             </motion.div>
           </AnimatePresence>
 
-          {/* Navigation Controls */}
-          <div className="flex justify-between items-center mt-6 px-2">
-            {/* Dots Indicator */}
-            <div className="flex items-center gap-2">
+          {/* Smooth Controls */}
+          <div className="flex justify-between items-center mt-8 px-4">
+            {/* Minimal Dots */}
+            <div className="flex items-center gap-2.5">
               {programs.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setActiveIndex(index)}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    index === activeIndex 
-                      ? "bg-primary w-6" 
-                      : "bg-gray-300 hover:bg-gray-400"
+                  className={`h-2 rounded-full transition-all duration-500 ease-in-out ${
+                    index === activeIndex
+                      ? "bg-orange-500 w-8"
+                      : "bg-gray-200 w-2"
                   }`}
+                  aria-label={`Go to slide ${index + 1}`}
                 />
               ))}
             </div>
 
-            {/* Arrow Controls */}
+            {/* Premium Arrow Navigation */}
             <div className="flex items-center gap-3">
               <button
                 onClick={prevSlide}
-                className="w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm border border-gray-200 hover:bg-primary hover:border-primary hover:text-white transition-all duration-300 flex items-center justify-center shadow-lg"
+                className="w-12 h-12 rounded-full bg-white border border-gray-100 text-gray-600 hover:bg-orange-50 hover:text-orange-500 hover:border-orange-200 transition-all duration-300 flex items-center justify-center shadow-sm active:scale-90"
+                aria-label="Previous slide"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M15 19l-7-7 7-7"
+                  />
                 </svg>
               </button>
-              
+
               <button
                 onClick={nextSlide}
-                className="w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm border border-gray-200 hover:bg-primary hover:border-primary hover:text-white transition-all duration-300 flex items-center justify-center shadow-lg"
+                className="w-12 h-12 rounded-full bg-orange-500 text-white hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-500/30 transition-all duration-300 flex items-center justify-center active:scale-90"
+                aria-label="Next slide"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </button>
             </div>

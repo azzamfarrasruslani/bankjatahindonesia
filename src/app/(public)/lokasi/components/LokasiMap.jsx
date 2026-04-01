@@ -1,103 +1,129 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { MapPin, Navigation, ExternalLink } from "lucide-react";
+import { MapPin, Navigation, ExternalLink, Activity } from "lucide-react";
 
-export default function LokasiMap({ L, MapContainer, TileLayer, Marker, Popup, filteredData }) {
+export default function LokasiMap({
+  L,
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  filteredData,
+}) {
   if (!L) {
     return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="flex flex-col items-center justify-center h-[550px] bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border border-primary/20 text-primary"
-      >
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-        <p className="font-semibold text-lg">Memuat Peta...</p>
-        <p className="text-sm text-primary/70 mt-2">Sedang memuat data lokasi</p>
-      </motion.div>
+      <div className="w-full h-full bg-gray-50 flex items-center justify-center">
+        <div className="relative flex flex-col items-center">
+          {/* Pulsing Core */}
+          <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center mb-4 relative">
+            <span className="w-8 h-8 rounded-full bg-orange-500 animate-ping absolute opacity-70" />
+            <Activity className="w-6 h-6 text-orange-600 z-10" />
+          </div>
+          <h3 className="text-gray-900 font-bold text-lg mb-1 tracking-tight">
+            Menyiapkan Pemetaan
+          </h3>
+          <p className="text-gray-400 text-sm font-medium">
+            BJI Integrated Map Engine
+          </p>
+        </div>
+      </div>
     );
   }
 
+  // Custom Icon Logic - Bright Orange Modern Pin
   const customIcon = new L.Icon({
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png", // Standin, optionally replaced with an orange map pin URL later
     iconSize: [40, 40],
     iconAnchor: [20, 40],
     popupAnchor: [0, -40],
-    className: "map-marker-icon"
+    className:
+      "drop-shadow-md brightness-110 contrast-125 sepia-[0.8] hue-rotate-[-30deg] saturate-200", // CSS Hack to turn blue icon to orange/amber quickly
   });
 
   const avgLat =
     filteredData.length > 0
-      ? filteredData.reduce((sum, l) => sum + parseFloat(l.latitude || 0), 0) / filteredData.length
-      : 0.5071; // Default Pekanbaru latitude
+      ? filteredData.reduce((sum, l) => sum + parseFloat(l.latitude || 0), 0) /
+        filteredData.length
+      : 0.5071; // Default
   const avgLng =
     filteredData.length > 0
-      ? filteredData.reduce((sum, l) => sum + parseFloat(l.longitude || 0), 0) / filteredData.length
-      : 101.4478; // Default Pekanbaru longitude
+      ? filteredData.reduce((sum, l) => sum + parseFloat(l.longitude || 0), 0) /
+        filteredData.length
+      : 101.4478; // Default
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6 }}
-      className="relative w-full h-[550px] rounded-2xl shadow-2xl overflow-hidden border border-gray-200 group"
-    >
-      {/* Header Overlay */}
-      <div className="absolute top-4 left-4 z-[1000] bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg border border-white/20">
-        <div className="flex items-center gap-2">
-          <Navigation className="w-4 h-4 text-primary" />
-          <span className="text-sm font-semibold text-gray-900">Peta Lokasi</span>
-          <span className="text-xs text-primary bg-primary/10 px-2 py-1 rounded-full font-medium">
-            {filteredData.length} Lokasi
-          </span>
-        </div>
+    <div className="relative w-full h-full bg-gray-100">
+      {/* Floating Header UI */}
+      <div className="absolute top-6 left-6 z-[400]">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+          className="bg-white/90 backdrop-blur-md border border-white/40 shadow-[0_8px_30px_rgba(0,0,0,0.12)] rounded-[1.2rem] p-3 pr-4 flex items-center gap-3"
+        >
+          <div className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center shadow-inner">
+            <Navigation className="w-4 h-4" />
+          </div>
+          <div>
+            <h4 className="text-gray-900 font-bold text-sm tracking-tight leading-none">
+              Peta Wilayah
+            </h4>
+            <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">
+              Radar Aktif
+            </p>
+          </div>
+        </motion.div>
       </div>
 
-      <MapContainer 
-        center={[avgLat, avgLng]} 
-        zoom={12} 
-        scrollWheelZoom 
-        className="w-full h-full rounded-2xl"
+      <MapContainer
+        center={[avgLat, avgLng]}
+        zoom={13}
+        scrollWheelZoom
+        zoomControl={false} // Disable default to make it look cleaner
+        className="w-full h-full z-10"
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution="&copy; OpenStreetMap"
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" // Premium looking light-theme map from CartoDB Voyager
         />
-        
+
         {filteredData.map((lokasi) => (
           <Marker
             key={lokasi.id}
-            position={[parseFloat(lokasi.latitude), parseFloat(lokasi.longitude)]}
+            position={[
+              parseFloat(lokasi.latitude),
+              parseFloat(lokasi.longitude),
+            ]}
             icon={customIcon}
           >
-            <Popup className="custom-popup">
-              <div className="min-w-[200px] p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
-                  <h4 className="font-semibold text-gray-900 text-sm">{lokasi.nama}</h4>
+            <Popup className="custom-popup" closeButton={false}>
+              <div className="p-1 min-w-[220px]">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-8 h-8 rounded-full bg-orange-50 border border-orange-100 flex items-center justify-center shrink-0 mt-0.5">
+                    <MapPin className="w-4 h-4 text-orange-500" />
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-black tracking-widest uppercase text-orange-500 mb-0.5 block">
+                      {lokasi.jenis || "Mitra"}
+                    </span>
+                    <h4 className="font-black text-gray-900 text-sm leading-tight m-0">
+                      {lokasi.nama}
+                    </h4>
+                  </div>
                 </div>
-                
-                <p className="text-gray-600 text-xs mb-3 leading-relaxed">
+
+                <p className="text-gray-500 text-xs font-medium leading-relaxed mb-4 pb-3 border-b border-gray-100">
                   {lokasi.alamat}
                 </p>
-                
-                <div className="space-y-1 text-xs text-gray-500">
-                  {lokasi.jam_operasional && (
-                    <p><strong>Jam:</strong> {lokasi.jam_operasional}</p>
-                  )}
-                  {lokasi.kontak && (
-                    <p><strong>Kontak:</strong> {lokasi.kontak}</p>
-                  )}
-                </div>
-                
+
                 <a
                   href={`https://maps.google.com/?q=${lokasi.latitude},${lokasi.longitude}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-primary hover:text-primary-dark text-xs font-medium mt-3 transition-colors"
+                  className="w-full bg-gray-900 hover:bg-orange-500 text-white text-[10px] font-bold uppercase tracking-widest py-2 px-3 rounded-lg flex items-center justify-center gap-2 transition-colors duration-300"
                 >
-                  Buka di Google Maps
+                  Navigasi Maps
                   <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
@@ -106,8 +132,9 @@ export default function LokasiMap({ L, MapContainer, TileLayer, Marker, Popup, f
         ))}
       </MapContainer>
 
-      {/* Gradient Overlay */}
-      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white/30 to-transparent pointer-events-none" />
-    </motion.div>
+      {/* Edge Gradients for depth */}
+      <div className="absolute inset-0 border-[6px] border-white/50 pointer-events-none z-[400]" />
+      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/5 to-transparent pointer-events-none z-[400]" />
+    </div>
   );
 }
