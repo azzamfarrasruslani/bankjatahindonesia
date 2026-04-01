@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { FiMail, FiPhone, FiUser, FiMessageSquare } from "react-icons/fi";
-import { FaFacebookF, FaInstagram, FaWhatsapp } from "react-icons/fa";
+import { Mail, Phone, User, MessageSquare, Facebook, Instagram, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import HeroSection from "@/components/common/HeroSection";
 import { Send, MapPin } from "lucide-react";
@@ -37,28 +36,28 @@ export default function KontakPage() {
       label: "Nama Depan",
       placeholder: "Nama depan Anda",
       type: "text",
-      icon: FiUser,
+      icon: User,
     },
     {
       id: "last-name",
       label: "Nama Belakang",
       placeholder: "Nama belakang Anda",
       type: "text",
-      icon: FiUser,
+      icon: User,
     },
     {
       id: "email",
       label: "Alamat Email",
       placeholder: "nama@email.com",
       type: "email",
-      icon: FiMail,
+      icon: Mail,
     },
     {
       id: "phone",
       label: "Nomor Telepon",
       placeholder: "08xx xxxx xxxx",
       type: "tel",
-      icon: FiPhone,
+      icon: Phone,
     },
   ];
 
@@ -99,19 +98,19 @@ export default function KontakPage() {
       label: "Customer Service WhatsApp",
       value: kontak.whatsapp,
       link: kontak.whatsapp_link,
-      icon: FaWhatsapp,
+      icon: MessageCircle,
     },
     {
       id: "telepon",
       label: "Layanan Telepon",
       value: kontak.telepon,
-      icon: FiPhone,
+      icon: Phone,
     },
     {
       id: "email",
       label: "Alamat Email Resmi",
       value: kontak.email,
-      icon: FiMail,
+      icon: Mail,
     },
     {
       id: "alamat",
@@ -122,8 +121,8 @@ export default function KontakPage() {
   ];
 
   const socialLinks = [
-    { icon: FaFacebookF, href: kontak.facebook, name: "Facebook" },
-    { icon: FaInstagram, href: kontak.instagram, name: "Instagram" },
+    { icon: Facebook, href: kontak.facebook, name: "Facebook" },
+    { icon: Instagram, href: kontak.instagram, name: "Instagram" },
   ];
 
   return (
@@ -198,7 +197,7 @@ export default function KontakPage() {
                 </label>
                 <div className="relative">
                   <div className="absolute left-4 top-5 text-gray-400 group-hover/input:text-orange-500 transition-colors z-10 bg-white p-1">
-                    <FiMessageSquare className="w-5 h-5" />
+                    <MessageSquare className="w-5 h-5" />
                   </div>
                   <textarea
                     id="message"

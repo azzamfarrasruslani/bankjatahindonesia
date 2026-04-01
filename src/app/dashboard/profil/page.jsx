@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FaEdit, FaTrash, FaPlus, FaUsers } from "react-icons/fa";
+import { Edit, Trash2, Plus, Users } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import Toast from "@/components/common/Toast";
 import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal";
@@ -142,7 +142,7 @@ export default function ProfilPage() {
           onClick={handleOpenAddSheet}
           className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3.5 rounded-2xl shadow-[0_10px_20px_rgba(251,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(251,107,0,0.3)] transition-all duration-300 font-bold"
         >
-          <FaPlus className="text-sm" /> Tambah Anggota Tim
+          <Plus className="w-4 h-4" /> Tambah Anggota Tim
         </button>
       </div>
 
@@ -197,7 +197,7 @@ export default function ProfilPage() {
                   <TableCell colSpan={4} className="h-64 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-400">
                       <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                        <FaUsers className="text-2xl opacity-20" />
+                        <Users className="w-8 h-8 opacity-20" />
                       </div>
                       <p className="font-medium">Tidak ada anggota tim ditemukan.</p>
                       <button onClick={handleOpenAddSheet} className="text-[#FB6B00] text-sm mt-2 hover:underline font-bold">
@@ -246,7 +246,7 @@ export default function ProfilPage() {
                           className="p-2.5 bg-gray-50 text-gray-400 hover:text-[#FB6B00] hover:bg-orange-50 rounded-xl transition-all"
                           title="Edit Anggota"
                         >
-                          <FaEdit className="text-base" />
+                          <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => {
@@ -256,7 +256,7 @@ export default function ProfilPage() {
                           className="p-2.5 bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
                           title="Hapus Anggota"
                         >
-                          <FaTrash className="text-base" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </TableCell>

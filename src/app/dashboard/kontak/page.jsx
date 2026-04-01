@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from "react";
 import {
-  FaWhatsapp,
-  FaFacebook,
-  FaInstagram,
-  FaEnvelope,
-  FaPhoneAlt,
-  FaEdit,
-  FaTimes,
-  FaSave,
-} from "react-icons/fa";
+  MessageCircle,
+  Facebook,
+  Instagram,
+  Mail,
+  Phone,
+  Edit,
+  X,
+  Save,
+} from "lucide-react";
 import { fetchKontak, updateKontak } from "@/lib/services/kontakService";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
@@ -94,14 +94,14 @@ export default function ManajemenKontakPage() {
                 onClick={handleCancel}
                 className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-600 px-6 py-3.5 rounded-2xl transition-all duration-300 font-bold"
               >
-                <FaTimes /> Batal
+                <X className="w-4 h-4" /> Batal
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
                 className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3.5 rounded-2xl shadow-[0_10px_20px_rgba(251,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(251,107,0,0.3)] transition-all duration-300 font-bold disabled:opacity-50"
               >
-                <FaSave /> {saving ? "Menyimpan..." : "Simpan Perubahan"}
+                <Save className="w-4 h-4" /> {saving ? "Menyimpan..." : "Simpan Perubahan"}
               </button>
             </>
           ) : (
@@ -109,7 +109,7 @@ export default function ManajemenKontakPage() {
               onClick={() => setIsEditing(true)}
               className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3.5 rounded-2xl shadow-[0_10px_20px_rgba(251,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(251,107,0,0.3)] transition-all duration-300 font-bold"
             >
-              <FaEdit /> Edit Informasi Kontak
+              <Edit className="w-4 h-4" /> Edit Informasi Kontak
             </button>
           )}
         </div>
@@ -124,19 +124,19 @@ export default function ManajemenKontakPage() {
               className="grid gap-6"
             >
               {[
-                { name: "whatsapp", label: "WhatsApp", icon: FaWhatsapp, color: "text-green-500", bg: "bg-green-50" },
-                { name: "email", label: "Email", icon: FaEnvelope, color: "text-[#FB6B00]", bg: "bg-orange-50" },
-                { name: "telepon", label: "Nomor Telepon", icon: FaPhoneAlt, color: "text-blue-500", bg: "bg-blue-50" },
-                { name: "facebook", label: "Facebook", icon: FaFacebook, color: "text-blue-600", bg: "bg-blue-50/50" },
-                { name: "instagram", label: "Instagram", icon: FaInstagram, color: "text-pink-500", bg: "bg-pink-50" },
-                { name: "whatsapp_link", label: "Link WhatsApp", icon: FaWhatsapp, color: "text-green-600", bg: "bg-emerald-50" },
+                { name: "whatsapp", label: "WhatsApp", icon: MessageCircle, color: "text-green-500", bg: "bg-green-50" },
+                { name: "email", label: "Email", icon: Mail, color: "text-[#FB6B00]", bg: "bg-orange-50" },
+                { name: "telepon", label: "Nomor Telepon", icon: Phone, color: "text-blue-500", bg: "bg-blue-50" },
+                { name: "facebook", label: "Facebook", icon: Facebook, color: "text-blue-600", bg: "bg-blue-50/50" },
+                { name: "instagram", label: "Instagram", icon: Instagram, color: "text-pink-500", bg: "bg-pink-50" },
+                { name: "whatsapp_link", label: "Link WhatsApp", icon: MessageCircle, color: "text-green-600", bg: "bg-emerald-50" },
               ].map((item) => (
                 <div 
                   key={item.name}
                   className={`flex items-center gap-5 p-6 rounded-[1.5rem] border border-gray-50 transition-all duration-300 ${isEditing ? 'bg-gray-50 ring-2 ring-transparent focus-within:ring-[#FB6B00]/20 focus-within:border-[#FB6B00]/30' : 'hover:bg-gray-50/50'}`}
                 >
-                  <div className={`w-14 h-14 ${item.bg} ${item.color} rounded-2xl flex items-center justify-center text-2xl shadow-sm`}>
-                    <item.icon />
+                  <div className={`w-14 h-14 ${item.bg} ${item.color} rounded-2xl flex items-center justify-center shadow-sm`}>
+                    <item.icon className="w-6 h-6" />
                   </div>
                   <div className="flex-1">
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">
@@ -165,7 +165,7 @@ export default function ManajemenKontakPage() {
           {/* Info Card */}
           <div className="bg-[#FB6B00]/5 rounded-[2rem] p-10 border border-[#FB6B00]/10 flex flex-col justify-center text-center space-y-6">
             <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center mx-auto shadow-sm">
-              <FaPhoneAlt className="text-3xl text-[#FB6B00]" />
+              <Phone className="w-10 h-10 text-[#FB6B00]" />
             </div>
             <div>
               <h3 className="text-2xl font-black text-gray-900">Pusat Informasi</h3>

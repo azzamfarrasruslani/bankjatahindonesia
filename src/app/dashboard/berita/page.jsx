@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
+import { Plus, Edit, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import {
   Table,
@@ -14,30 +13,45 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
+import BeritaFormSheet from "./components/BeritaFormSheet";
 
 export default function DashboardBeritaPage() {
   const [berita, setBerita] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [selectedBeritaId, setSelectedBeritaId] = useState(null);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("berita")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setBerita(data || []);
+    } catch (err) {
+      console.error("Fetch error:", err);
+      alert("Gagal memuat data berita.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("berita")
-          .select("*")
-          .order("created_at", { ascending: false });
-
-        if (error) throw error;
-        setBerita(data || []);
-      } catch (err) {
-        console.error("Fetch error:", err);
-        alert("Gagal memuat data berita.");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
   }, []);
+
+  const handleOpenSheet = (id = null) => {
+    setSelectedBeritaId(id);
+    setIsSheetOpen(true);
+  };
+
+  const handleCloseSheet = () => {
+    setIsSheetOpen(false);
+    setSelectedBeritaId(null);
+  };
 
   const handleDelete = async (id, imageUrl) => {
     if (!confirm("Yakin ingin menghapus berita ini beserta gambarnya?")) return;
@@ -85,12 +99,12 @@ export default function DashboardBeritaPage() {
             Publikasikan kabar terbaru dan update penting perusahaan ke publik.
           </p>
         </div>
-        <Link
-          href="/dashboard/berita/tambah"
+        <button
+          onClick={() => handleOpenSheet()}
           className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3.5 rounded-2xl shadow-[0_10px_20px_rgba(251,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(251,107,0,0.3)] transition-all duration-300 font-bold"
         >
-          <FaPlus className="text-sm" /> Tambah Berita Baru
-        </Link>
+          <Plus className="w-4 h-4" /> Tambah Berita Baru
+        </button>
       </div>
 
       {/* Table Section */}
@@ -130,12 +144,12 @@ export default function DashboardBeritaPage() {
                   <TableCell colSpan={5} className="h-64 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-400">
                       <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                        <FaPlus className="text-2xl opacity-20" />
+                        <Plus className="w-8 h-8 opacity-20" />
                       </div>
                       <p className="font-medium">Belum ada berita yang tercatat.</p>
-                      <Link href="/dashboard/berita/tambah" className="text-[#FB6B00] text-sm mt-2 hover:underline">
+                      <button onClick={() => handleOpenSheet()} className="text-[#FB6B00] text-sm mt-2 hover:underline">
                         Buat berita pertama Anda
-                      </Link>
+                      </button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -196,19 +210,19 @@ export default function DashboardBeritaPage() {
                     </TableCell>
                     <TableCell className="pr-8 text-right">
                       <div className="flex justify-end gap-2">
-                        <Link
-                          href={`/dashboard/berita/${item.id}`}
+                        <button
+                          onClick={() => handleOpenSheet(item.id)}
                           className="p-2.5 bg-gray-50 text-gray-400 hover:text-[#FB6B00] hover:bg-orange-50 rounded-xl transition-all"
                           title="Edit Berita"
                         >
-                          <FaEdit className="text-base" />
-                        </Link>
+                          <Edit className="w-4 h-4" />
+                        </button>
                         <button
                           onClick={() => handleDelete(item.id, item.gambar_url)}
                           className="p-2.5 bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
                           title="Hapus Berita"
                         >
-                          <FaTrash className="text-base" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </TableCell>
@@ -222,6 +236,13 @@ export default function DashboardBeritaPage() {
           Pusat Informasi Bank Jatah Indonesia • © {new Date().getFullYear()}
         </div>
       </div>
+
+      <BeritaFormSheet
+        isOpen={isSheetOpen}
+        onClose={handleCloseSheet}
+        onSuccess={fetchData}
+        beritaId={selectedBeritaId}
+      />
     </div>
   );
 }

@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { FaPlus, FaEdit, FaTrash, FaMapMarkerAlt, FaStore } from "react-icons/fa";
+import { Plus, Edit, Trash2, MapPin, Store } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal";
 import Toast from "@/components/common/Toast";
@@ -16,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
+import LokasiFormSheet from "./components/LokasiFormSheet";
 
 export default function LokasiPage() {
   const [activeTab, setActiveTab] = useState("utama");
@@ -26,6 +26,9 @@ export default function LokasiPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [toast, setToast] = useState({ message: "", type: "success" });
+
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [selectedLokasiId, setSelectedLokasiId] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -51,6 +54,16 @@ export default function LokasiPage() {
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
+  };
+
+  const handleOpenSheet = (id = null) => {
+    setSelectedLokasiId(id);
+    setIsSheetOpen(true);
+  };
+
+  const handleCloseSheet = () => {
+    setIsSheetOpen(false);
+    setSelectedLokasiId(null);
   };
 
   const handleDelete = async () => {
@@ -124,12 +137,12 @@ export default function LokasiPage() {
             Atur titik jemput minyak jelantah dan lokasi mitra strategis kami.
           </p>
         </div>
-        <Link
-          href="/dashboard/lokasi/tambah"
+        <button
+          onClick={() => handleOpenSheet()}
           className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3.5 rounded-2xl shadow-[0_10px_20px_rgba(251,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(251,107,0,0.3)] transition-all duration-300 font-bold"
         >
-          <FaPlus className="text-sm" /> Tambah Lokasi Baru
-        </Link>
+          <Plus className="w-4 h-4" /> Tambah Lokasi Baru
+        </button>
       </div>
 
       {/* Tabs */}
@@ -140,7 +153,7 @@ export default function LokasiPage() {
             activeTab === "utama" ? "bg-[#FB6B00] text-white shadow-md shadow-orange-100" : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
           }`}
         >
-          <FaMapMarkerAlt className="text-[10px]" /> Lokasi Utama
+          <MapPin className="w-3 h-3" /> Lokasi Utama
         </button>
         <button
           onClick={() => setActiveTab("mitra")}
@@ -148,7 +161,7 @@ export default function LokasiPage() {
             activeTab === "mitra" ? "bg-[#FB6B00] text-white shadow-md shadow-orange-100" : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
           }`}
         >
-          <FaStore className="text-[10px]" /> Lokasi Mitra
+          <Store className="w-3 h-3" /> Lokasi Mitra
         </button>
       </div>
 
@@ -173,12 +186,12 @@ export default function LokasiPage() {
                   <TableCell colSpan={5} className="h-64 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-400">
                       <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                        <FaMapMarkerAlt className="text-2xl opacity-20" />
+                        <MapPin className="w-8 h-8 opacity-20" />
                       </div>
                       <p className="font-medium">Belum ada lokasi tersedia.</p>
-                      <Link href="/dashboard/lokasi/tambah" className="text-[#FB6B00] text-sm mt-2 hover:underline font-bold">
+                      <button onClick={() => handleOpenSheet()} className="text-[#FB6B00] text-sm mt-2 hover:underline font-bold">
                         Tambah lokasi pertama
-                      </Link>
+                      </button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -197,7 +210,7 @@ export default function LokasiPage() {
                           <img src={item.gambar_url} alt={item.nama} className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full bg-gray-50 flex items-center justify-center text-gray-300">
-                            <FaMapMarkerAlt />
+                            <MapPin className="w-5 h-5" />
                           </div>
                         )}
                       </div>
@@ -219,12 +232,12 @@ export default function LokasiPage() {
                     </TableCell>
                     <TableCell className="pr-8 text-right">
                       <div className="flex justify-end gap-2">
-                        <Link
-                          href={`/dashboard/lokasi/${item.id}`}
+                        <button
+                          onClick={() => handleOpenSheet(item.id)}
                           className="p-2.5 bg-gray-50 text-gray-400 hover:text-[#FB6B00] hover:bg-orange-50 rounded-xl transition-all"
                         >
-                          <FaEdit className="text-base" />
-                        </Link>
+                          <Edit className="w-4 h-4" />
+                        </button>
                         <button
                           onClick={() => {
                             setSelectedItem(item);
@@ -232,7 +245,7 @@ export default function LokasiPage() {
                           }}
                           className="p-2.5 bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
                         >
-                          <FaTrash className="text-base" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </TableCell>
@@ -246,6 +259,13 @@ export default function LokasiPage() {
           Dikelola oleh Departemen Operasional Bank Jatah Indonesia • © {new Date().getFullYear()}
         </div>
       </div>
+
+      <LokasiFormSheet
+        isOpen={isSheetOpen}
+        onClose={handleCloseSheet}
+        onSuccess={fetchData}
+        lokasiId={selectedLokasiId}
+      />
     </div>
   );
 }

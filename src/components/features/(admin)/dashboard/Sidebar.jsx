@@ -39,31 +39,50 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const menuItems = [
+const menuGroups = [
   {
-    label: "Profil Perusahaan",
-    icon: Building2,
-    href: "/dashboard/profil",
-  },
-  {
-    label: "Berita & Artikel",
-    icon: Newspaper,
-    subItems: [
-      { label: "Berita", href: "/dashboard/berita", icon: Newspaper },
-      { label: "Artikel", href: "/dashboard/artikel", icon: FileText },
+    title: "Utama",
+    items: [
+      {
+        label: "Profil Perusahaan",
+        icon: Building2,
+        href: "/dashboard/profil",
+      },
+      {
+        label: "Program Jelantah",
+        icon: Layers3,
+        href: "/dashboard/program",
+      },
     ],
   },
   {
-    label: "Program Jelantah",
-    icon: Layers3,
-    href: "/dashboard/program",
+    title: "Konten Publik",
+    items: [
+      { label: "Berita", href: "/dashboard/berita", icon: Newspaper },
+      { label: "Artikel", href: "/dashboard/artikel", icon: FileText },
+      { label: "Galeri", icon: Images, href: "/dashboard/galeri" },
+    ],
   },
-  { label: "Galeri", icon: Images, href: "/dashboard/galeri" },
-  { label: "Lokasi", icon: MapPinned, href: "/dashboard/lokasi" },
-  { label: "Testimoni", icon: Quote, href: "/dashboard/testimoni" },
-  { label: "Kontak & Pesan", icon: Mail, href: "/dashboard/kontak" },
-  { label: "FAQ / Bantuan", icon: CircleHelp, href: "/dashboard/faq" },
-  { label: "Pengguna", icon: UserCog, href: "/dashboard/users" },
+  {
+    title: "Interaksi",
+    items: [
+      { label: "Testimoni", icon: Quote, href: "/dashboard/testimoni" },
+      { label: "Kontak & Pesan", icon: Mail, href: "/dashboard/kontak" },
+    ],
+  },
+  {
+    title: "Halaman & Informasi",
+    items: [
+      { label: "Lokasi", icon: MapPinned, href: "/dashboard/lokasi" },
+      { label: "FAQ / Bantuan", icon: CircleHelp, href: "/dashboard/faq" },
+    ],
+  },
+  {
+    title: "Pengaturan",
+    items: [
+      { label: "Pengguna", icon: UserCog, href: "/dashboard/users" },
+    ],
+  },
 ];
 
 const sidebarStyles = {
@@ -87,7 +106,6 @@ export default function Sidebar({ session }) {
   const pathname = usePathname();
   const router = useRouter();
   const { isMobile, setOpenMobile } = useSidebar();
-  const [openDropdowns, setOpenDropdowns] = useState({});
 
   const handleLogout = async () => {
     try {
@@ -105,10 +123,6 @@ export default function Sidebar({ session }) {
     if (isMobile) {
       setOpenMobile(false);
     }
-  };
-
-  const toggleDropdown = (key) => {
-    setOpenDropdowns((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const userName = getUserDisplayName(session);
@@ -136,21 +150,18 @@ export default function Sidebar({ session }) {
         </Link>
       </SidebarHeader>
 
-      <SidebarContent className="px-2 py-3">
-        <SidebarGroup className="p-0">
-          <SidebarGroupLabel className="px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400 group-data-[collapsible=icon]:hidden">
-            Menu Admin
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-1">
-              {menuItems.map((item) => {
-                const isActive = item.subItems
-                  ? item.subItems.some((sub) => pathname.startsWith(sub.href))
-                  : pathname.startsWith(item.href);
-                const isOpen = openDropdowns[item.label] ?? isActive;
-                const Icon = item.icon;
+      <SidebarContent className="px-2 py-3 space-y-4">
+        {menuGroups.map((group) => (
+          <SidebarGroup key={group.title} className="p-0">
+            <SidebarGroupLabel className="px-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2 group-data-[collapsible=icon]:hidden">
+              {group.title}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-1">
+                {group.items.map((item) => {
+                  const isActive = pathname.startsWith(item.href);
+                  const Icon = item.icon;
 
-                if (!item.subItems) {
                   return (
                     <SidebarMenuItem key={item.href}>
                       <SidebarMenuButton
@@ -160,64 +171,17 @@ export default function Sidebar({ session }) {
                         className="h-11 rounded-xl px-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
                       >
                         <Link href={item.href} onClick={handleNavigate} className="flex items-center gap-2">
-                          <Icon className="shrink-0" />
-                          <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
+                          <Icon className="shrink-0 size-5" />
+                          <span className="group-data-[collapsible=icon]:hidden font-medium">{item.label}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   );
-                }
-
-                return (
-                  <SidebarMenuItem key={item.label}>
-                    <SidebarMenuButton
-                      type="button"
-                      isActive={isActive}
-                      tooltip={item.label}
-                      className="h-11 rounded-xl px-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
-                      onClick={() => toggleDropdown(item.label)}
-                    >
-                      <div className="flex min-w-0 items-center gap-2">
-                        <Icon className="shrink-0" />
-                        <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
-                      </div>
-                      <ChevronRight
-                        className={cn(
-                          "ml-auto size-4 shrink-0 transition-transform group-data-[collapsible=icon]:hidden",
-                          isOpen && "rotate-90"
-                        )}
-                      />
-                    </SidebarMenuButton>
-
-                    {isOpen ? (
-                      <SidebarMenuSub className="mt-1">
-                        {item.subItems.map((sub) => {
-                          const SubIcon = sub.icon;
-                          const subActive = pathname.startsWith(sub.href);
-
-                          return (
-                            <SidebarMenuSubItem key={sub.href}>
-                              <SidebarMenuSubButton
-                                asChild
-                                isActive={subActive}
-                                className="rounded-lg text-slate-600 data-[active=true]:bg-[#FB6B00]/10 data-[active=true]:font-medium data-[active=true]:text-[#FB6B00]"
-                              >
-                                <Link href={sub.href} onClick={handleNavigate} className="flex items-center gap-2">
-                                  <SubIcon className="size-4 shrink-0" />
-                                  <span className="group-data-[collapsible=icon]:hidden">{sub.label}</span>
-                                </Link>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          );
-                        })}
-                      </SidebarMenuSub>
-                    ) : null}
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarSeparator />

@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
+import { Plus, Edit, Trash2 } from "lucide-react";
 import { fetchProgram, deleteProgram } from "@/lib/services/programService";
 import {
   Table,
@@ -14,27 +13,40 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
+import ProgramFormSheet from "./components/ProgramFormSheet";
 
 export default function DashboardProgramPage() {
   const [programs, setPrograms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [selectedProgramId, setSelectedProgramId] = useState(null);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const result = await fetchProgram();
+      setPrograms(result);
+    } catch (err) {
+      console.error(err.message);
+      setPrograms([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        const result = await fetchProgram();
-        setPrograms(result);
-      } catch (err) {
-        console.error(err.message);
-        setPrograms([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadData();
   }, []);
+
+  const handleOpenSheet = (id = null) => {
+    setSelectedProgramId(id);
+    setIsSheetOpen(true);
+  };
+
+  const handleCloseSheet = () => {
+    setIsSheetOpen(false);
+    setSelectedProgramId(null);
+  };
 
   const handleDelete = async (id, icon_url) => {
     if (!confirm("Yakin ingin menghapus program ini?")) return;
@@ -59,12 +71,12 @@ export default function DashboardProgramPage() {
             Kelola daftar program unggulan Bank Jatah Indonesia.
           </p>
         </div>
-        <Link
-          href="/dashboard/program/tambah"
+        <button
+          onClick={() => handleOpenSheet()}
           className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3.5 rounded-2xl shadow-[0_10px_20px_rgba(251,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(251,107,0,0.3)] transition-all duration-300 font-bold"
         >
-          <FaPlus className="text-sm" /> Tambah Program Baru
-        </Link>
+          <Plus className="w-4 h-4" /> Tambah Program Baru
+        </button>
       </div>
 
       {/* Table Section */}
@@ -103,12 +115,12 @@ export default function DashboardProgramPage() {
                   <TableCell colSpan={4} className="h-64 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-400">
                       <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                        <FaPlus className="text-2xl opacity-20" />
+                        <Plus className="w-8 h-8 opacity-20" />
                       </div>
                       <p className="font-medium">Belum ada program yang tercatat.</p>
-                      <Link href="/dashboard/program/tambah" className="text-[#FB6B00] text-sm mt-2 hover:underline">
+                      <button onClick={() => handleOpenSheet()} className="text-[#FB6B00] text-sm mt-2 hover:underline">
                         Mulai tambah program pertama Anda
-                      </Link>
+                      </button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -148,7 +160,7 @@ export default function DashboardProgramPage() {
                     </TableCell>
                     <TableCell>
                       <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider ${
-                        item.status === "Aktif" 
+                        item.status === "Program Aktif" 
                         ? "bg-green-50 text-green-600" 
                         : "bg-orange-50 text-[#FB6B00]"
                       }`}>
@@ -162,19 +174,19 @@ export default function DashboardProgramPage() {
                     </TableCell>
                     <TableCell className="pr-8 text-right">
                       <div className="flex justify-end gap-2">
-                        <Link
-                          href={`/dashboard/program/${item.id}`}
+                        <button
+                          onClick={() => handleOpenSheet(item.id)}
                           className="p-2.5 bg-gray-50 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all"
                           title="Edit Program"
                         >
-                          <FaEdit className="text-base" />
-                        </Link>
+                          <Edit className="w-4 h-4" />
+                        </button>
                         <button
                           onClick={() => handleDelete(item.id, item.icon_url)}
                           className="p-2.5 bg-gray-50 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
                           title="Hapus Program"
                         >
-                          <FaTrash className="text-base" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </TableCell>
@@ -188,6 +200,13 @@ export default function DashboardProgramPage() {
           Dikelola oleh sistem Bank Jatah Indonesia • © {new Date().getFullYear()}
         </div>
       </div>
+
+      <ProgramFormSheet
+        isOpen={isSheetOpen}
+        onClose={handleCloseSheet}
+        onSuccess={loadData}
+        programId={selectedProgramId}
+      />
     </div>
   );
 }

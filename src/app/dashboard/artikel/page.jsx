@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
+import { Plus, Edit, Trash2 } from "lucide-react";
 import { fetchArtikel, deleteArtikel } from "@/lib/services/artikelService";
 import {
   Table,
@@ -82,7 +82,7 @@ export default function ArtikelPage() {
           onClick={handleOpenAddSheet}
           className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3.5 rounded-2xl shadow-[0_10px_20px_rgba(251,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(251,107,0,0.3)] transition-all duration-300 font-bold"
         >
-          <FaPlus className="text-sm" /> Tambah Artikel Baru
+          <Plus className="w-4 h-4" /> Tambah Artikel Baru
         </button>
       </div>
 
@@ -126,7 +126,7 @@ export default function ArtikelPage() {
                   <TableCell colSpan={6} className="h-64 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-400">
                       <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                        <FaPlus className="text-2xl opacity-20" />
+                        <Plus className="w-8 h-8 opacity-20" />
                       </div>
                       <p className="font-medium">Belum ada artikel yang tercatat.</p>
                       <button onClick={handleOpenAddSheet} className="text-[#FB6B00] text-sm mt-2 hover:underline">
@@ -199,14 +199,14 @@ export default function ArtikelPage() {
                           className="p-2.5 bg-gray-50 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all"
                           title="Edit Artikel"
                         >
-                          <FaEdit className="text-base" />
+                          <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(item.id)}
                           className="p-2.5 bg-gray-50 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
                           title="Hapus Artikel"
                         >
-                          <FaTrash className="text-base" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </TableCell>

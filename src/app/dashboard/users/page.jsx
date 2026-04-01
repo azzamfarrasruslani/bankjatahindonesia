@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { FaPlus, FaEdit, FaTrash, FaUserShield } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { Plus, Edit, Trash2, ShieldCheck } from "lucide-react";
 import { fetchUsers, deleteUser } from "@/lib/services/userService";
 import {
   Table,
@@ -14,10 +13,13 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
+import UserFormSheet from "./components/UserFormSheet";
 
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState(null);
 
   const loadData = async () => {
     try {
@@ -34,6 +36,16 @@ export default function UsersPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  const handleOpenSheet = (id = null) => {
+    setSelectedUserId(id);
+    setIsSheetOpen(true);
+  };
+
+  const handleCloseSheet = () => {
+    setIsSheetOpen(false);
+    setSelectedUserId(null);
+  };
 
   const handleDelete = async (id) => {
     if (!confirm("Yakin ingin menghapus pengguna ini?")) return;
@@ -59,12 +71,12 @@ export default function UsersPage() {
             Kelola data akun pengguna internal website Bank Jatah Indonesia.
           </p>
         </div>
-        <Link
-          href="/dashboard/users/tambah"
+        <button
+          onClick={() => handleOpenSheet()}
           className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3.5 rounded-2xl shadow-[0_10px_20px_rgba(251,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(251,107,0,0.3)] transition-all duration-300 font-bold"
         >
-          <FaPlus className="text-sm" /> Tambah Pengguna Baru
-        </Link>
+          <Plus className="w-4 h-4" /> Tambah Pengguna Baru
+        </button>
       </div>
 
       {/* Table Section */}
@@ -101,12 +113,12 @@ export default function UsersPage() {
                   <TableCell colSpan={5} className="h-64 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-400">
                       <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                        <FaUserShield className="text-2xl opacity-20" />
+                        <ShieldCheck className="w-8 h-8 opacity-20" />
                       </div>
                       <p className="font-medium">Belum ada pengguna yang tercatat.</p>
-                      <Link href="/dashboard/users/tambah" className="text-[#FB6B00] text-sm mt-2 hover:underline">
+                      <button onClick={() => handleOpenSheet()} className="text-[#FB6B00] text-sm mt-2 hover:underline">
                         Daftarkan pengguna pertama Anda
-                      </Link>
+                      </button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -146,19 +158,19 @@ export default function UsersPage() {
                     </TableCell>
                     <TableCell className="pr-8 text-right">
                       <div className="flex justify-end gap-2">
-                        <Link
-                          href={`/dashboard/users/${user.id}`}
+                        <button
+                          onClick={() => handleOpenSheet(user.id)}
                           className="p-2.5 bg-gray-50 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all"
                           title="Edit Pengguna"
                         >
-                          <FaEdit className="text-base" />
-                        </Link>
+                          <Edit className="w-4 h-4" />
+                        </button>
                         <button
                           onClick={() => handleDelete(user.id)}
                           className="p-2.5 bg-gray-50 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
                           title="Hapus Pengguna"
                         >
-                          <FaTrash className="text-base" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </TableCell>
@@ -172,6 +184,13 @@ export default function UsersPage() {
           Keamanan akun dikelola secara terpusat • © {new Date().getFullYear()}
         </div>
       </div>
+
+      <UserFormSheet
+        isOpen={isSheetOpen}
+        onClose={handleCloseSheet}
+        onSuccess={loadData}
+        userId={selectedUserId}
+      />
     </div>
   );
 }

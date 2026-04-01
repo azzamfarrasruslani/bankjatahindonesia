@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-import { FaWhatsapp } from "react-icons/fa";
+import { MessageCircle } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function FloatingWAButton() {
@@ -47,7 +47,7 @@ export default function FloatingWAButton() {
         } text-white p-4 rounded-full shadow-lg flex items-center justify-center`}
         title="Hubungi via WhatsApp"
       >
-        <FaWhatsapp size={24} />
+        <MessageCircle size={24} />
       </motion.a>
 
       <AnimatePresence>

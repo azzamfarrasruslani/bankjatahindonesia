@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { FaPlus, FaEdit, FaTrash, FaChevronDown, FaChevronUp, FaQuestionCircle } from "react-icons/fa";
+import { Plus, Edit, Trash2, ChevronDown, HelpCircle } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -14,17 +13,16 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
+import FAQFormSheet from "./components/FAQFormSheet";
 
 export default function DashboardFAQPage() {
   const [faqList, setFaqList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openId, setOpenId] = useState(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [selectedFaqId, setSelectedFaqId] = useState(null);
 
-  useEffect(() => {
-    fetchFAQ();
-  }, []);
-
-  async function fetchFAQ() {
+  const fetchFAQ = async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -39,7 +37,21 @@ export default function DashboardFAQPage() {
     } finally {
       setLoading(false);
     }
-  }
+  };
+
+  useEffect(() => {
+    fetchFAQ();
+  }, []);
+
+  const handleOpenSheet = (id = null) => {
+    setSelectedFaqId(id);
+    setIsSheetOpen(true);
+  };
+
+  const handleCloseSheet = () => {
+    setIsSheetOpen(false);
+    setSelectedFaqId(null);
+  };
 
   async function handleDelete(id) {
     if (!confirm("Yakin ingin menghapus pertanyaan ini?")) return;
@@ -64,12 +76,12 @@ export default function DashboardFAQPage() {
             Kelola daftar pertanyaan umum untuk membantu pengunjung website Anda.
           </p>
         </div>
-        <Link
-          href="/dashboard/faq/tambah"
+        <button
+          onClick={() => handleOpenSheet()}
           className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3.5 rounded-2xl shadow-[0_10px_20px_rgba(251,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(251,107,0,0.3)] transition-all duration-300 font-bold"
         >
-          <FaPlus className="text-sm" /> Tambah FAQ Baru
-        </Link>
+          <Plus className="w-4 h-4" /> Tambah FAQ Baru
+        </button>
       </div>
 
       {loading ? (
@@ -82,13 +94,13 @@ export default function DashboardFAQPage() {
       ) : faqList.length === 0 ? (
         <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-20 text-center">
           <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-6 text-[#FB6B00]">
-            <FaQuestionCircle className="text-3xl opacity-20" />
+            <HelpCircle className="w-10 h-10 opacity-20" />
           </div>
           <h3 className="text-xl font-bold text-gray-900">Belum ada FAQ</h3>
           <p className="text-gray-500 mt-2">Mulai dengan menambahkan pertanyaan pertama Anda.</p>
-          <Link href="/dashboard/faq/tambah" className="inline-block mt-6 text-[#FB6B00] font-bold hover:underline">
+          <button onClick={() => handleOpenSheet()} className="inline-block mt-6 text-[#FB6B00] font-bold hover:underline">
             Tambah FAQ Baru →
-          </Link>
+          </button>
         </div>
       ) : (
         categories.map((category) => (
@@ -118,7 +130,7 @@ export default function DashboardFAQPage() {
                           <TableCell className="py-5 pl-8">
                             <div className="flex items-center gap-4">
                               <div className={`p-2 rounded-lg transition-colors ${openId === faq.id ? 'bg-[#FB6B00] text-white' : 'bg-gray-100 text-gray-400 group-hover:bg-orange-100 group-hover:text-[#FB6B00]'}`}>
-                                <FaQuestionCircle className="text-sm" />
+                                <HelpCircle className="w-4 h-4" />
                               </div>
                               <p className={`font-bold transition-colors ${openId === faq.id ? 'text-[#FB6B00]' : 'text-gray-900'}`}>
                                 {faq.pertanyaan}
@@ -128,7 +140,7 @@ export default function DashboardFAQPage() {
                           <TableCell className="pr-8 text-right">
                             <div className="flex justify-end items-center gap-4">
                               <div className={`transition-transform duration-300 ${openId === faq.id ? 'rotate-180' : ''}`}>
-                                <FaChevronDown className="text-gray-300 text-xs" />
+                                <ChevronDown className="w-4 h-4 text-gray-300" />
                               </div>
                             </div>
                           </TableCell>
@@ -153,12 +165,12 @@ export default function DashboardFAQPage() {
                                     </div>
                                     
                                     <div className="flex items-center justify-end gap-3 pt-2">
-                                      <Link
-                                        href={`/dashboard/faq/${faq.id}`}
-                                        className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-600 hover:border-[#FB6B00] hover:text-[#FB6B00] rounded-xl font-bold transition-all text-xs"
+                                      <button
+                                        onClick={() => handleOpenSheet(faq.id)}
+                                        className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-600 hover:border-[#FB6B00] hover:text-[#FB6B00] rounded-xl font-bold transition-all text-xs shadow-sm"
                                       >
-                                        <FaEdit /> Edit Pertanyaan
-                                      </Link>
+                                        <Edit className="w-4 h-4" /> Edit Pertanyaan
+                                      </button>
                                       <button
                                         onClick={(e) => {
                                           e.stopPropagation();
@@ -166,7 +178,7 @@ export default function DashboardFAQPage() {
                                         }}
                                         className="flex items-center gap-2 px-5 py-2.5 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-xl font-bold transition-all text-xs"
                                       >
-                                        <FaTrash /> Hapus Permanen
+                                        <Trash2 className="w-4 h-4" /> Hapus Permanen
                                       </button>
                                     </div>
                                   </div>
@@ -187,6 +199,13 @@ export default function DashboardFAQPage() {
       <div className="p-10 text-gray-400 text-center mt-12 bg-gray-50/50 rounded-[2rem] border border-gray-100">
         <p className="text-xs font-bold uppercase tracking-widest">© {new Date().getFullYear()} Pusat Pengetahuan Bank Jatah Indonesia</p>
       </div>
+
+      <FAQFormSheet
+        isOpen={isSheetOpen}
+        onClose={handleCloseSheet}
+        onSuccess={fetchFAQ}
+        faqId={selectedFaqId}
+      />
     </div>
   );
 }
