@@ -4,33 +4,106 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 import {
-  FaHome,
-  FaInfoCircle,
-  FaNewspaper,
-  FaLayerGroup,
-  FaUsers,
-  FaImage,
-  FaEnvelope,
-  FaQuestionCircle,
-  FaSignOutAlt,
-  FaMapMarkerAlt,
-  FaUserCog,
-} from "react-icons/fa";
+  Building2,
+  ChevronRight,
+  CircleHelp,
+  FileText,
+  Images,
+  Layers3,
+  LogOut,
+  Mail,
+  MapPinned,
+  Newspaper,
+  Quote,
+  UserCog,
+} from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
-import { motion, AnimatePresence } from "framer-motion";
 import Logo from "@/components/Logo";
+import { cn } from "@/lib/utils";
+import {
+  Sidebar as AppSidebarShell,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+  SidebarRail,
+  SidebarSeparator,
+  useSidebar,
+} from "@/components/ui/sidebar";
 
-export default function Sidebar({ isOpen, onClose }) {
+const menuItems = [
+  {
+    label: "Profil Perusahaan",
+    icon: Building2,
+    href: "/dashboard/profil",
+  },
+  {
+    label: "Berita & Artikel",
+    icon: Newspaper,
+    subItems: [
+      { label: "Berita", href: "/dashboard/berita", icon: Newspaper },
+      { label: "Artikel", href: "/dashboard/artikel", icon: FileText },
+    ],
+  },
+  {
+    label: "Program Jelantah",
+    icon: Layers3,
+    href: "/dashboard/program",
+  },
+  { label: "Galeri", icon: Images, href: "/dashboard/galeri" },
+  { label: "Lokasi", icon: MapPinned, href: "/dashboard/lokasi" },
+  { label: "Testimoni", icon: Quote, href: "/dashboard/testimoni" },
+  { label: "Kontak & Pesan", icon: Mail, href: "/dashboard/kontak" },
+  { label: "FAQ / Bantuan", icon: CircleHelp, href: "/dashboard/faq" },
+  { label: "Pengguna", icon: UserCog, href: "/dashboard/users" },
+];
+
+const sidebarStyles = {
+  "--sidebar": "#ffffff",
+  "--sidebar-foreground": "#374151",
+  "--sidebar-primary": "#fb6b00",
+  "--sidebar-primary-foreground": "#ffffff",
+  "--sidebar-accent": "rgb(251 107 0 / 0.10)",
+  "--sidebar-accent-foreground": "#fb6b00",
+  "--sidebar-border": "#e5e7eb",
+  "--sidebar-ring": "rgb(251 107 0 / 0.25)",
+};
+
+const getUserDisplayName = (session) =>
+  session?.user?.user_metadata?.full_name ||
+  session?.user?.user_metadata?.name ||
+  session?.user?.email?.split("@")[0] ||
+  "Administrator";
+
+export default function Sidebar({ session }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { isMobile, setOpenMobile } = useSidebar();
   const [openDropdowns, setOpenDropdowns] = useState({});
 
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
+      if (isMobile) {
+        setOpenMobile(false);
+      }
       router.replace("/login");
     } catch (error) {
       console.error("Gagal logout:", error.message);
+    }
+  };
+
+  const handleNavigate = () => {
+    if (isMobile) {
+      setOpenMobile(false);
     }
   };
 
@@ -38,185 +111,146 @@ export default function Sidebar({ isOpen, onClose }) {
     setOpenDropdowns((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const menuItems = [
-    { label: "Dashboard", icon: FaHome, href: "/dashboard", exact: true },
-    {
-      label: "Profil Perusahaan",
-      icon: FaInfoCircle,
-      href: "/dashboard/profil",
-    },
-    {
-      label: "Berita & Artikel",
-      icon: FaNewspaper,
-      subItems: [
-        { label: "Berita", href: "/dashboard/berita" },
-        { label: "Artikel", href: "/dashboard/artikel" },
-      ],
-    },
-    {
-      label: "Program Jelantah",
-      icon: FaLayerGroup,
-      href: "/dashboard/program",
-    },
-    { label: "Galeri", icon: FaImage, href: "/dashboard/galeri" },
-    { label: "Lokasi", icon: FaMapMarkerAlt, href: "/dashboard/lokasi" },
-    { label: "Testimoni", icon: FaUsers, href: "/dashboard/testimoni" },
-    { label: "Kontak & Pesan", icon: FaEnvelope, href: "/dashboard/kontak" },
-    { label: "FAQ / Bantuan", icon: FaQuestionCircle, href: "/dashboard/faq" },
-    { label: "Pengguna", icon: FaUserCog, href: "/dashboard/users" },
-  ];
-
-  const logoutItem = { label: "Keluar", icon: FaSignOutAlt };
-
-  const renderNavItem = (item, isLogout = false) => {
-    const Icon = item.icon;
-
-    // Cek active: untuk menu biasa atau dropdown jika ada subItems aktif
-    let isActive = false;
-    if (item.exact) {
-      isActive = pathname === item.href;
-    } else if (item.href) {
-      // Semua sub-halaman dashboard tetap aktif
-      isActive = pathname?.startsWith(item.href);
-    } else if (item.subItems) {
-      isActive = item.subItems.some((sub) => pathname?.startsWith(sub.href));
-    }
-
-    const baseClasses =
-      "flex items-center gap-3 px-4 py-2 rounded-lg transition-all group text-sm";
-    const activeClasses = isActive
-      ? "bg-[#FB6B00]/10 text-[#FB6B00] font-semibold"
-      : "text-gray-700 hover:bg-gray-100";
-
-    if (isLogout) {
-      return (
-        <button
-          key={item.label}
-          onClick={handleLogout}
-          className={`${baseClasses} ${activeClasses} w-full`}
-        >
-          <div className="p-2 rounded-md group-hover:bg-gray-200">
-            <Icon size={18} />
-          </div>
-          {item.label}
-        </button>
-      );
-    }
-
-    if (item.subItems) {
-      const isOpen = openDropdowns[item.label] || isActive;
-      return (
-        <div key={item.label} className="mb-1 ml-2">
-          <button
-            onClick={() => toggleDropdown(item.label)}
-            className={`${baseClasses} ${activeClasses} w-full flex items-center mb-2`}
-          >
-            <div className="flex items-center gap-3">
-              <Icon size={18} />
-              <span>{item.label}</span>
-            </div>
-            <span
-              className={`transition-transform ${isOpen ? "rotate-90" : ""}`}
-            >
-              &gt;
-            </span>
-          </button>
-
-          <AnimatePresence>
-            {isOpen && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="ml-6 flex flex-col gap-1 overflow-hidden"
-              >
-                {item.subItems.map((sub) => {
-                  const subActive = pathname?.startsWith(sub.href);
-                  return (
-                    <Link
-                      key={sub.href}
-                      href={sub.href}
-                      className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm ${
-                        subActive
-                          ? "bg-[#FB6B00]/10 text-[#FB6B00] font-semibold"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }`}
-                    >
-                      {sub.label}
-                    </Link>
-                  );
-                })}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      );
-    }
-
-    return (
-      <Link
-        key={item.href}
-        href={item.href}
-        className={`${baseClasses} ${activeClasses}`}
-      >
-        <div
-          className={`p-2 rounded-md ${
-            isActive ? "bg-[#FB6B00]/20" : "group-hover:bg-gray-200"
-          }`}
-        >
-          <Icon size={18} />
-        </div>
-        {item.label}
-      </Link>
-    );
-  };
+  const userName = getUserDisplayName(session);
+  const userEmail = session?.user?.email || "Panel admin Bank Jatah Indonesia";
+  const initials = userName.slice(0, 2).toUpperCase();
 
   return (
-    <>
-      {/* Sidebar Desktop */}
-      <aside className="hidden md:flex w-64 flex-col bg-white border-r border-gray-200 shadow-md fixed inset-y-0">
-        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-center">
-          <Logo size={120} />
-        </div>
-        <nav className="flex-1 px-4 py-4 overflow-y-auto custom-scrollbar">
-          {menuItems.map((item) => renderNavItem(item))}
-        </nav>
-        <div className="px-4 py-4 border-t border-gray-200">
-          {renderNavItem(logoutItem, true)}
-        </div>
-      </aside>
+    <AppSidebarShell
+      collapsible="icon"
+      className="border-r border-sidebar-border/70 shadow-sm"
+      style={sidebarStyles}
+    >
+      <SidebarHeader className="border-b border-sidebar-border/70 px-3 py-4 group-data-[collapsible=icon]:p-2">
+        <Link
+          href="/dashboard"
+          onClick={handleNavigate}
+          className="flex items-center justify-center rounded-2xl border border-orange-100 bg-gradient-to-br from-orange-50 to-white px-3 py-4 transition hover:border-orange-200 hover:shadow-sm group-data-[collapsible=icon]:p-2"
+        >
+          <div className="group-data-[collapsible=icon]:hidden">
+            <Logo size={116} />
+          </div>
+          <div className="hidden size-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#FB6B00] text-sm font-bold text-white group-data-[collapsible=icon]:flex">
+            BJ
+          </div>
+        </Link>
+      </SidebarHeader>
 
-      {/* Sidebar Mobile */}
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            <motion.div
-              className="fixed inset-0 bg-black/40 z-[998] md:hidden"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={onClose}
-            />
-            <motion.aside
-              className="fixed top-0 left-0 z-[999] w-64 h-full bg-white shadow-lg border-r border-gray-200 flex flex-col md:hidden"
-              initial={{ x: -260 }}
-              animate={{ x: 0 }}
-              exit={{ x: -260 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+      <SidebarContent className="px-2 py-3">
+        <SidebarGroup className="p-0">
+          <SidebarGroupLabel className="px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400 group-data-[collapsible=icon]:hidden">
+            Menu Admin
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-1">
+              {menuItems.map((item) => {
+                const isActive = item.subItems
+                  ? item.subItems.some((sub) => pathname.startsWith(sub.href))
+                  : pathname.startsWith(item.href);
+                const isOpen = openDropdowns[item.label] ?? isActive;
+                const Icon = item.icon;
+
+                if (!item.subItems) {
+                  return (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        tooltip={item.label}
+                        className="h-11 rounded-xl px-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+                      >
+                        <Link href={item.href} onClick={handleNavigate} className="flex items-center gap-2">
+                          <Icon className="shrink-0" />
+                          <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                }
+
+                return (
+                  <SidebarMenuItem key={item.label}>
+                    <SidebarMenuButton
+                      type="button"
+                      isActive={isActive}
+                      tooltip={item.label}
+                      className="h-11 rounded-xl px-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+                      onClick={() => toggleDropdown(item.label)}
+                    >
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Icon className="shrink-0" />
+                        <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
+                      </div>
+                      <ChevronRight
+                        className={cn(
+                          "ml-auto size-4 shrink-0 transition-transform group-data-[collapsible=icon]:hidden",
+                          isOpen && "rotate-90"
+                        )}
+                      />
+                    </SidebarMenuButton>
+
+                    {isOpen ? (
+                      <SidebarMenuSub className="mt-1">
+                        {item.subItems.map((sub) => {
+                          const SubIcon = sub.icon;
+                          const subActive = pathname.startsWith(sub.href);
+
+                          return (
+                            <SidebarMenuSubItem key={sub.href}>
+                              <SidebarMenuSubButton
+                                asChild
+                                isActive={subActive}
+                                className="rounded-lg text-slate-600 data-[active=true]:bg-[#FB6B00]/10 data-[active=true]:font-medium data-[active=true]:text-[#FB6B00]"
+                              >
+                                <Link href={sub.href} onClick={handleNavigate} className="flex items-center gap-2">
+                                  <SubIcon className="size-4 shrink-0" />
+                                  <span className="group-data-[collapsible=icon]:hidden">{sub.label}</span>
+                                </Link>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          );
+                        })}
+                      </SidebarMenuSub>
+                    ) : null}
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarSeparator />
+
+      <SidebarFooter className="gap-3 px-2 py-3">
+        <div className="flex items-center gap-3 rounded-2xl border border-orange-100 bg-orange-50/70 px-3 py-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#FB6B00] text-sm font-semibold text-white">
+            {initials}
+          </div>
+          <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+            <p className="truncate text-sm font-semibold text-slate-900">
+              {userName}
+            </p>
+            <p className="truncate text-xs text-slate-500">{userEmail}</p>
+          </div>
+        </div>
+
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              type="button"
+              tooltip="Keluar"
+              className="h-11 rounded-xl px-3 text-red-600 hover:bg-red-50 hover:text-red-600 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+              onClick={handleLogout}
             >
-              <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-center">
-                <Logo size={100} />
-              </div>
-              <nav className="flex-1 px-4 py-4 overflow-y-auto custom-scrollbar">
-                {menuItems.map((item) => renderNavItem(item))}
-              </nav>
-              <div className="px-4 py-4 border-t border-gray-200">
-                {renderNavItem(logoutItem, true)}
-              </div>
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
-    </>
+              <LogOut className="shrink-0" />
+              <span className="group-data-[collapsible=icon]:hidden">Keluar</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+
+      <SidebarRail />
+    </AppSidebarShell>
   );
 }

@@ -22,12 +22,6 @@ export default function TambahProgramPage() {
             Masukkan informasi program baru Bank Jatah Indonesia.
           </p>
         </div>
-        <button
-          onClick={() => router.push("/dashboard/program")}
-          className="bg-gray-200 text-gray-600 hover:bg-gray-300 px-4 py-2 rounded-lg text-sm"
-        >
-          Kembali
-        </button>
       </div>
 
       <ProgramForm onSuccess={handleSuccess} />

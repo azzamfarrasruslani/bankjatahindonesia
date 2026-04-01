@@ -59,12 +59,6 @@ export default function EditProgramPage() {
             Perbarui informasi program Bank Jatah Indonesia.
           </p>
         </div>
-        <button
-          onClick={() => router.push("/dashboard/program")}
-          className="bg-gray-200 text-gray-600 hover:bg-gray-300 px-4 py-2 rounded-lg text-sm"
-        >
-          Kembali
-        </button>
       </div>
 
       {/* Form Edit */}

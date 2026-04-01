@@ -2,126 +2,178 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabaseClient";
 import { FaPlus, FaEdit, FaTrash, FaStar } from "react-icons/fa";
+import { fetchTestimoni, deleteTestimoni } from "@/lib/services/testimoniService";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function DashboardTestimoniPage() {
   const [testimoniList, setTestimoniList] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchTestimoni = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("testimoni")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) console.error("Fetch error:", error);
-    else setTestimoniList(data || []);
-    setLoading(false);
-  };
-
   useEffect(() => {
-    fetchTestimoni();
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const result = await fetchTestimoni();
+        setTestimoniList(result);
+      } catch (err) {
+        console.error(err.message);
+        setTestimoniList([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
   const handleDelete = async (id) => {
     if (!confirm("Yakin ingin menghapus testimoni ini?")) return;
-    const { error } = await supabase.from("testimoni").delete().eq("id", id);
-    if (error) alert("Error: " + error.message);
-    else {
-      alert("✅ Testimoni berhasil dihapus");
-      fetchTestimoni();
+
+    try {
+      await deleteTestimoni(id);
+      setTestimoniList((prev) => prev.filter((item) => item.id !== id));
+    } catch (err) {
+      alert(err.message);
     }
   };
 
-  if (loading) return <p className="text-center py-10">Loading...</p>;
-
   return (
-    <section className="min-h-screen bg-gradient-to-b from-orange-50 to-white p-6 md:p-10">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-10 border-b border-orange-200 pb-4">
+    <div className="space-y-8 animate-in fade-in duration-700">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
         <div>
-          <h1 className="text-3xl font-bold text-[#FB6B00]">
-            Manajemen Testimoni
+          <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+            Manajemen <span className="text-[#FB6B00]">Testimoni</span>
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Kelola testimoni pengguna tentang Bank Jatah Indonesia.
+          <p className="text-gray-500 mt-1 font-medium">
+            Kelola ulasan dan testimoni dari pengguna Bank Jatah Indonesia.
           </p>
         </div>
         <Link
           href="/dashboard/testimoni/tambah"
-          className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-700 text-white px-4 py-2 rounded-xl shadow-sm hover:shadow-lg transition-all duration-200"
+          className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3.5 rounded-2xl shadow-[0_10px_20px_rgba(251,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(251,107,0,0.3)] transition-all duration-300 font-bold"
         >
-          <FaPlus /> Tambah Testimoni
+          <FaPlus className="text-sm" /> Tambah Testimoni Baru
         </Link>
       </div>
 
-      {/* Grid Testimoni */}
-      {testimoniList.length === 0 ? (
-        <p className="text-center py-10 text-gray-400 italic bg-orange-50/30 rounded-xl shadow-inner">
-          Belum ada testimoni yang tercatat.
-        </p>
-      ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {testimoniList.map((item) => (
-            <div
-              key={item.id}
-              className="relative bg-white border border-orange-100 rounded-2xl p-6 shadow-md hover:shadow-lg overflow-hidden"
-            >
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <h3 className="font-semibold text-gray-800 text-lg">
-                    {item.nama}
-                  </h3>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {new Date(item.tanggal).toLocaleDateString("id-ID", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Link
-                    href={`/dashboard/testimoni/${item.id}`}
-                    className="p-2 rounded-full hover:bg-orange-100 text-[#FB6B00] hover:text-orange-700 transition-all"
-                    title="Edit"
+      {/* Table Section */}
+      <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+        <Table>
+          <TableHeader className="bg-gray-50/50">
+            <TableRow className="hover:bg-transparent border-b-gray-100">
+              <TableHead className="w-[250px] py-5 pl-8 font-bold text-gray-900 uppercase tracking-wider text-[11px]">Pengguna</TableHead>
+              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px] text-center">Rating</TableHead>
+              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px]">Isi Testimoni</TableHead>
+              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px]">Tanggal</TableHead>
+              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px] text-right pr-8">Aksi</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <AnimatePresence mode="wait">
+              {loading ? (
+                // Loading Skeleton
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i} className="border-b-gray-50">
+                    <TableCell className="py-4 pl-8">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-10 w-10 rounded-full" />
+                        <Skeleton className="h-4 w-[120px]" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center"><Skeleton className="h-4 w-16 mx-auto" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-[300px]" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell className="pr-8"><Skeleton className="h-8 w-20 ml-auto rounded-lg" /></TableCell>
+                  </TableRow>
+                ))
+              ) : testimoniList.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-64 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-400">
+                      <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                        <FaPlus className="text-2xl opacity-20" />
+                      </div>
+                      <p className="font-medium">Belum ada testimoni yang tercatat.</p>
+                      <Link href="/dashboard/testimoni/tambah" className="text-[#FB6B00] text-sm mt-2 hover:underline">
+                        Mulai tambah testimoni pertama Anda
+                      </Link>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                testimoniList.map((item, index) => (
+                  <motion.tr
+                    key={item.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="group hover:bg-gray-50/50 transition-colors border-b-gray-50 last:border-0"
                   >
-                    <FaEdit />
-                  </Link>
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    className="p-2 rounded-full hover:bg-red-100 text-red-500 hover:text-red-700 transition-all"
-                    title="Hapus"
-                  >
-                    <FaTrash />
-                  </button>
-                </div>
-              </div>
-
-              {/* Rating */}
-              <div className="flex items-center gap-1 mb-3">
-                {Array.from({ length: item.rating }).map((_, i) => (
-                  <FaStar key={i} className="text-yellow-400" />
-                ))}
-              </div>
-
-              {/* Isi Testimoni */}
-              <p className="text-gray-700 leading-relaxed text-sm italic mb-2">
-                “{item.isi}”
-              </p>
-
-              {/* Footer Accent */}
-              <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-[#FB6B00] to-orange-400 rounded-b-2xl"></div>
-            </div>
-          ))}
+                    <TableCell className="py-5 pl-8">
+                      <p className="font-bold text-gray-900 group-hover:text-[#FB6B00] transition-colors truncate max-w-[180px]">
+                        {item.nama}
+                      </p>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex justify-center gap-0.5 text-yellow-400 drop-shadow-sm">
+                        {Array.from({ length: item.rating }).map((_, i) => (
+                          <FaStar key={i} className="text-[10px]" />
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <p className="text-sm text-gray-600 line-clamp-2 max-w-[400px] italic">
+                        "{item.isi}"
+                      </p>
+                    </TableCell>
+                    <TableCell>
+                      <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wider">
+                        {new Date(item.tanggal).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </p>
+                    </TableCell>
+                    <TableCell className="pr-8 text-right">
+                      <div className="flex justify-end gap-2">
+                        <Link
+                          href={`/dashboard/testimoni/${item.id}`}
+                          className="p-2.5 bg-gray-50 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all"
+                          title="Edit Testimoni"
+                        >
+                          <FaEdit className="text-base" />
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="p-2.5 bg-gray-50 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                          title="Hapus Testimoni"
+                        >
+                          <FaTrash className="text-base" />
+                        </button>
+                      </div>
+                    </TableCell>
+                  </motion.tr>
+                ))
+              )}
+            </AnimatePresence>
+          </TableBody>
+        </Table>
+        <div className="p-6 bg-gray-50/30 border-t border-gray-50 text-[11px] font-bold text-gray-400 uppercase tracking-widest text-center">
+          Dikelola oleh sistem Bank Jatah Indonesia • © {new Date().getFullYear()}
         </div>
-      )}
-
-      {/* Footer */}
-      <div className="text-xs text-gray-400 text-center mt-10">
-        © {new Date().getFullYear()} Dashboard Testimoni | Bank Jatah Indonesia
       </div>
-    </section>
+    </div>
   );
 }

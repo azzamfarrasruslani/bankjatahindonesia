@@ -1,3 +1,6 @@
+import { supabase } from "@/lib/supabaseClient";
+import imageCompression from "browser-image-compression";
+
 export async function fetchProgram() {
   const res = await fetch("/api/program", {
     method: "GET",
@@ -10,6 +13,41 @@ export async function fetchProgram() {
   }
 
   return data;
+}
+
+export async function uploadImage(file, existingUrl = "") {
+  if (!file) return existingUrl;
+
+  try {
+    const options = {
+      maxSizeMB: 0.25,
+      maxWidthOrHeight: 1000,
+      initialQuality: 0.85,
+      useWebWorker: true,
+      fileType: "image/webp",
+    };
+
+    const compressedFile = await imageCompression(file, options);
+    const fileName = `program/${Date.now()}.webp`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("program-images")
+      .upload(fileName, compressedFile, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage
+      .from("program-images")
+      .getPublicUrl(fileName);
+
+    return data.publicUrl;
+  } catch (err) {
+    console.error("Upload gagal:", err);
+    throw new Error("Gagal upload ikon program.");
+  }
 }
 
 export async function insertProgram(payload) {

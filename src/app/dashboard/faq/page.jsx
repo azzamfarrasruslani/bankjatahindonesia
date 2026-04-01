@@ -3,26 +3,42 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
-import { FaPlus, FaEdit, FaTrash, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash, FaChevronDown, FaChevronUp, FaQuestionCircle } from "react-icons/fa";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function DashboardFAQPage() {
   const [faqList, setFaqList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [openIndex, setOpenIndex] = useState(null);
+  const [openId, setOpenId] = useState(null);
 
   useEffect(() => {
     fetchFAQ();
   }, []);
 
   async function fetchFAQ() {
-    const { data, error } = await supabase
-      .from("faq")
-      .select("*")
-      .order("created_at", { ascending: false });
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("faq")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-    if (error) console.error("Gagal memuat FAQ:", error);
-    else setFaqList(data);
-    setLoading(false);
+      if (error) throw error;
+      setFaqList(data || []);
+    } catch (err) {
+      console.error("Gagal memuat FAQ:", err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleDelete(id) {
@@ -32,92 +48,145 @@ export default function DashboardFAQPage() {
     else setFaqList((prev) => prev.filter((item) => item.id !== id));
   }
 
-  const toggleAccordion = (index) => setOpenIndex(openIndex === index ? null : index);
+  const toggleAccordion = (id) => setOpenId(openId === id ? null : id);
 
-  if (loading)
-    return (
-      <div className="p-10 text-center text-orange-600 font-medium animate-pulse">
-        Memuat FAQ...
-      </div>
-    );
-
-  // Ambil daftar kategori unik
   const categories = [...new Set(faqList.map((faq) => faq.kategori || "Umum"))];
 
   return (
-    <section className="p-6 md:p-10 min-h-screen bg-gradient-to-b from-orange-50 to-white">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8 border-b border-orange-200 pb-4">
+    <div className="space-y-8 animate-in fade-in duration-700">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
         <div>
-          <h1 className="text-3xl font-bold text-[#FB6B00]">Manajemen FAQ</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Kelola daftar pertanyaan umum Bank Jatah Indonesia.
+          <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+            Manajemen <span className="text-[#FB6B00]">FAQ</span>
+          </h1>
+          <p className="text-gray-500 mt-1 font-medium">
+            Kelola daftar pertanyaan umum untuk membantu pengunjung website Anda.
           </p>
         </div>
         <Link
           href="/dashboard/faq/tambah"
-          className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-700 text-white px-4 py-2 rounded-xl shadow-sm hover:shadow-lg transition-all duration-200"
+          className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3.5 rounded-2xl shadow-[0_10px_20px_rgba(251,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(251,107,0,0.3)] transition-all duration-300 font-bold"
         >
-          <FaPlus /> Tambah FAQ
+          <FaPlus className="text-sm" /> Tambah FAQ Baru
         </Link>
       </div>
 
-      {/* FAQ per kategori */}
-      {categories.map((category) => (
-        <div key={category} className="mb-6">
-          <h2 className="text-xl font-semibold text-[#FB6B00] mb-2">{category}</h2>
-          <ul className="overflow-hidden rounded-xl shadow-md border border-orange-100 bg-white divide-y divide-orange-100">
-            {faqList
-              .filter((faq) => (faq.kategori || "Umum") === category)
-              .map((faq, index) => (
-                <li
-                  key={faq.id}
-                  className={`transition-all duration-300 ${
-                    openIndex === faq.id ? "bg-orange-50/40" : "bg-white"
-                  }`}
-                >
-                  <button
-                    onClick={() => toggleAccordion(faq.id)}
-                    className="w-full flex justify-between items-center px-6 py-4 text-left hover:bg-orange-50 transition-colors"
-                  >
-                    <div>
-                      <h3 className="font-medium text-gray-800">{faq.pertanyaan}</h3>
-                    </div>
-                    <div className="text-[#FB6B00]">
-                      {openIndex === faq.id ? <FaChevronUp /> : <FaChevronDown />}
-                    </div>
-                  </button>
-
-                  {openIndex === faq.id && (
-                    <div className="px-6 pb-5 text-gray-600 text-sm border-t border-orange-100 bg-white">
-                      <p className="mt-3 leading-relaxed">{faq.jawaban}</p>
-                      <div className="flex justify-end mt-4 gap-3">
-                        <Link
-                          href={`/dashboard/faq/${faq.id}`}
-                          className="p-2 rounded-full hover:bg-orange-100 text-[#FB6B00] hover:text-orange-700 transition-all"
-                          title="Edit"
-                        >
-                          <FaEdit />
-                        </Link>
-                        <button
-                          onClick={() => handleDelete(faq.id)}
-                          className="p-2 rounded-full hover:bg-red-100 text-red-500 hover:text-red-700 transition-all"
-                          title="Hapus"
-                        >
-                          <FaTrash />
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </li>
-              ))}
-          </ul>
+      {loading ? (
+        <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden p-8 space-y-4">
+          <Skeleton className="h-8 w-48 mb-6" />
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full rounded-xl" />
+          ))}
         </div>
-      ))}
+      ) : faqList.length === 0 ? (
+        <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-20 text-center">
+          <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-6 text-[#FB6B00]">
+            <FaQuestionCircle className="text-3xl opacity-20" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900">Belum ada FAQ</h3>
+          <p className="text-gray-500 mt-2">Mulai dengan menambahkan pertanyaan pertama Anda.</p>
+          <Link href="/dashboard/faq/tambah" className="inline-block mt-6 text-[#FB6B00] font-bold hover:underline">
+            Tambah FAQ Baru →
+          </Link>
+        </div>
+      ) : (
+        categories.map((category) => (
+          <div key={category} className="space-y-4">
+            <div className="flex items-center gap-3 ml-4">
+              <div className="w-2 h-2 rounded-full bg-[#FB6B00]" />
+              <h2 className="text-lg font-black text-gray-900 uppercase tracking-widest">{category}</h2>
+            </div>
+            
+            <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+              <Table>
+                <TableHeader className="bg-gray-50/50">
+                  <TableRow className="hover:bg-transparent border-b-gray-100">
+                    <TableHead className="py-5 pl-8 font-bold text-gray-900 uppercase tracking-wider text-[11px]">Pertanyaan</TableHead>
+                    <TableHead className="py-5 font-bold text-gray-900 uppercase tracking-wider text-[11px] text-right pr-8">Aksi</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {faqList
+                    .filter((faq) => (faq.kategori || "Umum") === category)
+                    .map((faq, index) => (
+                      <React.Fragment key={faq.id}>
+                        <TableRow 
+                          className={`group transition-colors border-b-gray-50 cursor-pointer ${openId === faq.id ? 'bg-orange-50/30' : 'hover:bg-gray-50/50'}`}
+                          onClick={() => toggleAccordion(faq.id)}
+                        >
+                          <TableCell className="py-5 pl-8">
+                            <div className="flex items-center gap-4">
+                              <div className={`p-2 rounded-lg transition-colors ${openId === faq.id ? 'bg-[#FB6B00] text-white' : 'bg-gray-100 text-gray-400 group-hover:bg-orange-100 group-hover:text-[#FB6B00]'}`}>
+                                <FaQuestionCircle className="text-sm" />
+                              </div>
+                              <p className={`font-bold transition-colors ${openId === faq.id ? 'text-[#FB6B00]' : 'text-gray-900'}`}>
+                                {faq.pertanyaan}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="pr-8 text-right">
+                            <div className="flex justify-end items-center gap-4">
+                              <div className={`transition-transform duration-300 ${openId === faq.id ? 'rotate-180' : ''}`}>
+                                <FaChevronDown className="text-gray-300 text-xs" />
+                              </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        <AnimatePresence>
+                          {openId === faq.id && (
+                            <TableRow className="hover:bg-transparent border-b-gray-50 bg-orange-50/10">
+                              <TableCell colSpan={2} className="py-0 px-0">
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: "auto", opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.3 }}
+                                  className="overflow-hidden"
+                                >
+                                  <div className="p-8 pl-20 space-y-6">
+                                    <div className="bg-white p-6 rounded-2xl border border-orange-100 shadow-sm relative">
+                                      <div className="absolute top-0 left-6 -translate-y-1/2 bg-[#FB6B00] text-white px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                        Jawaban
+                                      </div>
+                                      <p className="text-gray-600 leading-relaxed text-sm whitespace-pre-wrap">{faq.jawaban}</p>
+                                    </div>
+                                    
+                                    <div className="flex items-center justify-end gap-3 pt-2">
+                                      <Link
+                                        href={`/dashboard/faq/${faq.id}`}
+                                        className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-600 hover:border-[#FB6B00] hover:text-[#FB6B00] rounded-xl font-bold transition-all text-xs"
+                                      >
+                                        <FaEdit /> Edit Pertanyaan
+                                      </Link>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDelete(faq.id);
+                                        }}
+                                        className="flex items-center gap-2 px-5 py-2.5 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-xl font-bold transition-all text-xs"
+                                      >
+                                        <FaTrash /> Hapus Permanen
+                                      </button>
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </AnimatePresence>
+                      </React.Fragment>
+                    ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        ))
+      )}
 
-      <div className="text-xs text-gray-400 text-center mt-6">
-        © {new Date().getFullYear()} Dashboard FAQ | Bank Jatah Indonesia
+      <div className="p-10 text-gray-400 text-center mt-12 bg-gray-50/50 rounded-[2rem] border border-gray-100">
+        <p className="text-xs font-bold uppercase tracking-widest">© {new Date().getFullYear()} Pusat Pengetahuan Bank Jatah Indonesia</p>
       </div>
-    </section>
+    </div>
   );
 }

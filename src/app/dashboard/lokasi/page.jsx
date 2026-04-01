@@ -2,10 +2,20 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash, FaMapMarkerAlt, FaStore } from "react-icons/fa";
 import { supabase } from "@/lib/supabaseClient";
-import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal"; // ← modal konfirmasi
+import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal";
 import Toast from "@/components/common/Toast";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function LokasiPage() {
   const [activeTab, setActiveTab] = useState("utama");
@@ -23,6 +33,7 @@ export default function LokasiPage() {
 
   async function fetchData() {
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from("lokasi")
         .select("*")
@@ -46,7 +57,6 @@ export default function LokasiPage() {
     if (!selectedItem) return;
 
     try {
-      // Hapus gambar di storage jika ada
       if (selectedItem.gambar_url) {
         const filePath = selectedItem.gambar_url.replace(
           `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/lokasi-images/lokasi/`,
@@ -58,116 +68,36 @@ export default function LokasiPage() {
         if (storageError) console.error("Gagal menghapus gambar:", storageError);
       }
 
-      // Hapus record lokasi
       const { error } = await supabase.from("lokasi").delete().eq("id", selectedItem.id);
       if (error) throw error;
 
-      // Update state UI
       setLokasi((prev) => prev.filter((item) => item.id !== selectedItem.id));
       showToast("✅ Lokasi berhasil dihapus", "success");
     } catch (err) {
       console.error(err);
-      showToast("❌ Gagal menghapus lokasi. Cek console.", "error");
+      showToast("❌ Gagal menghapus lokasi", "error");
     } finally {
       setIsModalOpen(false);
       setSelectedItem(null);
     }
   };
 
-  const lokasiUtama = lokasi.filter((l) => l.jenis === "utama");
-  const lokasiMitra = lokasi.filter((l) => l.jenis === "mitra");
+  const filteredData = lokasi.filter((l) => l.jenis === activeTab);
 
-  const renderTable = (data) => {
-    if (loading) {
-      return (
-        <div className="text-center py-10 text-orange-600 font-medium animate-pulse">
-          Memuat data lokasi...
-        </div>
-      );
-    }
-
-    if (!data || data.length === 0) {
-      return (
-        <div className="text-center py-10 text-gray-400 italic bg-orange-50/30 rounded-lg">
-          Belum ada lokasi pada kategori ini.
-        </div>
-      );
-    }
-
-    return (
-      <div className="overflow-hidden rounded-xl shadow-md border border-orange-100 bg-white">
-        <table className="min-w-full text-sm">
-          <thead className="bg-[#FB6B00]/10 text-[#FB6B00] uppercase text-xs font-semibold tracking-wide">
-            <tr>
-              <th className="px-6 py-3 text-left">Nama</th>
-              <th className="px-6 py-3 text-left">Jenis</th>
-              <th className="px-6 py-3 text-left">Alamat</th>
-              <th className="px-6 py-3 text-left">Deskripsi</th>
-              <th className="px-6 py-3 text-left">Kontak</th>
-              <th className="px-6 py-3 text-left">Jam Operasional</th>
-              <th className="px-6 py-3 text-center">Gambar</th>
-              <th className="px-6 py-3 text-center">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((item, index) => (
-              <tr
-                key={item.id}
-                className={`border-b border-orange-100 transition-all duration-200 ${
-                  index % 2 === 0
-                    ? "bg-white hover:bg-orange-50/60"
-                    : "bg-orange-50/40 hover:bg-orange-100/50"
-                }`}
-              >
-                <td className="px-6 py-4 font-medium text-gray-800">{item.nama}</td>
-                <td className="px-6 py-4 capitalize text-gray-600">{item.jenis}</td>
-                <td className="px-6 py-4 text-gray-700">{item.alamat || "-"}</td>
-                <td className="px-6 py-4 text-gray-700">{item.deskripsi ? item.deskripsi.slice(0, 60) + "..." : "-"}</td>
-                <td className="px-6 py-4 text-gray-700">{item.kontak || "-"}</td>
-                <td className="px-6 py-4 text-gray-700">{item.jam_operasional || "-"}</td>
-                <td className="px-6 py-4 text-center">
-                  {item.gambar_url ? (
-                    <img
-                      src={item.gambar_url}
-                      alt={item.nama}
-                      className="w-16 h-16 object-cover rounded-md mx-auto border border-orange-200"
-                    />
-                  ) : (
-                    <span className="text-gray-400 italic">Tidak ada</span>
-                  )}
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <div className="flex justify-center gap-5">
-                    <Link
-                      href={`/dashboard/lokasi/${item.id}`}
-                      className="p-2 rounded-full hover:bg-yellow-100 text-yellow-600 hover:text-yellow-800 transition-all"
-                      title="Edit"
-                    >
-                      <FaEdit />
-                    </Link>
-                    <button
-                      onClick={() => {
-                        setSelectedItem(item);
-                        setIsModalOpen(true);
-                      }}
-                      className="p-2 rounded-full hover:bg-red-100 text-red-600 hover:text-red-800 transition-all"
-                      title="Hapus"
-                    >
-                      <FaTrash />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  };
+  const renderSkeleton = () => (
+    Array.from({ length: 5 }).map((_, i) => (
+      <TableRow key={i} className="border-b-gray-50">
+        <TableCell className="py-4 pl-8"><Skeleton className="h-12 w-12 rounded-xl" /></TableCell>
+        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+        <TableCell><Skeleton className="h-4 w-48" /></TableCell>
+        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+        <TableCell className="pr-8"><Skeleton className="h-8 w-20 ml-auto rounded-lg" /></TableCell>
+      </TableRow>
+    ))
+  );
 
   return (
-    <section className="p-6 md:p-10 min-h-screen bg-gradient-to-b from-orange-50 to-white rounded-2xl shadow-md relative">
-      {/* Toast */}
+    <div className="space-y-8 animate-in fade-in duration-700">
       {toast.message && (
         <Toast
           message={toast.message}
@@ -177,7 +107,6 @@ export default function LokasiPage() {
         />
       )}
 
-      {/* Modal Konfirmasi Hapus */}
       <ConfirmDeleteModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -185,50 +114,138 @@ export default function LokasiPage() {
         itemName={selectedItem?.nama || "lokasi ini"}
       />
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8 border-b border-orange-200 pb-4">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
         <div>
-          <h1 className="text-3xl font-bold text-[#FB6B00]">Manajemen Lokasi</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Kelola lokasi utama dan mitra Bank Jatah Indonesia dengan mudah.
+          <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+            Manajemen <span className="text-[#FB6B00]">Lokasi</span>
+          </h1>
+          <p className="text-gray-500 mt-1 font-medium">
+            Atur titik jemput minyak jelantah dan lokasi mitra strategis kami.
           </p>
         </div>
         <Link
           href="/dashboard/lokasi/tambah"
-          className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-700 text-white px-4 py-2 rounded-xl shadow-sm hover:shadow-lg transition-all duration-200"
+          className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3.5 rounded-2xl shadow-[0_10px_20px_rgba(251,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(251,107,0,0.3)] transition-all duration-300 font-bold"
         >
-          <FaPlus /> Tambah Lokasi
+          <FaPlus className="text-sm" /> Tambah Lokasi Baru
         </Link>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-3 mb-6">
+      <div className="flex bg-white p-1.5 rounded-2xl border border-gray-100 w-fit">
         <button
           onClick={() => setActiveTab("utama")}
-          className={`px-5 py-2 rounded-full font-semibold transition-all ${
-            activeTab === "utama" ? "bg-[#FB6B00] text-white shadow" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          className={`flex items-center gap-2 px-8 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${
+            activeTab === "utama" ? "bg-[#FB6B00] text-white shadow-md shadow-orange-100" : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
           }`}
         >
-          Lokasi Utama
+          <FaMapMarkerAlt className="text-[10px]" /> Lokasi Utama
         </button>
         <button
           onClick={() => setActiveTab("mitra")}
-          className={`px-5 py-2 rounded-full font-semibold transition-all ${
-            activeTab === "mitra" ? "bg-[#FB6B00] text-white shadow" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          className={`flex items-center gap-2 px-8 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${
+            activeTab === "mitra" ? "bg-[#FB6B00] text-white shadow-md shadow-orange-100" : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
           }`}
         >
-          Lokasi Mitra
+          <FaStore className="text-[10px]" /> Lokasi Mitra
         </button>
       </div>
 
-      {/* Table */}
-      {activeTab === "utama" && renderTable(lokasiUtama)}
-      {activeTab === "mitra" && renderTable(lokasiMitra)}
-
-      {/* Footer */}
-      <div className="text-xs text-gray-400 text-center mt-6">
-        © {new Date().getFullYear()} Dashboard Lokasi | Bank Jatah Indonesia
+      {/* Table Section */}
+      <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+        <Table>
+          <TableHeader className="bg-gray-50/50">
+            <TableRow className="hover:bg-transparent border-b-gray-100">
+              <TableHead className="w-[100px] py-5 pl-8 font-bold text-gray-900 uppercase tracking-wider text-[11px]">Foto</TableHead>
+              <TableHead className="py-5 font-bold text-gray-900 uppercase tracking-wider text-[11px]">Informasi Lokasi</TableHead>
+              <TableHead className="py-5 font-bold text-gray-900 uppercase tracking-wider text-[11px]">Alamat & Kontak</TableHead>
+              <TableHead className="py-5 font-bold text-gray-900 uppercase tracking-wider text-[11px]">Operasional</TableHead>
+              <TableHead className="py-5 font-bold text-gray-900 uppercase tracking-wider text-[11px] text-right pr-8">Aksi</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <AnimatePresence mode="wait">
+              {loading ? (
+                renderSkeleton()
+              ) : filteredData.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-64 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-400">
+                      <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                        <FaMapMarkerAlt className="text-2xl opacity-20" />
+                      </div>
+                      <p className="font-medium">Belum ada lokasi tersedia.</p>
+                      <Link href="/dashboard/lokasi/tambah" className="text-[#FB6B00] text-sm mt-2 hover:underline font-bold">
+                        Tambah lokasi pertama
+                      </Link>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredData.map((item, index) => (
+                  <motion.tr
+                    key={item.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="group hover:bg-gray-50/50 transition-colors border-b-gray-50 last:border-0"
+                  >
+                    <TableCell className="py-5 pl-8">
+                      <div className="relative w-14 h-14 rounded-xl overflow-hidden border-2 border-white shadow-sm ring-1 ring-gray-100">
+                        {item.gambar_url ? (
+                          <img src={item.gambar_url} alt={item.nama} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-gray-50 flex items-center justify-center text-gray-300">
+                            <FaMapMarkerAlt />
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="min-w-0">
+                        <p className="font-bold text-gray-900 group-hover:text-[#FB6B00] transition-colors">{item.nama}</p>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">{item.jenis}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <p className="text-sm text-gray-600 font-medium line-clamp-1">{item.alamat || "-"}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{item.kontak || "-"}</p>
+                    </TableCell>
+                    <TableCell>
+                      <span className="bg-gray-50 text-gray-500 border border-gray-100 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all group-hover:bg-orange-50 group-hover:text-orange-600 group-hover:border-orange-100">
+                        {item.jam_operasional || "TUTUP"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="pr-8 text-right">
+                      <div className="flex justify-end gap-2">
+                        <Link
+                          href={`/dashboard/lokasi/${item.id}`}
+                          className="p-2.5 bg-gray-50 text-gray-400 hover:text-[#FB6B00] hover:bg-orange-50 rounded-xl transition-all"
+                        >
+                          <FaEdit className="text-base" />
+                        </Link>
+                        <button
+                          onClick={() => {
+                            setSelectedItem(item);
+                            setIsModalOpen(true);
+                          }}
+                          className="p-2.5 bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                        >
+                          <FaTrash className="text-base" />
+                        </button>
+                      </div>
+                    </TableCell>
+                  </motion.tr>
+                ))
+              )}
+            </AnimatePresence>
+          </TableBody>
+        </Table>
+        <div className="p-6 bg-gray-50/30 border-t border-gray-50 text-[11px] font-bold text-gray-400 uppercase tracking-widest text-center">
+          Dikelola oleh Departemen Operasional Bank Jatah Indonesia • © {new Date().getFullYear()}
+        </div>
       </div>
-    </section>
+    </div>
   );
 }

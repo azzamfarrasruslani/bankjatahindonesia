@@ -1,16 +1,26 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
-import { supabase } from "@/lib/supabaseClient";
 import { fetchArtikel, deleteArtikel } from "@/lib/services/artikelService";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { motion, AnimatePresence } from "framer-motion";
+import ArtikelFormSheet from "./components/ArtikelFormSheet";
 
 export default function ArtikelPage() {
   const [artikel, setArtikel] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
- useEffect(() => {
   const loadData = async () => {
     try {
       setLoading(true);
@@ -24,147 +34,192 @@ export default function ArtikelPage() {
     }
   };
 
-  loadData();
-}, []);
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const handleDelete = async (id) => {
     if (!confirm("Yakin ingin menghapus artikel ini?")) return;
 
     try {
       await deleteArtikel(id);
-
-      // Update state lokal agar UI responsif
       setArtikel((prev) => prev.filter((item) => item.id !== id));
     } catch (err) {
       alert(err.message);
     }
   };
 
+  const handleOpenAddSheet = () => {
+    setEditingId(null);
+    setIsSheetOpen(true);
+  };
+
+  const handleOpenEditSheet = (id) => {
+    setEditingId(id);
+    setIsSheetOpen(true);
+  };
+
   return (
-    <section className="p-6 md:p-10 min-h-screen bg-gradient-to-b from-orange-50 to-white rounded-2xl shadow-md">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 border-b border-orange-200 pb-4 gap-3 md:gap-0">
+    <div className="space-y-8 animate-in fade-in duration-700">
+      <ArtikelFormSheet 
+        isOpen={isSheetOpen}
+        onClose={() => setIsSheetOpen(false)}
+        onSuccess={loadData}
+        artikelId={editingId}
+      />
+
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
         <div>
-          <h1 className="text-3xl font-bold text-[#FB6B00]">
-            Manajemen Artikel
+          <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+            Manajemen <span className="text-[#FB6B00]">Artikel</span>
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Kelola daftar artikel, ubah, atau hapus dengan mudah.
+          <p className="text-gray-500 mt-1 font-medium">
+            Kelola konten edukasi dan informasi menarik untuk website Anda.
           </p>
         </div>
-        <Link
-          href="/dashboard/artikel/tambah"
-          className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-700 text-white px-4 py-2 rounded-xl shadow-sm hover:shadow-lg transition-all duration-200"
+        <button
+          onClick={handleOpenAddSheet}
+          className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3.5 rounded-2xl shadow-[0_10px_20px_rgba(251,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(251,107,0,0.3)] transition-all duration-300 font-bold"
         >
-          <FaPlus /> Tambah Artikel
-        </Link>
+          <FaPlus className="text-sm" /> Tambah Artikel Baru
+        </button>
       </div>
 
-      <div className="overflow-x-auto rounded-xl shadow-md border border-orange-100 bg-white">
-        <table className="min-w-max w-full text-sm table-auto border-collapse">
-          <thead className="bg-[#FB6B00]/10 text-[#FB6B00] uppercase text-xs font-semibold tracking-wide">
-            <tr>
-              <th className="px-6 py-3 text-left w-[250px]">Judul</th>
-              <th className="px-6 py-3 text-left w-[120px]">Kategori</th>
-              <th className="px-6 py-3 text-left w-[120px]">Penulis</th>
-              <th className="px-6 py-3 text-left w-[80px]">Views</th>
-              <th className="px-6 py-3 text-center w-[100px]">Status</th>
-              <th className="px-6 py-3 text-left w-[120px]">Tanggal</th>
-              <th className="px-6 py-3 text-center w-[120px]">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td
-                  colSpan="7"
-                  className="text-center py-10 text-gray-500 italic"
-                >
-                  Memuat artikel...
-                </td>
-              </tr>
-            ) : artikel.length === 0 ? (
-              <tr>
-                <td
-                  colSpan="7"
-                  className="text-center py-10 text-gray-400 italic bg-orange-50/30"
-                >
-                  Belum ada artikel yang tercatat.
-                </td>
-              </tr>
-            ) : (
-              artikel.map((item, index) => (
-                <tr
-                  key={item.id}
-                  className={`border-b border-orange-100 transition-all duration-200 ${
-                    index % 2 === 0
-                      ? "bg-white hover:bg-orange-50/60"
-                      : "bg-orange-50/40 hover:bg-orange-100/50"
-                  }`}
-                >
-                  <td className="px-6 py-4 font-medium text-gray-800 flex items-center gap-2">
-                    {item.gambar_url && (
-                      <img
-                        src={item.gambar_url}
-                        alt="Thumbnail"
-                        className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
-                      />
-                    )}
-                    <span
-                      title={item.judul}
-                      className="truncate max-w-[200px] block"
-                    >
-                      {item.judul}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">
-                    {item.kategori || "-"}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">
-                    {item.penulis || "Admin"}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">{item.views || 0}</td>
-                  <td className="px-6 py-4 text-center">
-                    {item.is_top ? (
-                      <span className="bg-[#FB6B00]/20 text-[#FB6B00] px-3 py-1 rounded-full text-xs font-semibold">
-                        Utama
-                      </span>
-                    ) : (
-                      <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-medium">
-                        Biasa
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">
-                    {new Date(item.created_at).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <div className="flex justify-center gap-3">
-                      <Link
-                        href={`/dashboard/artikel/${item.id}`}
-                        className="p-2 rounded-full hover:bg-yellow-100 text-yellow-600 hover:text-yellow-700 transition-all"
-                        title="Edit"
-                      >
-                        <FaEdit />
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="p-2 rounded-full hover:bg-red-100 text-red-500 hover:text-red-700 transition-all"
-                        title="Hapus"
-                      >
-                        <FaTrash />
+      {/* Table Section */}
+      <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+        <Table>
+          <TableHeader className="bg-gray-50/50">
+            <TableRow className="hover:bg-transparent border-b-gray-100">
+              <TableHead className="w-[350px] py-5 pl-8 font-bold text-gray-900 uppercase tracking-wider text-[11px]">Artikel</TableHead>
+              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px]">Kategori</TableHead>
+              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px]">Penulis</TableHead>
+              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px] text-center">Stats</TableHead>
+              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px] text-center">Status</TableHead>
+              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px] text-right pr-8">Aksi</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <AnimatePresence mode="wait">
+              {loading ? (
+                // Loading Skeleton
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i} className="border-b-gray-50">
+                    <TableCell className="py-4 pl-8">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-12 w-12 rounded-xl" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-[200px]" />
+                          <Skeleton className="h-3 w-[100px]" />
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-12 mx-auto" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-16 mx-auto rounded-full" /></TableCell>
+                    <TableCell className="pr-8"><Skeleton className="h-8 w-20 ml-auto rounded-lg" /></TableCell>
+                  </TableRow>
+                ))
+              ) : artikel.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-64 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-400">
+                      <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                        <FaPlus className="text-2xl opacity-20" />
+                      </div>
+                      <p className="font-medium">Belum ada artikel yang tercatat.</p>
+                      <button onClick={handleOpenAddSheet} className="text-[#FB6B00] text-sm mt-2 hover:underline">
+                        Mulai tulis artikel pertama Anda
                       </button>
                     </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                artikel.map((item, index) => (
+                  <motion.tr
+                    key={item.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="group hover:bg-gray-50/50 transition-colors border-b-gray-50 last:border-0"
+                  >
+                    <TableCell className="py-5 pl-8">
+                      <div className="flex items-center gap-4">
+                        <div className="relative w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-sm flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+                          {item.gambar_url ? (
+                            <img
+                              src={item.gambar_url}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-orange-50 flex items-center justify-center text-orange-300 font-bold text-xs uppercase">
+                              NO IMG
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-bold text-gray-900 group-hover:text-[#FB6B00] transition-colors truncate max-w-[250px]">
+                            {item.judul}
+                          </p>
+                          <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wider mt-0.5">
+                            ID: {item.id.slice(0, 8)}
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center px-3 py-1 rounded-lg bg-orange-50 text-[#FB6B00] text-[11px] font-bold uppercase tracking-wider">
+                        {item.kategori || "Umum"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-sm font-medium text-gray-600">
+                      {item.penulis || "Admin"}
+                    </TableCell>
+                    <TableCell className="text-center font-bold text-gray-900">
+                      {item.views || 0}
+                      <span className="block text-[10px] text-gray-400 font-medium uppercase tracking-tighter">Views</span>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {item.is_top ? (
+                        <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-[0_4px_10px_rgba(251,107,0,0.3)]">
+                          Highlight
+                        </span>
+                      ) : (
+                        <span className="bg-gray-100 text-gray-500 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                          Normal
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="pr-8 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => handleOpenEditSheet(item.id)}
+                          className="p-2.5 bg-gray-50 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all"
+                          title="Edit Artikel"
+                        >
+                          <FaEdit className="text-base" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="p-2.5 bg-gray-50 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                          title="Hapus Artikel"
+                        >
+                          <FaTrash className="text-base" />
+                        </button>
+                      </div>
+                    </TableCell>
+                  </motion.tr>
+                ))
+              )}
+            </AnimatePresence>
+          </TableBody>
+        </Table>
+        <div className="p-6 bg-gray-50/30 border-t border-gray-50 text-[11px] font-bold text-gray-400 uppercase tracking-widest text-center">
+          Dikelola oleh sistem Bank Jatah Indonesia • © {new Date().getFullYear()}
+        </div>
       </div>
-
-      <div className="text-xs text-gray-400 text-center mt-6">
-        © {new Date().getFullYear()} Dashboard Artikel | Bank Jatah Indonesia
-      </div>
-    </section>
+    </div>
   );
 }

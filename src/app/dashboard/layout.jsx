@@ -1,15 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import Sidebar from "@/components/features/(admin)/dashboard/Sidebar";
 import Navbar from "@/components/features/(admin)/dashboard/Navbar";
-import Breadcrumb from "@/components/features/(admin)/dashboard/Breadcrumb";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { supabase } from "@/lib/supabaseClient";
 
-export default function DashboardLayout({ children, breadcrumbItems }) {
+export default function DashboardLayout({ children }) {
   const router = useRouter();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -27,9 +35,16 @@ export default function DashboardLayout({ children, breadcrumbItems }) {
     getUser();
 
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (!_event || !session) router.replace("/login");
-        setSession(session);
+      (_event, nextSession) => {
+        if (!_event || !nextSession) {
+          router.replace("/login");
+          setSession(null);
+          setLoading(false);
+          return;
+        }
+
+        setSession(nextSession);
+        setLoading(false);
       }
     );
 
@@ -45,47 +60,80 @@ export default function DashboardLayout({ children, breadcrumbItems }) {
   }
 
   return (
-    <div className="flex h-screen w-full bg-gray-50 overflow-hidden relative z-0">
-      {/* Sidebar Desktop */}
-      <div className="hidden md:flex flex-shrink-0 w-64">
-        <Sidebar
-          session={session}
-          isOpen={true} // Desktop selalu terbuka
-          onClose={() => setSidebarOpen(false)}
-        />
-      </div>
+    <SidebarProvider defaultOpen>
+      <Sidebar session={session} />
 
-      {/* Konten Utama */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Navbar */}
-        <div className="fixed top-0 left-0 right-0 z-30 md:ml-64">
-          <Navbar
-            session={session}
-            onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-          />
+      <SidebarInset className="min-h-screen bg-gray-50">
+        <div className="sticky top-0 z-20">
+          <Navbar session={session} showSidebarTrigger />
         </div>
 
-        {/* Sidebar Mobile */}
-        {sidebarOpen && (
-          <div className="fixed inset-0 z-40 md:hidden flex">
-            <Sidebar
-              session={session}
-              isOpen={sidebarOpen}
-              onClose={() => setSidebarOpen(false)}
-            />
-            <div
-              className="flex-1 bg-black/30"
-              onClick={() => setSidebarOpen(false)}
-            />
-          </div>
-        )}
+        <main className="flex-1 p-4 md:p-6">
+          <div className="mb-6 rounded-2xl border border-white/60 bg-white/80 px-4 py-3 shadow-sm backdrop-blur">
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink
+                    href="/dashboard"
+                    className="text-gray-500 transition-colors hover:text-orange-600"
+                  >
+                    Dashboard
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
 
-        {/* Konten Dashboard */}
-        <main className="flex-1 overflow-y-auto p-6 mt-20">
-          <Breadcrumb items={breadcrumbItems} />
+                {pathname
+                  .split("/")
+                  .filter((segment) => segment && segment !== "dashboard")
+                  .map((segment, index, array) => {
+                    const href = `/dashboard/${array
+                      .slice(0, index + 1)
+                      .join("/")}`;
+                    const isLast = index === array.length - 1;
+                    const labelMap = {
+                      artikel: "Artikel",
+                      berita: "Berita",
+                      faq: "FAQ",
+                      galeri: "Galeri",
+                      kontak: "Kontak",
+                      lokasi: "Lokasi",
+                      profil: "Profil",
+                      program: "Program",
+                      testimoni: "Testimoni",
+                      users: "Manajemen Pengguna",
+                      tambah: "Tambah Baru",
+                    };
+                    const label =
+                      labelMap[segment] ||
+                      segment.charAt(0).toUpperCase() +
+                        segment.slice(1).replace(/-/g, " ");
+
+                    return (
+                      <React.Fragment key={href}>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                          {isLast ? (
+                            <BreadcrumbPage className="font-bold text-gray-900">
+                              {label}
+                            </BreadcrumbPage>
+                          ) : (
+                            <BreadcrumbLink
+                              href={href}
+                              className="text-[10px] font-bold uppercase tracking-wider text-gray-500 transition-colors hover:text-orange-600"
+                            >
+                              {label}
+                            </BreadcrumbLink>
+                          )}
+                        </BreadcrumbItem>
+                      </React.Fragment>
+                    );
+                  })}
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
+
           {children}
         </main>
-      </div>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

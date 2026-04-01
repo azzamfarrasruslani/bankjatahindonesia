@@ -1,155 +1,193 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import Link from "next/link";
-import { createClient } from "@supabase/supabase-js";
-import { useRouter } from "next/navigation";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
+import { fetchProgram, deleteProgram } from "@/lib/services/programService";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function DashboardProgramPage() {
   const [programs, setPrograms] = useState([]);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
-    const fetchPrograms = async () => {
+    const loadData = async () => {
       try {
-        const { data, error } = await supabase
-          .from("program")
-          .select("*")
-          .order("id");
-
-        if (error) throw error;
-        setPrograms(data || []);
+        setLoading(true);
+        const result = await fetchProgram();
+        setPrograms(result);
       } catch (err) {
-        console.error("Gagal ambil data:", err);
-        alert("Gagal memuat data program.");
+        console.error(err.message);
+        setPrograms([]);
       } finally {
         setLoading(false);
       }
     };
-    fetchPrograms();
+
+    loadData();
   }, []);
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id, icon_url) => {
     if (!confirm("Yakin ingin menghapus program ini?")) return;
+
     try {
-      const { error } = await supabase.from("program").delete().eq("id", id);
-      if (error) throw error;
-      setPrograms((prev) => prev.filter((p) => p.id !== id));
-    } catch {
-      alert("Gagal hapus data.");
+      await deleteProgram(id, icon_url);
+      setPrograms((prev) => prev.filter((item) => item.id !== id));
+    } catch (err) {
+      alert(err.message);
     }
   };
 
   return (
-    <section className="p-6 md:p-10 min-h-screen bg-gradient-to-b from-orange-50 to-white rounded-2xl shadow-md">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row items-center justify-between mb-8 border-b border-orange-200 pb-4">
-        <div className="text-center md:text-left">
-          <h1 className="text-3xl font-bold text-[#FB6B00]">
-            Manajemen Program
+    <div className="space-y-8 animate-in fade-in duration-700">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
+        <div>
+          <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+            Manajemen <span className="text-[#FB6B00]">Program</span>
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Kelola daftar program Bank Jatah Indonesia.
+          <p className="text-gray-500 mt-1 font-medium">
+            Kelola daftar program unggulan Bank Jatah Indonesia.
           </p>
         </div>
-
         <Link
           href="/dashboard/program/tambah"
-          className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-700 text-white px-4 py-2 rounded-xl shadow-sm hover:shadow-lg transition-all duration-200"
+          className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3.5 rounded-2xl shadow-[0_10px_20px_rgba(251,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(251,107,0,0.3)] transition-all duration-300 font-bold"
         >
-          <FaPlus /> Tambah Program
+          <FaPlus className="text-sm" /> Tambah Program Baru
         </Link>
       </div>
 
-      {/* Cards */}
-      <div className="grid md:grid-cols-3 gap-6">
-        {loading ? (
-          // Loading state di area grid
-          Array.from({ length: 3 }).map((_, idx) => (
-            <div
-              key={idx}
-              className="bg-white border border-orange-100 rounded-xl shadow-sm p-6 flex flex-col items-center justify-center text-center animate-pulse"
-            >
-              <div className="w-16 h-16 bg-orange-100 rounded-full mb-4" />
-              <div className="h-4 bg-orange-100 rounded w-3/4 mb-2" />
-              <div className="h-3 bg-orange-50 rounded w-1/2 mb-1" />
-              <div className="h-3 bg-orange-50 rounded w-5/6" />
-            </div>
-          ))
-        ) : programs.length === 0 ? (
-          <div className="col-span-full text-center py-10 text-gray-400 italic bg-orange-50/30 rounded-lg">
-            Belum ada program yang tercatat.
-          </div>
-        ) : (
-          programs.map((program) => (
-            <div
-              key={program.id}
-              className="relative bg-white border border-orange-100 shadow-sm hover:shadow-lg rounded-xl overflow-hidden transition-all"
-            >
-              {/* Tombol Edit dan Hapus */}
-              <div className="absolute top-3 right-3 flex gap-2 z-10">
-                <button
-                  onClick={() =>
-                    router.push(`/dashboard/program/${program.id}`)
-                  }
-                  className="p-2 bg-orange-50 hover:bg-orange-100 text-[#FB6B00] rounded-full shadow-sm transition-all"
-                  title="Edit"
-                >
-                  <FaEdit />
-                </button>
-                <button
-                  onClick={() => handleDelete(program.id)}
-                  className="p-2 bg-red-50 hover:bg-red-100 text-red-500 rounded-full shadow-sm transition-all"
-                  title="Hapus"
-                >
-                  <FaTrash />
-                </button>
-              </div>
-
-              {/* Gambar Header */}
-              <div
-                className="h-40 bg-cover bg-center"
-                style={{ backgroundImage: `url(${program.icon_url})` }}
-              >
-                <div className="absolute inset-0"></div>
-              </div>
-
-              {/* Konten Program */}
-              <div className="p-6 flex  flex-col items-center text-center">
-                <h2 className="text-xl font-semibold text-gray-800 mb-1">
-                  {program.title}
-                </h2>
-                <span className="text-xs font-medium text-[#FB6B00] bg-[#FB6B00]/10 px-3 py-1 rounded-full mb-3">
-                  {program.status}
-                </span>
-                <p className="text-gray-600 text-sm mb-4">
-                  {program.description}
-                </p>
-
-                {program.details && Array.isArray(program.details) && (
-                  <ul className="text-gray-500 text-sm text-left mb-2 list-disc list-inside">
-                    {program.details.map((point, idx) => (
-                      <li key={idx}>{point}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
-          ))
-        )}
+      {/* Table Section */}
+      <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+        <Table>
+          <TableHeader className="bg-gray-50/50">
+            <TableRow className="hover:bg-transparent border-b-gray-100">
+              <TableHead className="w-[350px] py-5 pl-8 font-bold text-gray-900 uppercase tracking-wider text-[11px]">Program</TableHead>
+              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px]">Status</TableHead>
+              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px]">Deskripsi</TableHead>
+              <TableHead className="font-bold text-gray-900 uppercase tracking-wider text-[11px] text-right pr-8">Aksi</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <AnimatePresence mode="wait">
+              {loading ? (
+                // Loading Skeleton
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i} className="border-b-gray-50">
+                    <TableCell className="py-4 pl-8">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-12 w-12 rounded-xl" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-[200px]" />
+                          <Skeleton className="h-3 w-[100px]" />
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-48" /></TableCell>
+                    <TableCell className="pr-8"><Skeleton className="h-8 w-20 ml-auto rounded-lg" /></TableCell>
+                  </TableRow>
+                ))
+              ) : programs.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="h-64 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-400">
+                      <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                        <FaPlus className="text-2xl opacity-20" />
+                      </div>
+                      <p className="font-medium">Belum ada program yang tercatat.</p>
+                      <Link href="/dashboard/program/tambah" className="text-[#FB6B00] text-sm mt-2 hover:underline">
+                        Mulai tambah program pertama Anda
+                      </Link>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                programs.map((item, index) => (
+                  <motion.tr
+                    key={item.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="group hover:bg-gray-50/50 transition-colors border-b-gray-50 last:border-0"
+                  >
+                    <TableCell className="py-5 pl-8">
+                      <div className="flex items-center gap-4">
+                        <div className="relative w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-sm flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+                          {item.icon_url ? (
+                            <img
+                              src={item.icon_url}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-orange-50 flex items-center justify-center text-orange-300 font-bold text-xs uppercase">
+                              ICON
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-bold text-gray-900 group-hover:text-[#FB6B00] transition-colors truncate max-w-[250px]">
+                            {item.title}
+                          </p>
+                          <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wider mt-0.5">
+                            ID: {String(item.id).slice(0, 8)}
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider ${
+                        item.status === "Aktif" 
+                        ? "bg-green-50 text-green-600" 
+                        : "bg-orange-50 text-[#FB6B00]"
+                      }`}>
+                        {item.status || "Publik"}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <p className="text-sm text-gray-600 line-clamp-2 max-w-[300px]">
+                        {item.description}
+                      </p>
+                    </TableCell>
+                    <TableCell className="pr-8 text-right">
+                      <div className="flex justify-end gap-2">
+                        <Link
+                          href={`/dashboard/program/${item.id}`}
+                          className="p-2.5 bg-gray-50 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all"
+                          title="Edit Program"
+                        >
+                          <FaEdit className="text-base" />
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(item.id, item.icon_url)}
+                          className="p-2.5 bg-gray-50 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                          title="Hapus Program"
+                        >
+                          <FaTrash className="text-base" />
+                        </button>
+                      </div>
+                    </TableCell>
+                  </motion.tr>
+                ))
+              )}
+            </AnimatePresence>
+          </TableBody>
+        </Table>
+        <div className="p-6 bg-gray-50/30 border-t border-gray-50 text-[11px] font-bold text-gray-400 uppercase tracking-widest text-center">
+          Dikelola oleh sistem Bank Jatah Indonesia • © {new Date().getFullYear()}
+        </div>
       </div>
-
-      {/* Footer */}
-      <div className="text-xs text-gray-400 text-center mt-8">
-        © {new Date().getFullYear()} Dashboard Program | Bank Jatah Indonesia
-      </div>
-    </section>
+    </div>
   );
 }

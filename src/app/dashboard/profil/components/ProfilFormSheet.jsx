@@ -5,6 +5,14 @@ import { supabase } from "@/lib/supabaseClient";
 import imageCompression from "browser-image-compression";
 import Toast from "@/components/common/Toast";
 import {
+  User,
+  Briefcase,
+  Layers,
+  CheckCircle,
+  Image as ImageIcon,
+  Plus,
+} from "lucide-react";
+import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -161,7 +169,7 @@ export default function ProfilFormSheet({ isOpen, onClose, onSuccess, timId }) {
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="overflow-y-auto sm:max-w-lg">
+      <SheetContent className="overflow-y-auto sm:max-w-lg p-10">
         <SheetHeader>
           <SheetTitle className="text-2xl font-bold text-[#FB6B00]">
             {timId ? "Edit Anggota Tim" : "Tambah Anggota Tim"}
@@ -186,43 +194,56 @@ export default function ProfilFormSheet({ isOpen, onClose, onSuccess, timId }) {
 
         <form onSubmit={handleSubmit} className="space-y-5 mt-6 pb-6 relative">
           {/* Upload Foto */}
-          <div>
-            <label className="block mb-2 font-semibold text-gray-700">
+          <div className="space-y-3">
+            <label className="flex items-center gap-2 text-sm font-bold text-gray-900 uppercase tracking-widest ml-1">
+              <ImageIcon className="w-4 h-4 text-[#FB6B00]" />
               Foto Anggota
             </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="mb-3 w-full file:bg-[#FB6B00] file:text-white text-gray-600 file:py-2 file:px-4 file:rounded-full file:border-0 hover:file:bg-orange-600"
-            />
-            {preview && (
-              <img
-                src={preview}
-                alt="Preview"
-                className="w-full h-64 object-cover rounded-lg shadow-sm border"
+            <div className="relative group/upload">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               />
-            )}
+              <div className="border-2 border-dashed border-gray-200 group-hover/upload:border-[#FB6B00] rounded-2xl p-8 transition-all flex flex-col items-center justify-center bg-gray-50 group-hover/upload:bg-orange-50/30">
+                {preview ? (
+                  <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg">
+                    <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-[#FB6B00] mb-3">
+                    <Plus className="w-8 h-8" />
+                  </div>
+                )}
+                <p className="mt-4 text-sm font-semibold text-gray-900">
+                  {preview ? "Ganti Foto Anggota" : "Unggah Foto Anggota"}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">PNG, JPG atau WebP (Maks. 2MB)</p>
+              </div>
+            </div>
           </div>
 
           {/* Nama */}
-          <div>
-            <label className="block mb-2 font-semibold text-gray-700">
-              Nama
+          <div className="space-y-3">
+            <label className="flex items-center gap-2 text-sm font-bold text-gray-900 uppercase tracking-widest ml-1">
+              <User className="w-4 h-4 text-[#FB6B00]" />
+              Nama Lengkap
             </label>
             <input
               name="nama"
               value={form.nama}
               onChange={handleChange}
               required
-              placeholder="Masukkan nama anggota"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-[#FB6B00] focus:ring-1 focus:ring-[#FB6B00] outline-none"
+              placeholder="Contoh: Budi Santoso"
+              className="w-full border-2 border-gray-100 rounded-[1.2rem] px-5 py-3.5 focus:border-[#FB6B00] focus:ring-0 outline-none bg-gray-50/50 hover:bg-white transition-all font-medium text-gray-900 placeholder:text-gray-300 shadow-sm"
             />
           </div>
 
           {/* Jabatan */}
-          <div>
-            <label className="block mb-2 font-semibold text-gray-700">
+          <div className="space-y-3">
+            <label className="flex items-center gap-2 text-sm font-bold text-gray-900 uppercase tracking-widest ml-1">
+              <Briefcase className="w-4 h-4 text-[#FB6B00]" />
               Jabatan
             </label>
             <input
@@ -230,21 +251,22 @@ export default function ProfilFormSheet({ isOpen, onClose, onSuccess, timId }) {
               value={form.jabatan}
               onChange={handleChange}
               required
-              placeholder="Masukkan jabatan anggota"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-[#FB6B00] focus:ring-1 focus:ring-[#FB6B00] outline-none"
+              placeholder="Contoh: CEO & Founder"
+              className="w-full border-2 border-gray-100 rounded-[1.2rem] px-5 py-3.5 focus:border-[#FB6B00] focus:ring-0 outline-none bg-gray-50/50 hover:bg-white transition-all font-medium text-gray-900 placeholder:text-gray-300 shadow-sm"
             />
           </div>
 
           {/* Kategori */}
-          <div>
-            <label className="block mb-2 font-semibold text-gray-700">
-              Kategori
+          <div className="space-y-3">
+            <label className="flex items-center gap-2 text-sm font-bold text-gray-900 uppercase tracking-widest ml-1">
+              <Layers className="w-4 h-4 text-[#FB6B00]" />
+              Kategori Tim
             </label>
             <select
               name="kategori"
               value={form.kategori}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-[#FB6B00] outline-none bg-white"
+              className="w-full border-2 border-gray-100 rounded-[1.2rem] px-5 py-3.5 focus:border-[#FB6B00] outline-none bg-gray-50/50 hover:bg-white transition-all font-medium text-gray-900 shadow-sm cursor-pointer"
             >
               <option value="Tim Utama">Tim Utama</option>
               <option value="Tim Unit Bisnis">Tim Unit Bisnis</option>
@@ -252,20 +274,21 @@ export default function ProfilFormSheet({ isOpen, onClose, onSuccess, timId }) {
           </div>
 
           {/* Status */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 bg-gray-50/50 p-4 rounded-2xl border-2 border-gray-100/50 hover:border-[#FB6B00]/30 transition-all">
             <input
               type="checkbox"
               id="status"
               name="status"
               checked={form.status}
               onChange={handleChange}
-              className="w-4 h-4 text-[#FB6B00] border-gray-300 rounded focus:ring-[#FB6B00]"
+              className="w-5 h-5 text-[#FB6B00] border-gray-300 rounded-lg focus:ring-0 cursor-pointer"
             />
             <label
               htmlFor="status"
-              className="font-medium text-gray-700 select-none cursor-pointer"
+              className="flex items-center gap-2 font-bold text-gray-900 text-sm tracking-wide select-none cursor-pointer"
             >
-              Aktif (Ditampilkan)
+              <CheckCircle className={`w-4 h-4 ${form.status ? 'text-green-500' : 'text-gray-300'}`} />
+              Aktif & Ditampilkan di Website
             </label>
           </div>
 

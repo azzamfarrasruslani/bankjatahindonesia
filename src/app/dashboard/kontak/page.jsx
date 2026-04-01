@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabaseClient";
 import {
   FaWhatsapp,
   FaFacebook,
@@ -10,30 +9,33 @@ import {
   FaPhoneAlt,
   FaEdit,
   FaTimes,
+  FaSave,
 } from "react-icons/fa";
+import { fetchKontak, updateKontak } from "@/lib/services/kontakService";
+import { Skeleton } from "@/components/ui/skeleton";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function ManajemenKontakPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [kontak, setKontak] = useState(null);
   const [tempData, setTempData] = useState({});
-
-  // Fetch kontak dari Supabase
-  const fetchKontak = async () => {
-    const { data, error } = await supabase
-      .from("kontak")
-      .select("*")
-      .order("id", { ascending: true })
-      .limit(1)
-      .single(); // Ambil kontak pertama saja
-    if (error) console.error(error);
-    else {
-      setKontak(data);
-      setTempData(data);
-    }
-  };
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetchKontak();
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchKontak();
+        setKontak(data);
+        setTempData(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
   }, []);
 
   const handleChange = (e) => {
@@ -42,25 +44,17 @@ export default function ManajemenKontakPage() {
   };
 
   const handleSave = async () => {
-    if (!kontak) {
-      // Insert baru jika belum ada
-      const { data, error } = await supabase
-        .from("kontak")
-        .insert([tempData])
-        .select();
-      if (error) alert("Error: " + error.message);
-      else setKontak(data[0]);
-    } else {
-      // Update kontak
-      const { data, error } = await supabase
-        .from("kontak")
-        .update(tempData)
-        .eq("id", kontak.id)
-        .select(); // <- wajib agar data tersedia
-      if (error) alert("Error: " + error.message);
-      else setKontak(data[0]);
+    if (!kontak?.id) return;
+    try {
+      setSaving(true);
+      const updated = await updateKontak(kontak.id, tempData);
+      setKontak(updated);
+      setIsEditing(false);
+    } catch (err) {
+      alert("Gagal menyimpan: " + err.message);
+    } finally {
+      setSaving(false);
     }
-    setIsEditing(false);
   };
 
   const handleCancel = () => {
@@ -68,197 +62,130 @@ export default function ManajemenKontakPage() {
     setIsEditing(false);
   };
 
-  if (!kontak) return <p>Loading...</p>;
+  if (loading) {
+    return (
+      <div className="space-y-8 animate-in fade-in duration-700">
+        <Skeleton className="h-[120px] w-full rounded-[2rem]" />
+        <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 grid md:grid-cols-2 gap-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 rounded-2xl" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <section className="min-h-screen bg-gradient-to-b from-orange-50 to-white px-6 py-10 md:p-12">
-      {/* Header */}
-      <div className="max-w-4xl mx-auto mb-10 border-b border-orange-200 pb-4 flex justify-between items-center">
+    <div className="space-y-8 animate-in fade-in duration-700">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
         <div>
-          <h1 className="text-3xl font-bold text-[#FB6B00]">
-            Manajemen Kontak
+          <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+            Manajemen <span className="text-[#FB6B00]">Kontak</span>
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-gray-500 mt-1 font-medium">
             Kelola seluruh informasi kontak resmi Bank Jatah Indonesia.
           </p>
         </div>
-        <button
-          onClick={() => setIsEditing(!isEditing)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-white shadow-sm transition-all ${
-            isEditing
-              ? "bg-red-500 hover:bg-red-600"
-              : "bg-[#FB6B00] hover:bg-orange-700"
-          }`}
-        >
-          {isEditing ? <FaTimes /> : <FaEdit />}{" "}
-          {isEditing ? "Batal" : "Edit Kontak"}
-        </button>
+        <div className="flex gap-3">
+          {isEditing ? (
+            <>
+              <button
+                onClick={handleCancel}
+                className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-600 px-6 py-3.5 rounded-2xl transition-all duration-300 font-bold"
+              >
+                <FaTimes /> Batal
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3.5 rounded-2xl shadow-[0_10px_20px_rgba(251,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(251,107,0,0.3)] transition-all duration-300 font-bold disabled:opacity-50"
+              >
+                <FaSave /> {saving ? "Menyimpan..." : "Simpan Perubahan"}
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="flex items-center gap-2 bg-[#FB6B00] hover:bg-orange-600 text-white px-6 py-3.5 rounded-2xl shadow-[0_10px_20px_rgba(251,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(251,107,0,0.3)] transition-all duration-300 font-bold"
+            >
+              <FaEdit /> Edit Informasi Kontak
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Kontak */}
-      <div className="max-w-4xl mx-auto bg-white p-6 rounded-2xl shadow-md border border-orange-100">
-        <div className="grid sm:grid-cols-2 gap-6">
-          {/** WhatsApp **/}
-          <div className="flex items-center gap-3 p-4 border border-gray-100 rounded-xl bg-orange-50/30 hover:shadow-sm transition">
-            <FaWhatsapp className="text-green-500 text-2xl" />
-            <div className="flex-1">
-              <p className="text-sm text-gray-500">WhatsApp</p>
-              {isEditing ? (
-                <input
-                  type="text"
-                  name="whatsapp"
-                  value={tempData.whatsapp || ""}
-                  onChange={handleChange}
-                  className="mt-1 w-full px-3 py-1 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-[#FB6B00] focus:outline-none"
-                />
-              ) : (
-                <p className="font-medium text-gray-700">{kontak.whatsapp}</p>
-              )}
-            </div>
-          </div>
-
-          {/** Email **/}
-          <div className="flex items-center gap-3 p-4 border border-gray-100 rounded-xl bg-orange-50/30 hover:shadow-sm transition">
-            <FaEnvelope className="text-[#FB6B00] text-2xl" />
-            <div className="flex-1">
-              <p className="text-sm text-gray-500">Email</p>
-              {isEditing ? (
-                <input
-                  type="email"
-                  name="email"
-                  value={tempData.email || ""}
-                  onChange={handleChange}
-                  className="mt-1 w-full px-3 py-1 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-[#FB6B00] focus:outline-none"
-                />
-              ) : (
-                <p className="font-medium text-gray-700">{kontak.email}</p>
-              )}
-            </div>
-          </div>
-
-          {/** Telepon **/}
-          <div className="flex items-center gap-3 p-4 border border-gray-100 text-gray-600 rounded-xl bg-orange-50/30 hover:shadow-sm transition">
-            <FaPhoneAlt className="text-blue-500 text-2xl" />
-            <div className="flex-1">
-              <p className="text-sm text-gray-500">Nomor Telepon</p>
-              {isEditing ? (
-                <input
-                  type="text"
-                  name="telepon"
-                  value={tempData.telepon || ""}
-                  onChange={handleChange}
-                  className="mt-1 w-full px-3 py-1 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-[#FB6B00] focus:outline-none"
-                />
-              ) : (
-                <p className="font-medium text-gray-700">{kontak.telepon}</p>
-              )}
-            </div>
-          </div>
-
-          {/** Facebook **/}
-          <div className="flex items-center gap-3 p-4 border border-gray-100 text-gray-600 rounded-xl bg-orange-50/30 hover:shadow-sm transition">
-            <FaFacebook className="text-blue-600 text-2xl" />
-            <div className="flex-1">
-              <p className="text-sm text-gray-500">Facebook</p>
-              {isEditing ? (
-                <input
-                  type="url"
-                  name="facebook"
-                  value={tempData.facebook || ""}
-                  onChange={handleChange}
-                  className="mt-1 w-full px-3 py-1 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-[#FB6B00] focus:outline-none"
-                />
-              ) : (
-                <a
-                  href={kontak.facebook}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-[#FB6B00] hover:underline"
+      {/* Content Section */}
+      <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
+        <div className="grid md:grid-cols-2 gap-8">
+          <AnimatePresence mode="wait">
+            <motion.div 
+              layout
+              className="grid gap-6"
+            >
+              {[
+                { name: "whatsapp", label: "WhatsApp", icon: FaWhatsapp, color: "text-green-500", bg: "bg-green-50" },
+                { name: "email", label: "Email", icon: FaEnvelope, color: "text-[#FB6B00]", bg: "bg-orange-50" },
+                { name: "telepon", label: "Nomor Telepon", icon: FaPhoneAlt, color: "text-blue-500", bg: "bg-blue-50" },
+                { name: "facebook", label: "Facebook", icon: FaFacebook, color: "text-blue-600", bg: "bg-blue-50/50" },
+                { name: "instagram", label: "Instagram", icon: FaInstagram, color: "text-pink-500", bg: "bg-pink-50" },
+                { name: "whatsapp_link", label: "Link WhatsApp", icon: FaWhatsapp, color: "text-green-600", bg: "bg-emerald-50" },
+              ].map((item) => (
+                <div 
+                  key={item.name}
+                  className={`flex items-center gap-5 p-6 rounded-[1.5rem] border border-gray-50 transition-all duration-300 ${isEditing ? 'bg-gray-50 ring-2 ring-transparent focus-within:ring-[#FB6B00]/20 focus-within:border-[#FB6B00]/30' : 'hover:bg-gray-50/50'}`}
                 >
-                  {kontak.facebook}
-                </a>
-              )}
-            </div>
-          </div>
+                  <div className={`w-14 h-14 ${item.bg} ${item.color} rounded-2xl flex items-center justify-center text-2xl shadow-sm`}>
+                    <item.icon />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">
+                      {item.label}
+                    </p>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name={item.name}
+                        value={tempData[item.name] || ""}
+                        onChange={handleChange}
+                        className="w-full bg-transparent border-none p-0 text-gray-900 font-bold focus:ring-0 placeholder:text-gray-300"
+                        placeholder={`Masukkan ${item.label}...`}
+                      />
+                    ) : (
+                      <p className="text-gray-900 font-bold truncate">
+                        {kontak?.[item.name] || <span className="text-gray-300 italic font-medium">Belum diisi</span>}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
 
-          {/** Instagram **/}
-          <div className="flex items-center gap-3 p-4 border border-gray-100 text-gray-600 rounded-xl bg-orange-50/30 hover:shadow-sm transition">
-            <FaInstagram className="text-pink-500 text-2xl" />
-            <div className="flex-1">
-              <p className="text-sm text-gray-500">Instagram</p>
-              {isEditing ? (
-                <input
-                  type="url"
-                  name="instagram"
-                  value={tempData.instagram || ""}
-                  onChange={handleChange}
-                  className="mt-1 w-full px-3 py-1 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-[#FB6B00] focus:outline-none"
-                />
-              ) : (
-                <a
-                  href={kontak.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-[#FB6B00] hover:underline"
-                >
-                  {kontak.instagram}
-                </a>
-              )}
+          {/* Info Card */}
+          <div className="bg-[#FB6B00]/5 rounded-[2rem] p-10 border border-[#FB6B00]/10 flex flex-col justify-center text-center space-y-6">
+            <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center mx-auto shadow-sm">
+              <FaPhoneAlt className="text-3xl text-[#FB6B00]" />
             </div>
-          </div>
-
-          {/** WhatsApp Link **/}
-          <div className="flex items-center gap-3 p-4 border border-gray-100 rounded-xl bg-orange-50/30 hover:shadow-sm transition">
-            <FaWhatsapp className="text-green-500 text-2xl" />
-            <div className="flex-1">
-              <p className="text-sm text-gray-500">Link WhatsApp</p>
-              {isEditing ? (
-                <input
-                  type="url"
-                  name="whatsapp_link"
-                  value={tempData.whatsapp_link || ""}
-                  onChange={handleChange}
-                  placeholder="https://wa.link/xxxxx"
-                  className="mt-1 w-full px-3 py-1 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-[#FB6B00] focus:outline-none"
-                />
-              ) : tempData.whatsapp_link ? (
-                <a
-                  href={kontak.whatsapp_link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-[#25D366] hover:underline"
-                >
-                  {kontak.whatsapp_link}
-                </a>
-              ) : (
-                <p className="font-medium text-gray-400 italic">Belum diisi</p>
-              )}
+            <div>
+              <h3 className="text-2xl font-black text-gray-900">Pusat Informasi</h3>
+              <p className="text-gray-500 mt-2 font-medium leading-relaxed">
+                Informasi kontak ini akan ditampilkan secara publik di website utama Bank Jatah Indonesia. Pastikan data yang dimasukkan sudah benar dan valid.
+              </p>
+            </div>
+            <div className="pt-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full text-[11px] font-bold text-[#FB6B00] shadow-sm uppercase tracking-wider">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                Sistem Kontak Aktif
+              </div>
             </div>
           </div>
         </div>
 
-        {isEditing && (
-          <div className="flex justify-end mt-8 gap-3">
-            <button
-              onClick={handleCancel}
-              className="flex items-center gap-2 px-5 py-2 bg-gray-200  text-gray-700 rounded-xl hover:bg-gray-300 transition"
-            >
-              Batal
-            </button>
-            <button
-              onClick={handleSave}
-              className="flex items-center gap-2 px-5 py-2 bg-[#FB6B00] text-white rounded-xl hover:bg-orange-700 transition"
-            >
-              Simpan
-            </button>
-          </div>
-        )}
+        <div className="mt-8 p-6 bg-gray-50/30 border-t border-gray-50 text-[11px] font-bold text-gray-400 uppercase tracking-widest text-center">
+          Terakhir diperbarui: {kontak?.updated_at ? new Date(kontak.updated_at).toLocaleString("id-ID") : "-"}
+        </div>
       </div>
-
-      {/* Footer */}
-      <div className="text-xs text-gray-400 text-center mt-10">
-        © {new Date().getFullYear()} Manajemen Kontak | Bank Jatah Indonesia
-      </div>
-    </section>
+    </div>
   );
 }
