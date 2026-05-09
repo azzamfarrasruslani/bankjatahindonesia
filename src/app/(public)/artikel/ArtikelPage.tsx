@@ -1,0 +1,19 @@
+"use client";
+
+import HeroSection from "@/components/common/HeroSection";
+import { ArtikelGrid } from "@/features/artikel";
+
+export default function ArtikelPage() {
+  return (
+    <div className="bg-white text-gray-800">
+      {/* Hero Section */}
+      <HeroSection
+        title="Artikel & Wawasan"
+        description="Jelajahi kumpulan artikel, wawasan mendalam, dan berita terkini mengenai pengelolaan jelantah, ekonomi sirkular, dan dampak program Bank Jatah Indonesia."
+        imageUrl="/images/artikel.jpeg"
+      />
+      {/* Grid Artikel Utama */}
+      <ArtikelGrid />
+    </div>
+  );
+}

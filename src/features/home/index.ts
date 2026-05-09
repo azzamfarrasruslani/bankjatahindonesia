@@ -1,0 +1,9 @@
+export { default as ArtikelSection } from './components/ArtikelSection';
+export { default as CaraKerja } from './components/CaraKerja';
+export { default as FAQ } from './components/FAQ';
+export { default as Hero } from './components/Hero';
+export { default as ManfaatJelantah } from './components/ManfaatJelantah';
+export { default as Mitra } from './components/Mitra';
+export { default as ParallaxSection } from './components/ParallaxSection';
+export { default as ProgramBankJatah } from './components/ProgramBankJatah';
+export { default as TestimoniMasyarakat } from './components/TestimoniMasyarakat';

@@ -1,0 +1,26 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+
+export default function Logo({ size = 140, asLink = true }: any) {
+  const content = (
+    <Image
+      src="/images/logo2.png" // Pastikan file ini ADA di folder /public/images/
+      alt="Logo Bank Jatah Indonesia"
+      width={size}
+      height={size / 3}
+      priority
+    />
+  );
+
+  if (!asLink) {
+    return <div className="flex items-center gap-2">{content}</div>;
+  }
+
+  return (
+    <Link href="/" className="flex items-center gap-2">
+      {content}
+    </Link>
+  );
+}
