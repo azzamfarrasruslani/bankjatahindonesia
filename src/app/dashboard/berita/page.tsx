@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
-import BeritaFormSheet from "@/features/berita";
+import { BeritaFormSheet } from '@/features/berita';
 import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal";
 import { useBerita } from "@/features/berita";
 

@@ -1,13 +1,13 @@
 // src/app/(public)/page.jsx
 
-import Hero from "@/features/home";
-import ProgramBankJatah from "@/features/home";
-import ParallaxSection from "@/features/home";
-import ManfaatJelantah from "@/features/home";
-import Mitra from "@/features/home";
-import TestimoniMasyarakat from "@/features/home";
-import FAQ from "@/features/home";
-import ArtikelSection from "@/features/home";
+import { Hero } from '@/features/home';
+import { ProgramBankJatah } from '@/features/home';
+import { ParallaxSection } from '@/features/home';
+import { ManfaatJelantah } from '@/features/home';
+import { Mitra } from '@/features/home';
+import { TestimoniMasyarakat } from '@/features/home';
+import { FAQ } from '@/features/home';
+import { ArtikelSection } from '@/features/home';
 
 export default function Home() {
   return (

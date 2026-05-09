@@ -7,7 +7,7 @@ import {
   updateArtikel,
   fetchArtikelById,
 } from "@/features/artikel";
-import RichTextEditor from "@/features/dashboard";
+import { RichTextEditor } from '@/features/dashboard';
 import { toast } from "sonner";
 import {
   Type,

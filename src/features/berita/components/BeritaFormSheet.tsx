@@ -8,7 +8,7 @@ import {
   updateBerita,
   uploadImage
 } from "@/features/berita";
-import RichTextEditor from "@/features/dashboard";
+import { RichTextEditor } from '@/features/dashboard';
 import { toast } from "sonner";
 import { 
   Type, 

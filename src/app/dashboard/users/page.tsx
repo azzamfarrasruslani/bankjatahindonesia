@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
-import UserFormSheet from "@/features/users";
+import { UserFormSheet } from '@/features/users';
 import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal";
 import { useUser } from "@/features/users";
 

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
-import FAQFormSheet from "@/features/faq";
+import { FAQFormSheet } from '@/features/faq';
 import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal";
 import { useFAQ } from "@/features/faq";
 

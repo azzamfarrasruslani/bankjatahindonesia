@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
-import GaleriFormSheet from "@/features/galeri";
+import { GaleriFormSheet } from '@/features/galeri';
 import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal";
 import { useGaleri } from "@/features/galeri";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { Edit, Trash2, Plus, Users } from "lucide-react";
-import ProfilFormSheet from "@/features/profil";
+import { ProfilFormSheet } from '@/features/profil';
 import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal";
 import {
   Table,

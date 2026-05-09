@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
-import TestimoniFormSheet from "@/features/testimoni";
+import { TestimoniFormSheet } from '@/features/testimoni';
 import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal";
 import { useTestimoni } from "@/features/testimoni";
 

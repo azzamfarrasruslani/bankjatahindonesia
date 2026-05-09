@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import Sidebar from "@/features/dashboard";
-import Navbar from "@/features/dashboard";
+import { Sidebar } from '@/features/dashboard';
+import { Navbar } from '@/features/dashboard';
 import {
   Breadcrumb,
   BreadcrumbList,
